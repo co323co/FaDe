@@ -14,9 +14,17 @@
         android:textSize="15dp"
         android:gravity="left"/>
 
-    <view class="androidx.appcompat.app.AlertController$RecycleListView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/rv_nameList"/>
+
+    <Button
+        android:id="@+id/btn_addPerson"
+        android:padding="5dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:background="@drawable/ic_plus"
+        android:layout_gravity="center"/>
 
 </LinearLayout>

@@ -29,17 +29,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //권한 얻는 것!!!!!!!!!!!!!!!!!!!!!
-        GetPermission.verifyStoragePermissions(this);
-
-
-        if(PeopleDataList.getInstance().getPeopleDataList().size()==0)
-        {
-            PeopleDataList.getInstance().addPersonData(new PersonData("김민정"));
-            PeopleDataList.getInstance().addPersonData(new PersonData("이다빈"));
-            PeopleDataList.getInstance().addPersonData(new PersonData("권혜림"));
-        }
-
         // 사용자 ID, 이메일 주소 및 기본을 요청하도록 로그인 구성
         // 프로필. ID 및 기본 프로필은 DEFAULT_SIGN_IN에 포함되어 있습니다.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

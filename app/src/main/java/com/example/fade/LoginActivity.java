@@ -32,7 +32,6 @@ public class LoginActivity extends AppCompatActivity {
         //권한 얻는 것!!!!!!!!!!!!!!!!!!!!!
         GetPermission.verifyStoragePermissions(this);
 
-
         // 사용자 ID, 이메일 주소 및 기본을 요청하도록 로그인 구성
         // 프로필. ID 및 기본 프로필은 DEFAULT_SIGN_IN에 포함되어 있습니다.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

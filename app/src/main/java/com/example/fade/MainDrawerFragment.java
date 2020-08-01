@@ -40,7 +40,7 @@ public class MainDrawerFragment extends Fragment {
         personAdapter = new PersonAdapter(personList);
         rv.setAdapter(personAdapter);
 
-        AppDatabase db = Room.databaseBuilder(getContext(), AppDatabase.class, "db").build();
+        AppDatabase db =AppDatabase.getInstance(getContext());
         dao=db.personDAO();
         new SelectThraed(personList).start();
         personAdapter.notifyDataSetChanged();
@@ -97,7 +97,6 @@ public class MainDrawerFragment extends Fragment {
 class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
     ArrayList<Person> personList;
-    PersonDAO dao;
     class PVHolder extends  RecyclerView.ViewHolder {
 
         public View view;

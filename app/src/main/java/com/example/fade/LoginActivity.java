@@ -38,14 +38,17 @@ public class LoginActivity extends AppCompatActivity {
                                                                             //startActivityForResult()는 intent에 입력된 액티비티로부터 결과를 받을 때 이용하는 메소드
                                                                             //사용자가 startActivityForResult()로 호출된 액티비티 작업 다 끝내면 onActivityResult()실행된다.
 
-        /*         로그인 하면 바로 버튼 2개 화면으로 넘어가기
+                 //로그인 하면 바로 버튼 2개 화면으로 넘어가기
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this); //기존에 로그인 된 사용자 객체 얻기
         if(account!=null){
-            Intent intent=new Intent(MainActivity.this,ChoiceActivity.class);      //null이 아닌 경우 이 사용자는 이미 구글 로그인 된 상태, null 일 경우 로그인 한 적 없음
+            userAccount = account;
+            Intent intent=new Intent(LoginActivity.this,MainActivity.class);      //null이 아닌 경우 이 사용자는 이미 구글 로그인 된 상태, null 일 경우 로그인 한 적 없음
             startActivity(intent);
+            profile();
             finish();
+
         }
-        */
+
 
         setContentView(R.layout.activity_login);
         SignInButton signInButton = findViewById(R.id.sign_in_button);

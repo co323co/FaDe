@@ -34,7 +34,7 @@ public class MainDrawerFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_drawer_main,container,false);
 
         //리싸이클러뷰 만들고 설정
-        RecyclerView rv = view.findViewById(R.id.rv_nameList);
+        final RecyclerView rv = view.findViewById(R.id.rv_nameList);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(view.getContext());
         rv.setLayoutManager(linearLayoutManager);
         rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
@@ -48,7 +48,6 @@ public class MainDrawerFragment extends Fragment {
         personAdapter = new PersonAdapter(dao, personList);
         rv.setAdapter(personAdapter);
 
-        //TODO:: 인물+할때 포커스를 맨 아래로 맞춰야할 거 같음
         Button addButton = view.findViewById(R.id.btn_addPerson);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,6 +63,8 @@ public class MainDrawerFragment extends Fragment {
                 t2.start();
                 try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 personAdapter.notifyDataSetChanged();
+                //포커스를 맨 아래로 맞춰줌
+                rv.scrollToPosition(personList.size()-1);
             }
         });
         return view;

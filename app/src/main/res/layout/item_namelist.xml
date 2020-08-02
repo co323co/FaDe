@@ -25,6 +25,12 @@
             android:text="김민정"
             android:gravity="center"
             android:textSize="20dp" />
+        <Button
+            android:id="@+id/btn_subPerson"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:background="@drawable/ic_close"
+            android:layout_gravity="top"/>
 
     </LinearLayout>
 

@@ -32,27 +32,32 @@ public class MainDrawerFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_drawer_main,container,false);
-        //리싸이클러뷰 어뎁터랑 연결
+
+        //리싸이클러뷰 만들고 설정
         RecyclerView rv = view.findViewById(R.id.rv_nameList);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(view.getContext());
         rv.setLayoutManager(linearLayoutManager);
         rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
-        personAdapter = new PersonAdapter(personList);
-        rv.setAdapter(personAdapter);
 
+        //db 만들기
         AppDatabase db =AppDatabase.getInstance(getContext());
         dao=db.personDAO();
-        new SelectThraed(personList).start();
-        personAdapter.notifyDataSetChanged();
+        //personList에 DB불러오기
+        new SelectThraed(dao, personList).start();
+        //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
+        personAdapter = new PersonAdapter(dao, personList);
+        rv.setAdapter(personAdapter);
 
+        //TODO:: 인물+할때 포커스를 맨 아래로 맞춰야할 거 같음
         Button addButton = view.findViewById(R.id.btn_addPerson);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Person person = new Person("테스트"+n);
                 n++;
-                InsertThraed t1 = new InsertThraed(person);
-                SelectThraed t2 = new SelectThraed(personList);
+                InsertThraed t1 = new InsertThraed(dao, person);
+                //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
+                SelectThraed t2 = new SelectThraed(dao, personList);
                 t1.start();
                 //join은 스레드가 끝날 때까지 기다려 줌
                 try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
@@ -61,42 +66,56 @@ public class MainDrawerFragment extends Fragment {
                 personAdapter.notifyDataSetChanged();
             }
         });
-
         return view;
-    }
-
-    //UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
-    class InsertThraed extends Thread {
-        Person person;
-        public InsertThraed(Person person) {
-            this.person=person;
-        }
-        @Override
-        public void run(){
-            dao.insert(person);
-        }
-    }
-    //UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
-    //인자인 personList를 갱신해줌
-    class SelectThraed extends Thread {
-        ArrayList<Person> personList;
-        public SelectThraed(ArrayList<Person> personList) {
-            this.personList = personList;
-        }
-        @Override
-        public void run(){
-            this.personList.clear();
-            this.personList.addAll(dao.getAll());
-        }
     }
 }
 
-
+//UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
+class InsertThraed extends Thread {
+    PersonDAO dao;
+    Person person;
+    public InsertThraed(PersonDAO dao, Person person) {
+        this.dao = dao;
+        this.person=person;
+    }
+    @Override
+    public void run(){
+        dao.insert(person);
+    }
+}
+//UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
+//인자인 personList를 갱신해줌
+class SelectThraed extends Thread {
+    PersonDAO dao;
+    ArrayList<Person> personList;
+    public SelectThraed(PersonDAO dao, ArrayList<Person> personList) {
+        this.dao = dao;
+        this.personList = personList;
+    }
+    @Override
+    public void run(){
+        this.personList.clear();
+        this.personList.addAll(dao.getAll());
+    }
+}
+class DeleteThraed extends Thread {
+    PersonDAO dao;
+    Person person;
+    public DeleteThraed(PersonDAO dao, Person person) {
+        this.dao=dao;
+        this.person = person;}
+    @Override
+    public void run(){
+        dao.delete(this.person);
+    }
+}
 
 //PersonRecyclerViewAdapter
 class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
     ArrayList<Person> personList;
+    PersonDAO dao;
+
     class PVHolder extends  RecyclerView.ViewHolder {
 
         public View view;
@@ -106,9 +125,13 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
         }
     }
 
-    PersonAdapter(ArrayList<Person> personList){
+    PersonAdapter(PersonDAO dao, ArrayList<Person> personList){
+        this.dao=dao;
         this.personList=personList;
     }
+
+
+
     @NonNull
     @Override
     public PVHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -117,10 +140,25 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
     }
 
     @Override
-    public void onBindViewHolder(@NonNull PVHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final PVHolder holder, final int position) {
 
         TextView tv_name = holder.view.findViewById(R.id.tv_nameList_name);
         tv_name.setText(personList.get(position).getName());
+
+        Button btn_subPerson = holder.view.findViewById(R.id.btn_subPerson);
+        btn_subPerson.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DeleteThraed t1 = new DeleteThraed(dao, personList.get(position));
+                //꼭 삭제하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
+                SelectThraed t2 = new SelectThraed(dao, personList);
+                t1.start();
+                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                t2.start();
+                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                notifyDataSetChanged();
+            }
+        });
 
     }
 

@@ -5,21 +5,20 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity
-public class Person {
+public class Group {
 
     @PrimaryKey(autoGenerate=true)
-    private int pid;
+    private int gid;
     @ColumnInfo
     private String name;
 
-    public Person(String name){
+    public Group(String name){
         this.name=name;
     }
 
-    public int getPid() {return  pid;}
-    public void setPid(int pid) {this.pid=pid;}
+    public int getGid() {return  gid;}
+    public void setGid(int gid) {this.gid=gid;}
     public String getName() {return name;}
     public void setName(String name) {this.name=name;}
+
 }
-
-

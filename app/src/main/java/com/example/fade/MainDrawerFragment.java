@@ -65,6 +65,8 @@ public class MainDrawerFragment extends Fragment {
                 personAdapter.notifyDataSetChanged();
                 //포커스를 맨 아래로 맞춰줌
                 rv.scrollToPosition(personList.size()-1);
+                //메인엑티비티의 그룹리스트뷰도 새로고침해줌. 그룹에 사람 추가할 때, 방금 추가한 사람은 보기에 안뜰까 봐임
+               ((MainActivity)MainActivity.CONTEXT).onResume();
             }
         });
         return view;
@@ -158,6 +160,9 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                 t2.start();
                 try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 notifyDataSetChanged();
+                //인물리스트가 바뀌었으니 삭제되었을 것을 대비해 그룹리스트뷰도 새로고침 해준다.
+                //TODO::인물리스트에서 삭제된 애는 CASCADE해줌 (그룹리스트에서도 삭제해줌) 만약 그룹리스트가 사이즈가 0이면 그룹삭제해줌
+                ((MainActivity)MainActivity.CONTEXT).onResume();
             }
         });
 

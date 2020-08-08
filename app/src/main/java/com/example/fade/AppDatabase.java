@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 
 public  class AppDatabase{}
 
@@ -31,6 +32,7 @@ abstract class PersonDatabase extends RoomDatabase {
 
 //Group DB임
 @Database(entities = {Group.class}, version = 1)
+@TypeConverters({Converters.class})
 abstract class GroupDatabase extends RoomDatabase {
 
     //호출하면 DAO를 반환함

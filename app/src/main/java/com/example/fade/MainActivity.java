@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,8 +32,12 @@ import static androidx.core.content.ContextCompat.getSystemService;
 
 public class MainActivity extends AppCompatActivity {
 
+    //다른 Actrivity or Fragment에서 메인의 그룹리싸이클러뷰를 새로고침 하기 위함
+    public  static Context CONTEXT;
+
     DrawerLayout drawerLayout;
 
+    RecyclerView rv;
     GroupAdapter groupAdapter;
     GroupDAO dao;
     ArrayList<Group> groupList=new ArrayList<Group>();
@@ -42,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        CONTEXT=this;
 
         //서랍에 연결해주면, 원래 배경은 어차피 서랍에서 백(activity_main.xml)으로 인클루드 해줌
         setContentView(R.layout.drawer_main);
@@ -59,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout_main);
 
         //그룹을 보여줄 리스트뷰 만들기
-        final RecyclerView rv = findViewById(R.id.rv_groupList);
+        rv = findViewById(R.id.rv_groupList);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(linearLayoutManager);
 
@@ -115,6 +122,12 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         //다른 아이템이 클릭되었을 시 닫아줌
         drawerLayout.closeDrawer(GravityCompat.START);
+    }
+
+    public void onResume(){
+        super.onResume();
+        rv.removeAllViewsInLayout();
+        rv.setAdapter(groupAdapter);
     }
 }
 
@@ -183,16 +196,39 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         public GVHolder(@NonNull final View itemView) {
             super(itemView);
             view=itemView;
-
+            Button btn_view = (Button)view.findViewById(R.id.btn_groupView);
             //아이템뷰의 클릭이벤트
-            view.setOnClickListener(new View.OnClickListener() {
+            btn_view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    toggleLayout(isExpanded,view,(LinearLayout)view.findViewById(R.id.layoutExpand));
                     if  (isExpanded==false) isExpanded=true;
                     else isExpanded=false;
+                    toggleLayout(isExpanded,itemView,(LinearLayout)itemView.findViewById(R.id.layoutExpand));
                 }
             });
+
+            //프로필리싸이클러뷰 생성 과정
+            ProfileAdapter profileAdapter;
+            PersonDAO dao;
+            ArrayList<Person> personList=new ArrayList<Person>();
+
+            //리싸이클러뷰 만들고 설정
+            final RecyclerView rv = view.findViewById(R.id.rv_group_profile);
+            //수평으로 되게
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(view.getContext(),LinearLayoutManager.HORIZONTAL,false);
+            rv.setLayoutManager(linearLayoutManager);
+            //rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
+
+            //db 만들기
+            PersonDatabase db =PersonDatabase.getInstance(view.getContext());
+            dao=db.personDAO();
+            //personList에 DB불러오기
+            SelectPersonThraed t = new SelectPersonThraed(dao, personList);
+            t.start();
+            try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+            //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
+            profileAdapter = new ProfileAdapter(dao, personList);
+            rv.setAdapter(profileAdapter);
         }
     }
 
@@ -217,6 +253,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         //연필 버튼 눌렀을 때 그룹이름을 수정하게 해주는 부분
         final ImageButton ibtn_edit = holder.view.findViewById(R.id.ibtn_editGroupName);
         final ImageButton ibtn_check = holder.view.findViewById(R.id.ibtn_editCheck);
+
         //연필버튼을 누르면 연필버튼을 없애고 체크버튼을 나타냄. 그리고 이름을 수정 가능하게 함
         ibtn_edit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -231,9 +268,6 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                 //키보드 올리는 코드
                 InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-
-
-
             }
         });
         //체크버튼을 누르면 이름 수정이 완료되고 DB에 반영됨. 체크버튼이 사라지고 다시 연필버튼이 나타남
@@ -252,8 +286,8 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         });
 
         //그룹X버튼을 눌렀을 때 동작 (그룹을 삭제함)
-        Button btn_subGroup = holder.view.findViewById(R.id.btn_subGroup);
-        btn_subGroup.setOnClickListener(new View.OnClickListener() {
+        ImageButton ibtn_subGroup = holder.view.findViewById(R.id.ibtn_subGroup);
+        ibtn_subGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 DeleteGroupThraed t1 = new DeleteGroupThraed(dao, groupList.get((position)));
@@ -282,5 +316,59 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         }
         return isExpanded;
 
+    }
+}
+
+class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
+
+    ArrayList<Person> personList;
+    PersonDAO dao;
+
+    public class PVHolder extends RecyclerView.ViewHolder{
+        public View view;
+        public PVHolder(@NonNull View itemView) {
+            super(itemView);
+            this.view=itemView;
+        }
+    }
+
+    ProfileAdapter(PersonDAO dao, ArrayList<Person> personList){
+        this.dao=dao;
+        this.personList=personList;
+    }
+
+    @NonNull
+    @Override
+    public PVHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_group_profile, parent, false);
+        return new PVHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull PVHolder holder, int position) {
+
+        TextView tv_name = holder.view.findViewById(R.id.tv_group_profileName);
+        tv_name.setText(personList.get(position).getName());
+    }
+
+    @Override
+    public int getItemCount() {
+        return personList.size();
+    }
+
+
+}
+
+class SelectPersonThraed extends Thread {
+    PersonDAO dao;
+    ArrayList<Person> personList;
+    public SelectPersonThraed(PersonDAO dao, ArrayList<Person> personList) {
+        this.dao = dao;
+        this.personList = personList;
+    }
+    @Override
+    public void run(){
+        this.personList.clear();
+        this.personList.addAll(dao.getAll());
     }
 }

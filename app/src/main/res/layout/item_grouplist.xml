@@ -14,77 +14,67 @@
     android:layout_marginBottom="15dp">
 
     <LinearLayout
-        android:padding="10dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!--상단부!-->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <EditText
-                android:id="@+id/et_groupList_name"
-                android:enabled="false"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="5dp"
-                android:text="그룹이름"
-                android:textColor="#8F040404"
-                android:background="@null"
-                android:textSize="20dp"
-                android:layout_weight="1"/>
 
-            <Button
-                android:id="@+id/btn_subGroup"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
-                android:background="@drawable/ic_close"
-                android:layout_gravity="right"/>
-        </LinearLayout>
-
-        <!--하단부!-->
+        <!--(기존부)-->
         <LinearLayout
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
+            android:translationZ="1dp"
+            android:padding="10dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <!-- 프로필사진+이름 덩어리!-->
-            <LinearLayout
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-                <ImageView
-                    android:id="@+id/iv_groupList_profileImgae"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:src="@drawable/ic_profile"/>
-                <TextView
-                    android:id="@+id/tv_groupList_profileName"
-                    android:layout_width="wrap_content"
+                <!--translationZ는 프레임레이아웃 겹침 순서!-->
+                <!--X버튼!-->
+                <ImageButton
+                    android:id="@+id/ibtn_subGroup"
+                    android:translationZ="3dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:padding="3dp"
+                    android:scaleType="fitCenter"
+                    android:layout_margin="8dp"
+                    android:src="@drawable/ic_close"
+                    android:background="@color/clear"
+                    android:layout_gravity="right"/>
+
+                <!--뷰클릭을 위한 버튼!-->
+                <Button
+                    android:id="@+id/btn_groupView"
+                    android:translationZ="2dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/clear"/>
+
+                <EditText
+                    android:id="@+id/et_groupList_name"
+                    android:translationZ="1dp"
+                    android:enabled="false"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="이름"/>
+                    android:padding="5dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="5dp"
+                    android:text="그룹이름"
+                    android:textColor="#8F040404"
+                    android:background="@null"
+                    android:textSize="20dp"/>
 
-            </LinearLayout>
+            </FrameLayout>
 
-
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_group_profile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
         </LinearLayout>
-
-
-
         <!--확장!-->
         <LinearLayout
             android:id="@+id/layoutExpand"
@@ -93,13 +83,13 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
             <ImageView
-                android:layout_marginTop="10dp"
                 android:layout_marginBottom="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="0.7dp"
                 android:background="#2F000000"
                 tools:ignore="Suspicious0dp" />
             <LinearLayout
+                android:layout_margin="4dp"
                 android:layout_width="match_parent"
                 android:layout_height="45dp"
                 android:orientation="horizontal"
@@ -179,4 +169,5 @@
 
 
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>

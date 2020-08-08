@@ -6,4 +6,5 @@
     <color name="sky">#7AB1C3</color>
     <color name="gray">#E8E4E4</color>
     <color name="white">#FFFFFF</color>
+    <color name="clear">#00000000</color>
 </resources>

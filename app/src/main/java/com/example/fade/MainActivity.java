@@ -10,16 +10,23 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+
+import static androidx.core.content.ContextCompat.getSystemService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -151,6 +158,17 @@ class DeleteGroupThraed extends Thread {
     }
 }
 
+class UpdateGroupThraed extends Thread {
+    GroupDAO dao;
+    Group  group;
+    public UpdateGroupThraed(GroupDAO dao, Group group) {
+        this.dao=dao;
+        this.group = group;}
+    @Override
+    public void run(){
+        dao.update(this.group);
+    }
+}
 
 class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
@@ -188,9 +206,47 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
     @Override
     public void onBindViewHolder(@NonNull GVHolder holder, final int position) {
 
-        TextView tv_name = holder.view.findViewById(R.id.tv_groupList_name);
-        tv_name.setText(groupList.get(position).getName());
+        final EditText et_name = holder.view.findViewById(R.id.et_groupList_name);
+        et_name.setText(groupList.get(position).getName());
 
+        //연필 버튼 눌렀을 때 그룹이름을 수정하게 해주는 부분
+        final ImageButton ibtn_edit = holder.view.findViewById(R.id.ibtn_editGroupName);
+        final ImageButton ibtn_check = holder.view.findViewById(R.id.ibtn_editCheck);
+        //연필버튼을 누르면 연필버튼을 없애고 체크버튼을 나타냄. 그리고 이름을 수정 가능하게 함
+        ibtn_edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                et_name.setEnabled(true);
+                //포커스 줌
+                et_name.requestFocus();
+                et_name.setSelection(et_name.length());
+                ibtn_check.setVisibility(View.VISIBLE);
+                ibtn_edit.setVisibility(View.GONE);
+
+                //키보드 올리는 코드
+                InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+
+
+
+            }
+        });
+        //체크버튼을 누르면 이름 수정이 완료되고 DB에 반영됨. 체크버튼이 사라지고 다시 연필버튼이 나타남
+        ibtn_check.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Group group = groupList.get(position);
+                group.setName(et_name.getText().toString());
+                new UpdateGroupThraed(dao,group).start();
+
+                et_name.setEnabled(false);
+                ibtn_check.setVisibility(View.GONE);
+                ibtn_edit.setVisibility(View.VISIBLE);
+            }
+        });
+
+        //그룹X버튼을 눌렀을 때 동작 (그룹을 삭제함)
         Button btn_subGroup = holder.view.findViewById(R.id.btn_subGroup);
         btn_subGroup.setOnClickListener(new View.OnClickListener() {
             @Override

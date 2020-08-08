@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -161,6 +162,14 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         public GVHolder(@NonNull View itemView) {
             super(itemView);
             view=itemView;
+
+            //아이템뷰의 클릭이벤트
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //view.setBackgroundColor(Color.BLUE);
+                }
+            });
         }
     }
 

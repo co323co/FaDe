@@ -12,6 +12,11 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        //카드뷰 애니메이션을 위함
+        dataBinding{
+            enabled true
+        }
     }
 
     buildTypes {
@@ -47,4 +52,9 @@ dependencies {
 
     //cardView
     implementation "com.google.android.material:material:1.0.0"
+
+    //카드뷰 애니메이션
+    implementation 'com.balysv:material-ripple:1.0.2' // for ripple effect
+    implementation 'com.squareup.picasso:picasso:2.71828' //for loading images
+    implementation 'de.hdodenhof:circleimageview:3.0.0' //circularImageView
 }

@@ -21,6 +21,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -177,7 +178,9 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
     class GVHolder extends RecyclerView.ViewHolder{
         public View view;
-        public GVHolder(@NonNull View itemView) {
+        boolean isExpanded = false;
+
+        public GVHolder(@NonNull final View itemView) {
             super(itemView);
             view=itemView;
 
@@ -185,7 +188,9 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    //view.setBackgroundColor(Color.BLUE);
+                    toggleLayout(isExpanded,view,(LinearLayout)view.findViewById(R.id.layoutExpand));
+                    if  (isExpanded==false) isExpanded=true;
+                    else isExpanded=false;
                 }
             });
         }
@@ -269,4 +274,13 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         return groupList.size();
     }
 
+    private boolean toggleLayout(boolean isExpanded, View v, LinearLayout layoutExpand) {
+        if (isExpanded) {
+            Animations.expand(layoutExpand);
+        } else {
+            Animations.collapse(layoutExpand);
+        }
+        return isExpanded;
+
+    }
 }

@@ -31,7 +31,6 @@ public class Animations {
             }
         };
 
-
         animation.setDuration((long) (actualheight / view.getContext().getResources().getDisplayMetrics().density));
 
         view.startAnimation(animation);

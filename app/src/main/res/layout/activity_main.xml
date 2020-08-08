@@ -14,8 +14,16 @@
         android:id="@+id/main_toolbar"/>
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_groupList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/rv_groupList" />
+        android:layout_weight="1"/>
+
+    <Button
+        android:id="@+id/btn_addGroup"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:background="@drawable/ic_plus"
+        android:layout_margin="10dp"/>
 
 </LinearLayout>

@@ -8,9 +8,11 @@ import androidx.room.Update;
 
 import java.util.List;
 
+public class DAO {}
+
 //인터페이스로 선언해야 함
 @Dao
-public interface PersonDAO {
+interface PersonDAO {
     @Query("SELECT * FROM Person")
     List<Person> getAll();
 
@@ -30,3 +32,23 @@ public interface PersonDAO {
     void delete(Person person);
 }
 
+@Dao
+interface GroupDAO {
+    @Query("SELECT * FROM `Group`")
+    List<Group> getAll();
+
+    @Insert
+    void insertAll(Group... group);
+
+    @Insert
+    void insert(Group group);
+
+    @Update
+    void  update(Group person);
+
+    @Query("DELETE  FROM `Group` WHERE gid = :gid")
+    void deleteById(int gid);
+
+    @Delete
+    void delete(Group group);
+}

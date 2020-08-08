@@ -40,7 +40,7 @@ public class MainDrawerFragment extends Fragment {
         rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
 
         //db 만들기
-        AppDatabase db =AppDatabase.getInstance(getContext());
+        PersonDatabase db =PersonDatabase.getInstance(getContext());
         dao=db.personDAO();
         //personList에 DB불러오기
         new SelectThraed(dao, personList).start();

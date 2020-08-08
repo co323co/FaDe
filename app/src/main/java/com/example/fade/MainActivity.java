@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
@@ -13,6 +15,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -23,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     GroupAdapter groupAdapter;
     GroupDAO dao;
     ArrayList<Group> groupList=new ArrayList<Group>();
+
+    int n=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +49,11 @@ public class MainActivity extends AppCompatActivity {
 
         drawerLayout = findViewById(R.id.drawerLayout_main);
 
-        //그룹을 보여줄 리스트뷰
-        RecyclerView rv = findViewById(R.id.rv_groupList);
+        //그룹을 보여줄 리스트뷰 만들기
+        final RecyclerView rv = findViewById(R.id.rv_groupList);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        rv.setLayoutManager(linearLayoutManager);
+
         //db 만들기
         GroupDatabase db =GroupDatabase.getInstance(getApplicationContext());
         dao=db.groupDAO();
@@ -54,23 +63,25 @@ public class MainActivity extends AppCompatActivity {
         groupAdapter = new GroupAdapter(dao, groupList);
         rv.setAdapter(groupAdapter);
 
-        Group group1 = new Group("테스트");
-        Group group2 = new Group("테스트2");
-        InsertTGroupThraed t1 = new InsertTGroupThraed(dao, group1);
-        InsertTGroupThraed t3 = new InsertTGroupThraed(dao, group2);
-        //꼭 삽입하고 리스트뷰 갱신을 위해 groupList를 바뀐 DB로 재갱신 해줘야함!
-        SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
-        t1.start();
-        //join은 스레드가 끝날 때까지 기다려 줌
-        try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-        t3.start();
-        //join은 스레드가 끝날 때까지 기다려 줌
-        try { t3.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-        t2.start();
-        try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-        groupAdapter.notifyDataSetChanged();
-
-
+        Button addButton = findViewById(R.id.btn_addGroup);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Group group = new Group("테스트"+n);
+                n++;
+                InsertTGroupThraed t1 = new InsertTGroupThraed(dao, group);
+                //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
+                SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
+                t1.start();
+                //join은 스레드가 끝날 때까지 기다려 줌
+                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                t2.start();
+                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                groupAdapter.notifyDataSetChanged();
+                //포커스를 맨 아래로 맞춰줌
+                rv.scrollToPosition(groupList.size()-1);
+            }
+        });
 
     }
 
@@ -166,7 +177,25 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
     }
 
     @Override
-    public void onBindViewHolder(@NonNull GVHolder holder, int position) {
+    public void onBindViewHolder(@NonNull GVHolder holder, final int position) {
+
+        TextView tv_name = holder.view.findViewById(R.id.tv_groupList_name);
+        tv_name.setText(groupList.get(position).getName());
+
+        Button btn_subGroup = holder.view.findViewById(R.id.btn_subGroup);
+        btn_subGroup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DeleteGroupThraed t1 = new DeleteGroupThraed(dao, groupList.get((position)));
+                //꼭 삭제하고 리스트뷰 갱신을 위해 groupList를 바뀐 DB로 재갱신 해줘야함!
+                SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
+                t1.start();
+                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                t2.start();
+                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                notifyDataSetChanged();
+            }
+        });
 
     }
 

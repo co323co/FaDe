@@ -1,5 +1,7 @@
 package com.example.fade;
 
+import android.util.Log;
+
 import com.example.fade.entity.Group;
 import com.example.fade.entity.Person;
 
@@ -43,7 +45,8 @@ public class DBThread {
         public void run(){
             this.personIdList.clear();
             Group group = dao.get(gid);
-
+            int count = dao.getCount();
+            Log.d("COUNT", ""+count);
             personIdList.addAll(group.getPersonIDList());
         }
     }

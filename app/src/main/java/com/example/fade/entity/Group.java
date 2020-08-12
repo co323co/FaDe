@@ -21,7 +21,8 @@ public class Group {
     @ColumnInfo
     private String name;
 
-    @ColumnInfo
+    @TypeConverters({Converters.class})
+    @ColumnInfo(name = "personIdList")
     private ArrayList<Integer> personIDList = new ArrayList();
 
     public Group() {

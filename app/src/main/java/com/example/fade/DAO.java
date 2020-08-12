@@ -49,8 +49,11 @@ interface GroupDAO {
     @Query("SELECT * FROM `Group`")
     List<Group> getAll();
 
-    @Query("SELECT personIDList FROM `Group` WHERE gid = :gid")
-    ArrayList<Integer> getPersonIDList(int gid);
+    @Query("SELECT * FROM `GROUP` WHERE gid = :gid")
+    Group get(int gid);
+
+    @Query("SELECT count(*) FROM `GROUP`")
+    int getCount();
 
     @Insert
     void insertAll(Group... group);

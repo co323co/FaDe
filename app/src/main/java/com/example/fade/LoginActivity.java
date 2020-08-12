@@ -96,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);
             //intent.putExtra("id", userAccount.getId());
             startActivity(intent);
-            profile();  //사용자 정보 토스트로 출력
+            //profile();  //사용자 정보 토스트로 출력
 
             // Signed in successfully, show authenticated UI.
         } catch (ApiException e) {

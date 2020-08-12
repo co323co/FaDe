@@ -21,6 +21,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 public class LoginActivity extends AppCompatActivity {
+
+    public static String UserID = null;
     private static final String TAG = "LoginActivity";
     private GoogleSignInClient mGoogleSignInClient;
     private static final int RC_SIGN_IN = 900;
@@ -110,6 +112,7 @@ public class LoginActivity extends AppCompatActivity {
         String id = userAccount.getId();
         String familyname = userAccount.getFamilyName();
         String givenname = userAccount.getGivenName();
+        UserID = userAccount.getId();
 
         Toast.makeText(getApplicationContext(),"email : " + email + "\nid = " + id + "\nfamilyname = " + familyname + "\ngivenname = " + givenname, Toast.LENGTH_SHORT).show();
     }

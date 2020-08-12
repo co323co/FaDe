@@ -31,6 +31,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.fade.entity.Group;
+import com.example.fade.entity.Person;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rv.setLayoutManager(linearLayoutManager);
 
         //db 만들기
-        GroupDatabase db =GroupDatabase.getInstance(getApplicationContext());
+        AppDatabase db =AppDatabase.getInstance(getApplicationContext());
         dao=db.groupDAO();
         //groupList에 DB불러오기
         new SelectGroupThraed(dao, groupList).start();
@@ -122,21 +124,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rv.setAdapter(groupAdapter);
     }
 
+    //다이얼로그에서 받아올 값들을 클래스로 묶어둔 것
+    class rst {
+        String name;
+        ArrayList<Integer> personIDList=new ArrayList<Integer>();
+    }
 
     //플로팅 버튼
     @Override
     public void onClick(View view) {
 
-        AddGroupDialog addGroupDialog= new AddGroupDialog(this, new CustomDialogClickListener() {
+        final rst result = new rst();
+        //다이얼로그에서 받아올 값을 생성자로 넘겨줌
+        final AddGroupDialog addGroupDialog= new AddGroupDialog(this, result, new CustomDialogClickListener() {
             @Override
             public void onPositiveClick() {
-
+                Group group = new Group(result.name, result.personIDList);
+                InsertTGroupThraed t1 = new InsertTGroupThraed(dao, group);
+                SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
+                t1.start();
+                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                t2.start();
+                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                groupAdapter.notifyDataSetChanged();
+                rv.scrollToPosition(groupList.size()-1);
             }
-
             @Override
-            public void onNegativeClick() {
-
-            }
+            public void onNegativeClick() { }
         });
         //다이얼로그 밖을 터치했을 때 다이얼로그가 꺼짐
         addGroupDialog.setCanceledOnTouchOutside(true);
@@ -145,25 +159,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //레이아웃
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
-
-
-
-
-
-//        Group group = new Group("테스트"+n);
-//        n++;
-//        InsertTGroupThraed t1 = new InsertTGroupThraed(dao, group);
-//        //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
-//        SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
-//        t1.start();
-//        //join은 스레드가 끝날 때까지 기다려 줌
-//        try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-//        t2.start();
-//        try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-//        groupAdapter.notifyDataSetChanged();
-//        //포커스를 맨 아래로 맞춰줌
-//        rv.scrollToPosition(groupList.size()-1);
-
     }
 }
 
@@ -242,29 +237,6 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                     toggleLayout(isExpanded,itemView,(LinearLayout)itemView.findViewById(R.id.layoutExpand));
                 }
             });
-
-            //프로필리싸이클러뷰 생성 과정
-            ProfileAdapter profileAdapter;
-            PersonDAO dao;
-            ArrayList<Person> personList=new ArrayList<Person>();
-
-            //리싸이클러뷰 만들고 설정
-            final RecyclerView rv = view.findViewById(R.id.rv_group_profile);
-            //수평으로 되게
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(view.getContext(),LinearLayoutManager.HORIZONTAL,false);
-            rv.setLayoutManager(linearLayoutManager);
-            //rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
-
-            //db 만들기
-            PersonDatabase db =PersonDatabase.getInstance(view.getContext());
-            dao=db.personDAO();
-            //personList에 DB불러오기
-            SelectPersonThraed t = new SelectPersonThraed(dao, personList);
-            t.start();
-            try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-            //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
-            profileAdapter = new ProfileAdapter(dao, personList);
-            rv.setAdapter(profileAdapter);
         }
     }
 
@@ -337,6 +309,38 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
             }
         });
 
+
+        //프로필리싸이클러뷰 생성 과정
+        ProfileAdapter profileAdapter;
+        PersonDAO personDao;
+        ArrayList<Integer> profileIdList=new ArrayList<Integer>();
+        ArrayList<Person> profileList=new ArrayList<Person>();
+
+        //리싸이클러뷰 만들고 설정
+        final RecyclerView rv = holder.view.findViewById(R.id.rv_group_profile);
+        //수평으로 되게
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(holder.view.getContext(),LinearLayoutManager.HORIZONTAL,false);
+        rv.setLayoutManager(linearLayoutManager);
+        //rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
+
+        //db 만들기
+        AppDatabase db =AppDatabase.getInstance(holder.view.getContext());
+        personDao=db.personDAO();
+
+
+        //현재 그룹이 가지고 있는 pid리스트를 가져오기
+        DBThread.SelectPidListByGIdThraed t1 = new DBThread.SelectPidListByGIdThraed(dao,groupList.get(position).getGid(), profileIdList);
+        t1.start();
+        try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+        //받아온 pid리스트를 통해 person리스트를 얻어옴
+//        DBThread.SelectPersonByIdListThraed t2 = new DBThread.SelectPersonByIdListThraed(personDao, groupList.get(position).getGid(), profileList);
+//        t2.start();
+//        try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        Log.d("태그", "position: " + position + "값 : "+profileIdList.get(0));
+        //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
+        profileAdapter = new ProfileAdapter(personDao, profileList);
+        rv.setAdapter(profileAdapter);
     }
 
     @Override
@@ -357,7 +361,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
 class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
 
-    ArrayList<Person> personList;
+    ArrayList<Person> itemList=new ArrayList<Person>();
     PersonDAO dao;
 
     public class PVHolder extends RecyclerView.ViewHolder{
@@ -368,9 +372,9 @@ class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
         }
     }
 
-    ProfileAdapter(PersonDAO dao, ArrayList<Person> personList){
+    ProfileAdapter(PersonDAO dao, ArrayList<Person> itemList){
         this.dao=dao;
-        this.personList=personList;
+        this.itemList=itemList;
     }
 
     @NonNull
@@ -384,12 +388,12 @@ class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
     public void onBindViewHolder(@NonNull PVHolder holder, int position) {
 
         TextView tv_name = holder.view.findViewById(R.id.tv_group_profileName);
-        tv_name.setText(personList.get(position).getName());
+        tv_name.setText(itemList.get(position).getName());
     }
 
     @Override
     public int getItemCount() {
-        return personList.size();
+        return itemList.size();
     }
 
 

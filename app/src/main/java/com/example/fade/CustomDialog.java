@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +12,15 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.fade.entity.Person;
 
 import java.util.ArrayList;
 
@@ -32,19 +36,25 @@ class AddGroupDialog extends Dialog {
     private Button mPositiveButton;
     private Button mNegativeButton;
 
+    MainActivity.rst result;
+
     private CustomDialogClickListener customDialogClickListener;
 
     //생성자 생성
-    public AddGroupDialog(@NonNull Context context, CustomDialogClickListener customDialogClickListener) {
+    public AddGroupDialog(@NonNull Context context, MainActivity.rst result, CustomDialogClickListener customDialogClickListener) {
         super(context);
         this.context=context;
         this.customDialogClickListener=customDialogClickListener;
+        this.result=result;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_add_group);
+
+        //LeftListView에서 선택됐는지 안선택됐는지를 체크해놓기 위한 배열
+        final ArrayList<Person> checkedList = new ArrayList<Person>();
 
         //셋팅
         mPositiveButton=(Button)findViewById(R.id.btn_addGroup_ok);
@@ -55,6 +65,9 @@ class AddGroupDialog extends Dialog {
         mPositiveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                result.name = ((EditText)findViewById(R.id.et_add_groupName)).getText().toString();
+                for(int i=0; i<checkedList.size(); i++) result.personIDList.add(checkedList.get(i).getPid());
+
                 customDialogClickListener.onPositiveClick();
                 dismiss();
             }
@@ -74,19 +87,18 @@ class AddGroupDialog extends Dialog {
         LinearLayoutManager linearLayoutManager2 = new LinearLayoutManager(getContext());
         rv_right.setLayoutManager(linearLayoutManager2);
 
-        final ArrayList<Person> checkedList = new ArrayList<Person>();
 
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
         final RightAdapter rightAdapter = new RightAdapter(checkedList);
         rv_right.setAdapter(rightAdapter);
 
-        //아이템클릭리스너
+        //왼쪽 스크롤 부분 and 클릭리스너 부분
         final int SELECTED_COLOR = Color.parseColor("#C3E8E4E4");
         final int DEFAULT_COLOR = Color.WHITE;
 
         final ArrayList<Person> personList=new ArrayList<Person>();
 
-        PersonDatabase db =PersonDatabase.getInstance(getContext());
+        AppDatabase db =AppDatabase.getInstance(getContext());
         PersonDAO dao =db.personDAO();
         SelectPersonThraed t  = new SelectPersonThraed(dao, personList);
         t.start();
@@ -94,7 +106,7 @@ class AddGroupDialog extends Dialog {
 
         final boolean isChecked[] = new boolean[personList.size()];
 
-        LeftListAdapter leftListAdapter = new LeftListAdapter(checkedList, rightAdapter, isChecked);
+        LeftListAdapter leftListAdapter = new LeftListAdapter(personList, isChecked);
         lv_left.setAdapter(leftListAdapter);
 
         //눌렀을 때 배경색 바뀌고 오른쪽으로 넘어가게끔
@@ -107,7 +119,7 @@ class AddGroupDialog extends Dialog {
                     isChecked[i] = true;
                     checkedList.add(personList.get(i));
                     rightAdapter.notifyDataSetChanged();
-
+                    rv_right.scrollToPosition(checkedList.size()-1);
                 }
                 else {
                     view.setBackgroundColor(DEFAULT_COLOR);
@@ -124,45 +136,25 @@ class AddGroupDialog extends Dialog {
 
         LayoutInflater mLayoutInflater = null;
 
-        ArrayList<Person> personList=new ArrayList<Person>();
-        ArrayList<Person> checkedList;
+        ArrayList<Person> personList;
         boolean isChecked[];
-        RightAdapter rightAdapter;
 
         int SELECTED_COLOR = Color.parseColor("#C3E8E4E4");
-        int DEFAULT_COLOR = Color.WHITE;
 
-        LeftListAdapter(ArrayList<Person> checkedList, RightAdapter rightAdapter, boolean isChecked[]){
-
+        LeftListAdapter(ArrayList<Person> personList, boolean isChecked[]){
             mLayoutInflater = LayoutInflater.from((context));
-
-            this.checkedList=checkedList;
-            this.rightAdapter=rightAdapter;
+            this.personList=personList;
             this.isChecked = isChecked;
-
-            //personList에 DB에서 값 불러오기
-            PersonDatabase db =PersonDatabase.getInstance(getContext());
-            PersonDAO dao =db.personDAO();
-            SelectPersonThraed t  = new SelectPersonThraed(dao, personList);
-            t.start();
-            try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-
         }
 
         @Override
-        public int getCount() {
-            return personList.size();
-        }
+        public int getCount() { return personList.size(); }
 
         @Override
-        public Object getItem(int i) {
-            return personList.get(i);
-        }
+        public Object getItem(int i) { return personList.get(i); }
 
         @Override
-        public long getItemId(int i) {
-            return i;
-        }
+        public long getItemId(int i) { return i; }
 
         @Override
         public View getView(final int i, View view, ViewGroup viewGroup) {
@@ -173,25 +165,7 @@ class AddGroupDialog extends Dialog {
             name.setText(personList.get(i).getName());
 
             if (isChecked[i]==true) view.setBackgroundColor(SELECTED_COLOR);
-
-
-//            view.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    if (view.isSelected()==false){
-//                        view.setBackgroundColor(SELECTED_COLOR);
-//                        view.setSelected(true);
-//                        checkedList.add(personList.get(i));
-//                    }
-//                    else {
-//                        view.setBackgroundColor(DEFAULT_COLOR);
-//                        view.setSelected(false);
-//                        checkedList.remove(personList.get(i));
-//                    }
-//                }
-//            });
             return view;
-
         }
     }
 
@@ -200,11 +174,11 @@ class AddGroupDialog extends Dialog {
         ArrayList<Person> checkedList;
 
         public class RVHolder extends RecyclerView.ViewHolder {
-            View view;
-            public RVHolder(@NonNull final View itemView) {
-                super(itemView);
-                this.view=itemView;
-            }
+                View view;
+                public RVHolder(@NonNull final View itemView) {
+                    super(itemView);
+                    this.view=itemView;
+                }
         }
         //어뎁터 생성자
         RightAdapter(ArrayList<Person> checkedList) {
@@ -230,4 +204,3 @@ class AddGroupDialog extends Dialog {
 
     }
 }
-

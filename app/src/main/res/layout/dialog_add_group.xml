@@ -7,6 +7,7 @@
     android:gravity="center">
 
     <EditText
+        android:id="@+id/et_add_groupName"
         android:layout_margin="10dp"
         android:hint="그룹이름"
         android:layout_width="match_parent"

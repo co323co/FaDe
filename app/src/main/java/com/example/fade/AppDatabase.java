@@ -5,46 +5,31 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.TypeConverter;
 import androidx.room.TypeConverters;
 
-public  class AppDatabase{}
+import com.example.fade.entity.Group;
+import com.example.fade.entity.Person;
 
-//Person DB임
+import java.util.ArrayList;
+import java.util.List;
+
 //추상클래스
-@Database(entities = {Person.class}, version = 1)
-abstract class PersonDatabase extends RoomDatabase {
+@Database(entities = {Person.class, Group.class}, version = 1)
+@TypeConverters(Converters.class)
+public abstract class AppDatabase extends RoomDatabase {
 
     //호출하면 DAO를 반환함
     public abstract PersonDAO personDAO();
-
-    //싱글턴화
-    private static PersonDatabase INSTANCE;
-    private  static  final Object sLock = new Object();
-    public static  PersonDatabase getInstance(Context context) {
-        synchronized (sLock) {
-            if(INSTANCE==null) {
-                INSTANCE= Room.databaseBuilder(context.getApplicationContext(), PersonDatabase.class, "Person.db").build();
-            }
-            return INSTANCE;
-        }
-    }
-}
-
-//Group DB임
-@Database(entities = {Group.class}, version = 1)
-@TypeConverters({Converters.class})
-abstract class GroupDatabase extends RoomDatabase {
-
-    //호출하면 DAO를 반환함
     public abstract GroupDAO groupDAO();
 
     //싱글턴화
-    private static GroupDatabase INSTANCE;
+    private static AppDatabase INSTANCE;
     private  static  final Object sLock = new Object();
-    public static  GroupDatabase getInstance(Context context) {
+    public static  AppDatabase getInstance(Context context) {
         synchronized (sLock) {
             if(INSTANCE==null) {
-                INSTANCE= Room.databaseBuilder(context.getApplicationContext(), GroupDatabase.class, "Group.db").build();
+                INSTANCE= Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, "App.db").build();
             }
             return INSTANCE;
         }

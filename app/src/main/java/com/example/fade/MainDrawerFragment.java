@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import com.example.fade.entity.Person;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -40,7 +42,7 @@ public class MainDrawerFragment extends Fragment {
         rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
 
         //db 만들기
-        PersonDatabase db =PersonDatabase.getInstance(getContext());
+        AppDatabase db =AppDatabase.getInstance(getContext());
         dao=db.personDAO();
         //personList에 DB불러오기
         new SelectThraed(dao, personList).start();

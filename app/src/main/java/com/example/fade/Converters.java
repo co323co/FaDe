@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Converters {
     @TypeConverter
-    public static ArrayList<Integer> stringToList(String string) {
+    public static ArrayList<Integer> fromString(String string) {
         if(string.equals("")) return new ArrayList();
 
         String str[] = string.split(",");
@@ -18,7 +18,7 @@ public class Converters {
     }
 
     @TypeConverter
-    public static String listToString(ArrayList<Integer> list) {
+    public static String fromList(ArrayList<Integer> list) {
         String str="";
         for(int i=0; i<list.size();i++) str+=(list.get(i)).toString()+",";
         return str;

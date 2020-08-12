@@ -1,5 +1,6 @@
 package com.example.fade;
 
+import com.example.fade.entity.Group;
 import com.example.fade.entity.Person;
 
 import java.util.ArrayList;
@@ -41,7 +42,9 @@ public class DBThread {
         @Override
         public void run(){
             this.personIdList.clear();
-            personIdList.addAll(dao.getPersonIDList(gid));
+            Group group = dao.get(gid);
+
+            personIdList.addAll(group.getPersonIDList());
         }
     }
 

@@ -16,7 +16,7 @@ import java.util.List;
 
 //추상클래스
 @Database(entities = {Person.class, Group.class}, version = 1)
-@TypeConverters(Converters.class)
+@TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
 
     //호출하면 DAO를 반환함

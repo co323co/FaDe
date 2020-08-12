@@ -157,11 +157,11 @@
                     android:id="@+id/ibtn_editCheck"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:padding="9dp"
-                    android:src="@drawable/ic_check"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_pencil"
                     android:scaleType="fitCenter"
                     android:tint="#F17C7C"
-                    android:background="@android:color/white"
+                    android:background="@color/white"
                     android:layout_weight="1"/>
 
             </LinearLayout>

@@ -57,4 +57,8 @@ dependencies {
     implementation 'com.balysv:material-ripple:1.0.2' // for ripple effect
     implementation 'com.squareup.picasso:picasso:2.71828' //for loading images
     implementation 'de.hdodenhof:circleimageview:3.0.0' //circularImageView
+
+    //플로팅 액션 버튼
+    implementation 'com.google.android.material:material:1.1.0'
+
 }

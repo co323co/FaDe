@@ -2,6 +2,7 @@ package com.example.fade;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +20,9 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,11 +31,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.ArrayList;
 
 import static androidx.core.content.ContextCompat.getSystemService;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     //다른 Actrivity or Fragment에서 메인의 그룹리싸이클러뷰를 새로고침 하기 위함
     public  static Context CONTEXT;
@@ -79,26 +86,11 @@ public class MainActivity extends AppCompatActivity {
         groupAdapter = new GroupAdapter(dao, groupList);
         rv.setAdapter(groupAdapter);
 
-        Button addButton = findViewById(R.id.btn_addGroup);
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Group group = new Group("테스트"+n);
-                n++;
-                InsertTGroupThraed t1 = new InsertTGroupThraed(dao, group);
-                //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
-                SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
-                t1.start();
-                //join은 스레드가 끝날 때까지 기다려 줌
-                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                t2.start();
-                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                groupAdapter.notifyDataSetChanged();
-                //포커스를 맨 아래로 맞춰줌
-                rv.scrollToPosition(groupList.size()-1);
-            }
-        });
+//        Animation fab_open = AnimationUtils.loadAnimation(CONTEXT, R.anim.fab_open);
+//        Animation fab_close = AnimationUtils.loadAnimation(CONTEXT, R.anim.fab_close);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_main);
 
+        fab.setOnClickListener(this);
     }
 
     //메뉴 버튼을 눌렀을 때 드로우가 열리도록 해줌
@@ -128,6 +120,50 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         rv.removeAllViewsInLayout();
         rv.setAdapter(groupAdapter);
+    }
+
+
+    //플로팅 버튼
+    @Override
+    public void onClick(View view) {
+
+        AddGroupDialog addGroupDialog= new AddGroupDialog(this, new CustomDialogClickListener() {
+            @Override
+            public void onPositiveClick() {
+
+            }
+
+            @Override
+            public void onNegativeClick() {
+
+            }
+        });
+        //다이얼로그 밖을 터치했을 때 다이얼로그가 꺼짐
+        addGroupDialog.setCanceledOnTouchOutside(true);
+        //뒤로가기 버튼으로 다이얼로그 끌 수 있음
+        addGroupDialog.setCancelable(true);
+        //레이아웃
+        addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        addGroupDialog.show();
+
+
+
+
+
+//        Group group = new Group("테스트"+n);
+//        n++;
+//        InsertTGroupThraed t1 = new InsertTGroupThraed(dao, group);
+//        //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
+//        SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
+//        t1.start();
+//        //join은 스레드가 끝날 때까지 기다려 줌
+//        try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+//        t2.start();
+//        try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+//        groupAdapter.notifyDataSetChanged();
+//        //포커스를 맨 아래로 맞춰줌
+//        rv.scrollToPosition(groupList.size()-1);
+
     }
 }
 

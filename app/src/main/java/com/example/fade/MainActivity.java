@@ -337,7 +337,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 //        t2.start();
 //        try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-        Log.d("태그", "position: " + position + "값 : "+profileIdList.get(0));
+//        Log.d("태그", "position: " + position + "값 : "+profileIdList.get(0));
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
         profileAdapter = new ProfileAdapter(personDao, profileList);
         rv.setAdapter(profileAdapter);

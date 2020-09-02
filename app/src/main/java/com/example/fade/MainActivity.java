@@ -17,6 +17,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +43,7 @@ import static androidx.core.content.ContextCompat.getSystemService;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    //AppDB를 static으로 생성할 때도 쓰임
     //다른 Actrivity or Fragment에서 메인의 그룹리싸이클러뷰를 새로고침 하기 위함
     public  static Context CONTEXT;
 
@@ -48,7 +51,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     RecyclerView rv;
     GroupAdapter groupAdapter;
-    GroupDAO dao;
     ArrayList<Group> groupList=new ArrayList<Group>();
 
     int n=0;
@@ -79,13 +81,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(linearLayoutManager);
 
-        //db 만들기
-        AppDatabase db =AppDatabase.getInstance(getApplicationContext());
-        dao=db.groupDAO();
         //groupList에 DB불러오기
-        new SelectGroupThraed(dao, groupList).start();
+        new DBThread.SelectGroupThraed(groupList).start();
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
-        groupAdapter = new GroupAdapter(dao, groupList);
+        groupAdapter = new GroupAdapter(groupList);
         rv.setAdapter(groupAdapter);
 
 //        Animation fab_open = AnimationUtils.loadAnimation(CONTEXT, R.anim.fab_open);
@@ -95,18 +94,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab.setOnClickListener(this);
     }
 
-    //메뉴 버튼을 눌렀을 때 드로우가 열리도록 해줌
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int item_id = item.getItemId();
 
-        if(item_id==android.R.id.home) {
-            if(drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-            }
-            else {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
+        switch (item_id) {
+            //메뉴 버튼을 눌렀을 때 드로우가 열리도록 해줌
+            case android.R.id.home :
+                if(drawerLayout.isDrawerOpen(GravityCompat.START))  drawerLayout.closeDrawer(GravityCompat.START);
+                else drawerLayout.openDrawer(GravityCompat.START);
+                break;
+            case 0:
+                //TODO::혜림 로그아웃 여기 구현해쥬삼~
+                Toast.makeText(getApplicationContext(),"로그아웃",Toast.LENGTH_SHORT).show();
+                break;
+            case 1:
+                Toast.makeText(getApplicationContext(),"튜토리얼",Toast.LENGTH_SHORT).show();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -124,12 +128,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rv.setAdapter(groupAdapter);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        //groupID,  itemID, order
+        menu.add(0,0,0,"로그아웃");
+        menu.add(0,1,1,"튜토리얼");
+        return super.onCreateOptionsMenu(menu);
+    }
+
     //다이얼로그에서 받아올 값들을 클래스로 묶어둔 것
     class rst {
         String name;
         ArrayList<Integer> personIDList=new ArrayList<Integer>();
     }
-
     //플로팅 버튼
     @Override
     public void onClick(View view) {
@@ -140,8 +151,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onPositiveClick() {
                 Group group = new Group(result.name, result.personIDList);
-                InsertTGroupThraed t1 = new InsertTGroupThraed(dao, group);
-                SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
+                DBThread.InsertTGroupThraed t1 = new DBThread.InsertTGroupThraed(group);
+                DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
                 t1.start();
                 try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 t2.start();
@@ -162,63 +173,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 }
 
-
-//UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
-class InsertTGroupThraed extends Thread {
-    GroupDAO dao;
-    Group group;
-    public InsertTGroupThraed(GroupDAO dao, Group group) {
-        this.dao = dao;
-        this.group=group;
-    }
-    @Override
-    public void run(){
-        dao.insert(group);
-    }
-}
-//UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
-//인자인 personList를 갱신해줌
-class SelectGroupThraed extends Thread {
-    GroupDAO dao;
-    ArrayList<Group> groupList;
-    public SelectGroupThraed(GroupDAO dao, ArrayList<Group> groupList) {
-        this.dao = dao;
-        this.groupList = groupList;
-    }
-    @Override
-    public void run(){
-        this.groupList.clear();
-        this.groupList.addAll(dao.getAll());
-    }
-}
-class DeleteGroupThraed extends Thread {
-    GroupDAO dao;
-    Group  group;
-    public DeleteGroupThraed(GroupDAO dao, Group group) {
-        this.dao=dao;
-        this.group = group;}
-    @Override
-    public void run(){
-        dao.delete(this.group);
-    }
-}
-
-class UpdateGroupThraed extends Thread {
-    GroupDAO dao;
-    Group  group;
-    public UpdateGroupThraed(GroupDAO dao, Group group) {
-        this.dao=dao;
-        this.group = group;}
-    @Override
-    public void run(){
-        dao.update(this.group);
-    }
-}
-
 class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
     ArrayList<Group> groupList;
-    GroupDAO dao;
 
     class GVHolder extends RecyclerView.ViewHolder{
         public View view;
@@ -240,8 +197,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         }
     }
 
-    GroupAdapter(GroupDAO dao, ArrayList<Group> groupList){
-        this.dao=dao;
+    GroupAdapter(ArrayList<Group> groupList){
         this.groupList=groupList;
     }
 
@@ -285,7 +241,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
                 Group group = groupList.get(position);
                 group.setName(et_name.getText().toString());
-                new UpdateGroupThraed(dao,group).start();
+                new DBThread.UpdateGroupThraed(group).start();
 
                 et_name.setEnabled(false);
                 ibtn_check.setVisibility(View.GONE);
@@ -298,9 +254,9 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         ibtn_subGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DeleteGroupThraed t1 = new DeleteGroupThraed(dao, groupList.get((position)));
+                DBThread.DeleteGroupThraed t1 = new DBThread.DeleteGroupThraed(groupList.get((position)));
                 //꼭 삭제하고 리스트뷰 갱신을 위해 groupList를 바뀐 DB로 재갱신 해줘야함!
-                SelectGroupThraed t2 = new SelectGroupThraed(dao, groupList);
+                DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
                 t1.start();
                 try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 t2.start();
@@ -310,10 +266,12 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         });
 
 
+        //
         //프로필리싸이클러뷰 생성 과정
+        //
+
+
         ProfileAdapter profileAdapter;
-        PersonDAO personDao;
-        ArrayList<Integer> profileIdList=new ArrayList<Integer>();
         ArrayList<Person> profileList=new ArrayList<Person>();
 
         //리싸이클러뷰 만들고 설정
@@ -323,23 +281,13 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         rv.setLayoutManager(linearLayoutManager);
         //rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
 
-        //db 만들기
-        AppDatabase db =AppDatabase.getInstance(holder.view.getContext());
-        personDao=db.personDAO();
-
-
-        //현재 그룹이 가지고 있는 pid리스트를 가져오기
-        DBThread.SelectPidListByGIdThraed t1 = new DBThread.SelectPidListByGIdThraed(dao,groupList.get(position).getGid(), profileIdList);
+        //현재 그룹이 가지고 있는 person리스트를 gid로 가져오기
+        DBThread.SelectPListByGidThread t1 = new DBThread.SelectPListByGidThread(groupList.get(position).getGid(), profileList);
         t1.start();
         try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-        //받아온 pid리스트를 통해 person리스트를 얻어옴
-//        DBThread.SelectPersonByIdListThraed t2 = new DBThread.SelectPersonByIdListThraed(personDao, groupList.get(position).getGid(), profileList);
-//        t2.start();
-//        try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-        Log.d("태그", "position: " + position + "값 : "+profileIdList.get(0));
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
-        profileAdapter = new ProfileAdapter(personDao, profileList);
+        profileAdapter = new ProfileAdapter(profileList);
         rv.setAdapter(profileAdapter);
     }
 
@@ -361,8 +309,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
 class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
 
-    ArrayList<Person> itemList=new ArrayList<Person>();
-    PersonDAO dao;
+    ArrayList<Person> itemList;
 
     public class PVHolder extends RecyclerView.ViewHolder{
         public View view;
@@ -372,8 +319,7 @@ class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
         }
     }
 
-    ProfileAdapter(PersonDAO dao, ArrayList<Person> itemList){
-        this.dao=dao;
+    ProfileAdapter(ArrayList<Person> itemList){
         this.itemList=itemList;
     }
 
@@ -395,20 +341,5 @@ class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
     public int getItemCount() {
         return itemList.size();
     }
-
-
 }
 
-class SelectPersonThraed extends Thread {
-    PersonDAO dao;
-    ArrayList<Person> personList;
-    public SelectPersonThraed(PersonDAO dao, ArrayList<Person> personList) {
-        this.dao = dao;
-        this.personList = personList;
-    }
-    @Override
-    public void run(){
-        this.personList.clear();
-        this.personList.addAll(dao.getAll());
-    }
-}

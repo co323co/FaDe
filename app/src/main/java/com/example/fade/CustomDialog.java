@@ -98,9 +98,7 @@ class AddGroupDialog extends Dialog {
 
         final ArrayList<Person> personList=new ArrayList<Person>();
 
-        AppDatabase db =AppDatabase.getInstance(getContext());
-        PersonDAO dao =db.personDAO();
-        SelectPersonThraed t  = new SelectPersonThraed(dao, personList);
+        DBThread.SelectPersonThraed t  = new DBThread.SelectPersonThraed(personList);
         t.start();
         try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 

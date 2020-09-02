@@ -26,7 +26,6 @@ import java.util.Vector;
 public class MainDrawerFragment extends Fragment {
 
     PersonAdapter personAdapter;
-    PersonDAO dao;
     ArrayList<Person> personList=new ArrayList<Person>();
     int n=0;
     @Nullable
@@ -41,13 +40,10 @@ public class MainDrawerFragment extends Fragment {
         rv.setLayoutManager(linearLayoutManager);
         rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
 
-        //db 만들기
-        AppDatabase db =AppDatabase.getInstance(getContext());
-        dao=db.personDAO();
         //personList에 DB불러오기
-        new SelectThraed(dao, personList).start();
+        new DBThread.SelectPersonThraed(personList).start();
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
-        personAdapter = new PersonAdapter(dao, personList);
+        personAdapter = new PersonAdapter(personList);
         rv.setAdapter(personAdapter);
 
         Button addButton = view.findViewById(R.id.btn_addPerson);
@@ -56,9 +52,9 @@ public class MainDrawerFragment extends Fragment {
             public void onClick(View view) {
                 Person person = new Person("테스트"+n);
                 n++;
-                InsertThraed t1 = new InsertThraed(dao, person);
+                DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
                 //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
-                SelectThraed t2 = new SelectThraed(dao, personList);
+                DBThread.SelectPersonThraed t2 = new DBThread.SelectPersonThraed(personList);
                 t1.start();
                 //join은 스레드가 끝날 때까지 기다려 줌
                 try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
@@ -75,51 +71,11 @@ public class MainDrawerFragment extends Fragment {
     }
 }
 
-//UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
-class InsertThraed extends Thread {
-    PersonDAO dao;
-    Person person;
-    public InsertThraed(PersonDAO dao, Person person) {
-        this.dao = dao;
-        this.person=person;
-    }
-    @Override
-    public void run(){
-        dao.insert(person);
-    }
-}
-//UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
-//인자인 personList를 갱신해줌
-class SelectThraed extends Thread {
-    PersonDAO dao;
-    ArrayList<Person> personList;
-    public SelectThraed(PersonDAO dao, ArrayList<Person> personList) {
-        this.dao = dao;
-        this.personList = personList;
-    }
-    @Override
-    public void run(){
-        this.personList.clear();
-        this.personList.addAll(dao.getAll());
-    }
-}
-class DeleteThraed extends Thread {
-    PersonDAO dao;
-    Person person;
-    public DeleteThraed(PersonDAO dao, Person person) {
-        this.dao=dao;
-        this.person = person;}
-    @Override
-    public void run(){
-        dao.delete(this.person);
-    }
-}
 
 //PersonRecyclerViewAdapter
 class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
     ArrayList<Person> personList;
-    PersonDAO dao;
 
     class PVHolder extends  RecyclerView.ViewHolder {
 
@@ -130,8 +86,7 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
         }
     }
 
-    PersonAdapter(PersonDAO dao, ArrayList<Person> personList){
-        this.dao=dao;
+    PersonAdapter(ArrayList<Person> personList){
         this.personList=personList;
     }
 
@@ -154,9 +109,9 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
         btn_subPerson.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DeleteThraed t1 = new DeleteThraed(dao, personList.get(position));
+                DBThread.DeletePersonThraed t1 = new DBThread.DeletePersonThraed(personList.get(position));
                 //꼭 삭제하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
-                SelectThraed t2 = new SelectThraed(dao, personList);
+                DBThread.SelectPersonThraed t2 = new DBThread.SelectPersonThraed(personList);
                 t1.start();
                 try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 t2.start();

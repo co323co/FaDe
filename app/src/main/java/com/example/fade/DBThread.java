@@ -5,17 +5,39 @@ import android.util.Log;
 
 import com.example.fade.entity.Group;
 import com.example.fade.entity.Person;
+import com.example.fade.DAO.*;
+import com.example.fade.entity.User;
 
 import java.util.ArrayList;
 
 public class DBThread {
 
+//    private static DBThread INSTANCE;
+//
+//    public static DBThread getInstance() {
+//        if(INSTANCE==null) INSTANCE=new DBThread();
+//        return INSTANCE;
+//    }
+
     static Context context = MainActivity.CONTEXT;
+    static UserDAO userDAO = AppDatabase.getInstance(context).userDAO();
     static PersonDAO personDAO = AppDatabase.getInstance(context).personDAO();
     static GroupDAO groupDAO = AppDatabase.getInstance(context).groupDAO();
 
     //UI문제때문에 DAO는 메인스레드에서 쓸 수 없음, 백그라운드 스레드에서 실행해야 함!
 
+
+    //유저 관리 스래드
+    static class InsertUserThread extends Thread {
+        User user;
+        public InsertUserThread(User user) {
+            this.user=user;
+        }
+        @Override
+        public void run(){
+            userDAO.insert(user);
+        }
+    }
 
     //그룹Table 관리 스래드
     static class SelectGroupThraed extends Thread {

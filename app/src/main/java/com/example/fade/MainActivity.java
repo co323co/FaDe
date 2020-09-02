@@ -272,7 +272,6 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
 
         ProfileAdapter profileAdapter;
-        PersonDAO personDao;
         ArrayList<Person> profileList=new ArrayList<Person>();
 
         //리싸이클러뷰 만들고 설정

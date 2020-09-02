@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.fade.entity.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -112,8 +113,9 @@ public class LoginActivity extends AppCompatActivity {
         String id = userAccount.getId();
         String familyname = userAccount.getFamilyName();
         String givenname = userAccount.getGivenName();
-        UserID = userAccount.getId();
 
+        UserID = userAccount.getId();
+        new DBThread.InsertUserThread(new User(UserID)).start();
         Toast.makeText(getApplicationContext(),"email : " + email + "\nid = " + id + "\nfamilyname = " + familyname + "\ngivenname = " + givenname, Toast.LENGTH_SHORT).show();
     }
     private void signOut(){

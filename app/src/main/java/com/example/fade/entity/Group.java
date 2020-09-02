@@ -2,6 +2,7 @@ package com.example.fade.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
@@ -12,8 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TypeConverters(Converters.class)
-@Entity
+@Entity(foreignKeys = @ForeignKey(entity = User.class, parentColumns = "uid", childColumns = "uid"))
 public class Group {
+
+    @ColumnInfo
+    private String uid;
 
     @PrimaryKey(autoGenerate = true)
     private int gid;
@@ -43,28 +47,17 @@ public class Group {
         this.personIDList = personIDList;
     }
 
-    public int getGid() {
-        return gid;
-    }
+    public String getUid() {return  uid;}
+    public void setUid(String uid) {this.uid=uid;}
 
-    public void setGid(int gid) {
-        this.gid = gid;
-    }
+    public int getGid() { return gid; }
+    public void setGid(int gid) { this.gid = gid; }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public ArrayList<Integer> getPersonIDList() { return personIDList; }
+    public void setPersonIDList(ArrayList<Integer> personIDList) { this.personIDList = personIDList; }
 
-    public ArrayList<Integer> getPersonIDList() {
-        return personIDList;
-    }
-
-    public void setPersonIDList(ArrayList<Integer> personIDList) {
-        this.personIDList = personIDList;
-    }
 }
 

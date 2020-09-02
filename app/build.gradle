@@ -10,15 +10,19 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-
+        multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        //카드뷰 애니메이션을 위함
-        dataBinding{
-            enabled true
-        }
-    }
 
+    }
+//카드뷰 애니메이션을 위함
+    buildFeatures{
+        dataBinding = true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -67,6 +71,8 @@ dependencies {
     //갤러리 라이브러리
     implementation 'com.github.esafirm.android-image-picker:imagepicker:2.3.2'
     implementation 'com.github.esafirm.android-image-picker:rximagepicker:2.3.2'
-    implementation 'com.github.bumptech.glide : glide : 4.5.0 '
+    implementation 'com.github.bumptech.glide:glide:4.6.1'
+
+    implementation 'com.android.support:multidex:1.0.3'
 
 }

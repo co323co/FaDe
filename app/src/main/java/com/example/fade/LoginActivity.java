@@ -62,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
                  //로그인 하면 바로 버튼 2개 화면으로 넘어가기
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this); //기존에 로그인 된 사용자 객체 얻기
         //기존에 로그인했었고, 재로그인이 아니면 바로넘어감
-        if(account!=null || !(getIntent().getExtras().getString("상태").equals("재로그인"))){
+        if(account!=null && !(getIntent().getExtras().getString("상태").equals("재로그인"))){
             userAccount = account;
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);      //null이 아닌 경우 이 사용자는 이미 구글 로그인 된 상태, null 일 경우 로그인 한 적 없음
             startActivity(intent);
@@ -77,7 +77,6 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 signIn();
-
             }
         });
 
@@ -110,7 +109,7 @@ public class LoginActivity extends AppCompatActivity {
             userAccount = account; //로그인된 계정 정보
 
             ///////////////////////////////////////////////////////////
-            //첫 로그인시 서버에서 DB받아옴
+            //첫 로그인 or 재로그인시 서버에서 DB받아옴
             ///////////////////////////////////////////////////////////
             UserID = userAccount.getId();
             Retrofit retrofit = new Retrofit.Builder()

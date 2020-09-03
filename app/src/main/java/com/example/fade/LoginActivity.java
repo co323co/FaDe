@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.fade.Server.ConnService;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -21,6 +22,15 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.IOException;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class LoginActivity extends AppCompatActivity {
 
     public static String UserID = null;
@@ -28,6 +38,7 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     private static final int RC_SIGN_IN = 900;
     GoogleSignInAccount userAccount;
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,9 +76,6 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         //임시버튼
-
-
-
         //임시버튼, 프로필 테스트용
 
 
@@ -116,7 +124,29 @@ public class LoginActivity extends AppCompatActivity {
         String givenname = userAccount.getGivenName();
 
         UserID = userAccount.getId();
-        Log.d("test",getDatabasePath("App.db").toString());
+//        Log.d("test",getDatabasePath("App.db").toString());
+
+//        Retrofit retrofit = new Retrofit.Builder()
+//                .baseUrl(ConnService.URL)
+//                .addConverterFactory(GsonConverterFactory.create())
+//                .build();
+//        ConnService connService = retrofit.create(ConnService.class);
+//
+//        connService.getDB("123").enqueue(new Callback<ResponseBody>() {
+//            @Override
+//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+//                try {
+//                    Log.d("servertest", "getDB 성공 size : "+response.body().bytes().length);
+//                } catch (IOException e) {
+//                    Log.d("servertest", e.toString());
+//                    e.printStackTrace();
+//                }
+//            }
+//            @Override
+//            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e("servertest", "통신실패 (getDB)"); }
+//
+//        });
+
         Toast.makeText(getApplicationContext(),"email : " + email + "\nid = " + id + "\nfamilyname = " + familyname + "\ngivenname = " + givenname, Toast.LENGTH_SHORT).show();
     }
     private void signOut(){

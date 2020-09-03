@@ -1,17 +1,17 @@
 package com.example.fade;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.fade.entity.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -108,6 +108,7 @@ public class LoginActivity extends AppCompatActivity {
             Log.e(TAG,"signInResult:failed code=" + e.getStatusCode());
         }
     }
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void profile(){
         String email = userAccount.getEmail();
         String id = userAccount.getId();
@@ -115,7 +116,7 @@ public class LoginActivity extends AppCompatActivity {
         String givenname = userAccount.getGivenName();
 
         UserID = userAccount.getId();
-        new DBThread.InsertUserThread(new User(UserID)).start();
+        Log.d("test",getDatabasePath("App.db").toString());
         Toast.makeText(getApplicationContext(),"email : " + email + "\nid = " + id + "\nfamilyname = " + familyname + "\ngivenname = " + givenname, Toast.LENGTH_SHORT).show();
     }
     private void signOut(){

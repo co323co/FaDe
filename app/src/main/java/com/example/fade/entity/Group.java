@@ -13,11 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TypeConverters(Converters.class)
-@Entity(foreignKeys = @ForeignKey(entity = User.class, parentColumns = "uid", childColumns = "uid"))
+@Entity
 public class Group {
-
-    @ColumnInfo
-    private String uid;
 
     @PrimaryKey(autoGenerate = true)
     private int gid;
@@ -29,8 +26,7 @@ public class Group {
     @ColumnInfo(name = "personIdList")
     private ArrayList<Integer> personIDList = new ArrayList();
 
-    public Group() {
-    }
+    public Group() { }
 
     @Ignore
     public Group(String name) {
@@ -46,9 +42,6 @@ public class Group {
         this.name = name;
         this.personIDList = personIDList;
     }
-
-    public String getUid() {return  uid;}
-    public void setUid(String uid) {this.uid=uid;}
 
     public int getGid() { return gid; }
     public void setGid(int gid) { this.gid = gid; }

@@ -75,4 +75,9 @@ dependencies {
 
     implementation 'com.android.support:multidex:1.0.3'
 
+    //래트로핏과 JSON컨버터
+    implementation 'com.google.code.gson:gson:2.7'
+    implementation 'com.squareup.retrofit2:retrofit:2.1.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
+
 }

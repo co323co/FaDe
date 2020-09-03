@@ -123,8 +123,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                        intent.putExtra("상태", "재로그인");
+                        intent.putExtra("재로그인", "true");
                         startActivity(intent);
+                        finish();
                     }
                 });
                 break;

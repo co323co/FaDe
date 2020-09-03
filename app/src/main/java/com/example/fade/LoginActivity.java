@@ -60,15 +60,19 @@ public class LoginActivity extends AppCompatActivity {
                                                                             //사용자가 startActivityForResult()로 호출된 액티비티 작업 다 끝내면 onActivityResult()실행된다.
 
                  //로그인 하면 바로 버튼 2개 화면으로 넘어가기
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this); //기존에 로그인 된 사용자 객체 얻기
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this); //기존에 로그인 된 사용자 객체 얻기;
         //기존에 로그인했었고, 재로그인이 아니면 바로넘어감
-        if(account!=null && !(getIntent().getExtras().getString("상태").equals("재로그인"))){
+        if(account!=null){
+            Log.d("server","로그인 기록 있음");
             userAccount = account;
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);      //null이 아닌 경우 이 사용자는 이미 구글 로그인 된 상태, null 일 경우 로그인 한 적 없음
             startActivity(intent);
             profile();
             finish();
         }
+
+//        if(getIntent().hasExtra("재로그인")) Log.d("server","재로그인");
+//        else  Log.d("server","첫로그인");
 
         setContentView(R.layout.activity_login);
         SignInButton signInButton = findViewById(R.id.sign_in_button);
@@ -79,10 +83,6 @@ public class LoginActivity extends AppCompatActivity {
                 signIn();
             }
         });
-
-        //임시버튼
-        //임시버튼, 프로필 테스트용
-
 
     }
 
@@ -143,11 +143,11 @@ public class LoginActivity extends AppCompatActivity {
             });
             ////////////////////////////////////////
 
-
             //로그인 후 화면 전환
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);
             //intent.putExtra("id", userAccount.getId());
             startActivity(intent);
+            finish();
             //profile();  //사용자 정보 토스트로 출력
 
             // Signed in successfully, show authenticated UI.

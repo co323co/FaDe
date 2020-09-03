@@ -3,6 +3,7 @@ package com.example.fade;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -13,6 +14,9 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.fade.Server.ConnService;
+import com.example.fade.Server.DetData;
+import com.example.fade.Server.RegiData;
+import com.example.fade.Server.ReturnData;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -22,7 +26,10 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -54,15 +61,14 @@ public class LoginActivity extends AppCompatActivity {
 
                  //로그인 하면 바로 버튼 2개 화면으로 넘어가기
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this); //기존에 로그인 된 사용자 객체 얻기
-        if(account!=null){
+        //기존에 로그인했었고, 재로그인이 아니면 바로넘어감
+        if(account!=null || !(getIntent().getExtras().getString("상태").equals("재로그인"))){
             userAccount = account;
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);      //null이 아닌 경우 이 사용자는 이미 구글 로그인 된 상태, null 일 경우 로그인 한 적 없음
             startActivity(intent);
             profile();
             finish();
-
         }
-
 
         setContentView(R.layout.activity_login);
         SignInButton signInButton = findViewById(R.id.sign_in_button);
@@ -103,6 +109,42 @@ public class LoginActivity extends AppCompatActivity {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class); //getResult()로 GoogleSignInAccount 객체 반환
             userAccount = account; //로그인된 계정 정보
 
+            ///////////////////////////////////////////////////////////
+            //첫 로그인시 서버에서 DB받아옴
+            ///////////////////////////////////////////////////////////
+            UserID = userAccount.getId();
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(ConnService.URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            ConnService connService = retrofit.create(ConnService.class);
+
+            connService.getDB(UserID).enqueue(new Callback<ReturnData>() {
+                @Override
+                public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
+                    ArrayList<String> db = response.body().getDB();
+                    ArrayList<byte[]> dbFiles = new ArrayList<>();
+                    for(int i =0; i<db.size(); i++)
+                    {
+                        dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP));
+                    }
+                    writeToFile("App.db",dbFiles.get(0));
+                    writeToFile("App.db-shm",dbFiles.get(1));
+                    writeToFile("App.db-wal",dbFiles.get(2));
+
+                    Log.e("server", "통신성공 (getDB) ");
+//                byte[] b = Base64.decode(response.body().getDB().get(0),Base64.NO_WRAP);
+//                Log.d("servertest", "getDB 성공 size : "+ b.length);
+                }
+                @Override
+                public void onFailure(Call<ReturnData> call, Throwable t) {
+                    Log.e("server", "통신실패 (getDB) : "+t.getMessage());
+                    //t.getMessage()로 오류 확인 가능
+                }
+            });
+            ////////////////////////////////////////
+
+
             //로그인 후 화면 전환
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);
             //intent.putExtra("id", userAccount.getId());
@@ -122,30 +164,6 @@ public class LoginActivity extends AppCompatActivity {
         String id = userAccount.getId();
         String familyname = userAccount.getFamilyName();
         String givenname = userAccount.getGivenName();
-
-        UserID = userAccount.getId();
-//        Log.d("test",getDatabasePath("App.db").toString());
-
-//        Retrofit retrofit = new Retrofit.Builder()
-//                .baseUrl(ConnService.URL)
-//                .addConverterFactory(GsonConverterFactory.create())
-//                .build();
-//        ConnService connService = retrofit.create(ConnService.class);
-//
-//        connService.getDB("123").enqueue(new Callback<ResponseBody>() {
-//            @Override
-//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-//                try {
-//                    Log.d("servertest", "getDB 성공 size : "+response.body().bytes().length);
-//                } catch (IOException e) {
-//                    Log.d("servertest", e.toString());
-//                    e.printStackTrace();
-//                }
-//            }
-//            @Override
-//            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e("servertest", "통신실패 (getDB)"); }
-//
-//        });
 
         Toast.makeText(getApplicationContext(),"email : " + email + "\nid = " + id + "\nfamilyname = " + familyname + "\ngivenname = " + givenname, Toast.LENGTH_SHORT).show();
     }
@@ -168,4 +186,20 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+
+//    바이트array를 파일로 저장하게 해주는 함수
+    public void writeToFile(String filename, byte[] pData) {
+        if(pData == null){ return; }
+        int lByteArraySize = pData.length;
+        System.out.println(filename);
+        try{
+            File lOutFile = new File(getDatabasePath(filename).getPath());
+            FileOutputStream lFileOutputStream = new FileOutputStream(lOutFile);
+            lFileOutputStream.write(pData);
+            lFileOutputStream.close();
+        }catch(Throwable e){
+            e.printStackTrace(System.out);
+            Log.d("data",e.toString());
+        }
+    }
 }

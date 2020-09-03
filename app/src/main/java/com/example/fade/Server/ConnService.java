@@ -15,11 +15,11 @@ public interface ConnService {
 
     public static final String URL = "http://220.123.36.108:1213";
 
-//    @GET("/db/upload/{uid}")
-//    Call<ReturnData> getDB(@Path("uid") String uid);
+//    @GET("/{userId}")
+//    Call<RegiData> getFirst(@Path("userId") String id);
 
     @GET("/db/upload/{uid}")
-    Call<ResponseBody> getDB(@Path("uid") String uid);
+    Call<ReturnData> getDB(@Path("uid") String uid);
 
     @FormUrlEncoded
     @POST("/db/upload/{uid}")
@@ -39,9 +39,6 @@ public interface ConnService {
 
 }
 
-class ReturnData {
 
-    private final int gid;
-    public ReturnData(int gid){ this.gid=gid;}
 
-}
+

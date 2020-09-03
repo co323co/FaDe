@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -35,6 +36,11 @@ import android.widget.Toast;
 
 import com.example.fade.entity.Group;
 import com.example.fade.entity.Person;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -105,8 +111,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 else drawerLayout.openDrawer(GravityCompat.START);
                 break;
             case 0:
-                //TODO::혜림 로그아웃 여기 구현해쥬삼~
                 Toast.makeText(getApplicationContext(),"로그아웃",Toast.LENGTH_SHORT).show();
+//                Intent intent = new Intent(getApplicationContext(), LogoutActivity.class);
+//                intent.putExtra("setting_name","로그아웃");
+//                startActivity(intent);
+                //로그아웃 액티비티  켜지고, 다시 로그인액티비티 켜니까 액티비티가 따당하고 켜져서 여기에 걍 코드올림
+                GoogleSignInClient mGoogleSignInClient;
+                GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
+                mGoogleSignInClient= GoogleSignIn.getClient(this,gso);
+                mGoogleSignInClient.signOut().addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                        intent.putExtra("상태", "재로그인");
+                        startActivity(intent);
+                    }
+                });
                 break;
             case 1:
                 Toast.makeText(getApplicationContext(),"튜토리얼",Toast.LENGTH_SHORT).show();

@@ -1,11 +1,16 @@
 package com.example.fade;
 
 import android.content.Context;
+import android.os.Build;
 
+import androidx.annotation.RequiresApi;
+
+import com.example.fade.Server.CommServer;
 import com.example.fade.entity.Group;
 import com.example.fade.entity.Person;
 import com.example.fade.DAO.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class DBThread {
@@ -41,27 +46,36 @@ public class DBThread {
         public InsertTGroupThraed(Group group) {
             this.group=group;
         }
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public void run(){
             groupDAO.insert(group);
+            CommServer comm=new CommServer(context);
+            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
     static class UpdateGroupThraed extends Thread {
         Group  group;
         public UpdateGroupThraed(Group group) {
             this.group = group;}
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public void run(){
             groupDAO.update(this.group);
+            CommServer comm=new CommServer(context);
+            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
     static class DeleteGroupThraed extends Thread {
         Group  group;
         public DeleteGroupThraed(Group group) {
             this.group = group;}
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public void run(){
             groupDAO.delete(this.group);
+            CommServer comm=new CommServer(context);
+            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
 
@@ -82,18 +96,24 @@ public class DBThread {
         public InsertPersonThraed(Person person) {
             this.person=person;
         }
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public void run(){
             personDAO.insert(person);
+            CommServer comm=new CommServer(context);
+            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
     static class DeletePersonThraed extends Thread {
         Person person;
         public DeletePersonThraed(Person person) {
             this.person = person;}
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public void run(){
             personDAO.delete(this.person);
+            CommServer comm=new CommServer(context);
+            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
 

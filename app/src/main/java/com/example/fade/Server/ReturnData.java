@@ -15,6 +15,7 @@ public class ReturnData {
     }
     public ArrayList<String> getDB(){
         ArrayList<String> dbFileList=new ArrayList<>();
+        if(db0!=null)
         dbFileList.add(db0);
         dbFileList.add(db1);
         dbFileList.add(db2);

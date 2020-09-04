@@ -65,6 +65,7 @@ public class LoginActivity extends AppCompatActivity {
         if(account!=null){
             Log.d("server","로그인 기록 있음");
             userAccount = account;
+            UserID = userAccount.getId();
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);      //null이 아닌 경우 이 사용자는 이미 구글 로그인 된 상태, null 일 경우 로그인 한 적 없음
             startActivity(intent);
             profile();
@@ -119,21 +120,40 @@ public class LoginActivity extends AppCompatActivity {
             ConnService connService = retrofit.create(ConnService.class);
 
             connService.getDB(UserID).enqueue(new Callback<ReturnData>() {
+                @RequiresApi(api = Build.VERSION_CODES.N)
                 @Override
                 public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
                     ArrayList<String> db = response.body().getDB();
                     ArrayList<byte[]> dbFiles = new ArrayList<>();
-                    for(int i =0; i<db.size(); i++)
-                    {
-                        dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP));
-                    }
+                    for(int i =0; i<db.size(); i++) { dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP)); }
                     writeToFile("App.db",dbFiles.get(0));
                     writeToFile("App.db-shm",dbFiles.get(1));
                     writeToFile("App.db-wal",dbFiles.get(2));
 
-                    Log.e("server", "통신성공 (getDB) ");
-//                byte[] b = Base64.decode(response.body().getDB().get(0),Base64.NO_WRAP);
-//                Log.d("servertest", "getDB 성공 size : "+ b.length);
+                    Log.d("server", "통신성공 (getDB) ");
+//                    //db값은 있을 경우에만 받아옴
+//                    if(response.isSuccessful()) {
+//
+//                    }
+//                    //서버에서 불러올 db가 없으면, 내부 db도 꺠끗하게 지워줌
+//                    else{
+//                        String path  = getDataDir()+"/databases/";
+//                        String[] pathList = {"App.db", "App.db-shm","App.db-wal"};
+//                        try{
+//                            for(int i=0; i<pathList.length;i++){
+//                                File db = new File(path+pathList[i]);
+//                                if(db.exists()) db.delete();
+//                                Log.d("server","내부db삭제");
+//                            }
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                            Log.d("server","원래 저장된 db파일 없음");
+//                        }
+//                    }
+                    //로그인 후 화면 전환
+                    Intent intent=new Intent(LoginActivity.this,MainActivity.class);
+                    startActivity(intent);
+                    finish();
                 }
                 @Override
                 public void onFailure(Call<ReturnData> call, Throwable t) {
@@ -143,11 +163,7 @@ public class LoginActivity extends AppCompatActivity {
             });
             ////////////////////////////////////////
 
-            //로그인 후 화면 전환
-            Intent intent=new Intent(LoginActivity.this,MainActivity.class);
-            //intent.putExtra("id", userAccount.getId());
-            startActivity(intent);
-            finish();
+
             //profile();  //사용자 정보 토스트로 출력
 
             // Signed in successfully, show authenticated UI.
@@ -184,7 +200,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-
 
 //    바이트array를 파일로 저장하게 해주는 함수
     public void writeToFile(String filename, byte[] pData) {

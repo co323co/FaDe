@@ -123,18 +123,17 @@ public class LoginActivity extends AppCompatActivity {
                 @RequiresApi(api = Build.VERSION_CODES.N)
                 @Override
                 public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
-                    ArrayList<String> db = response.body().getDB();
-                    ArrayList<byte[]> dbFiles = new ArrayList<>();
-                    for(int i =0; i<db.size(); i++) { dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP)); }
-                    writeToFile("App.db",dbFiles.get(0));
-                    writeToFile("App.db-shm",dbFiles.get(1));
-                    writeToFile("App.db-wal",dbFiles.get(2));
+                    //db값은 있을 경우에만 받아옴
+                    if(response.isSuccessful()) {
+                        ArrayList<String> db = response.body().getDB();
+                        ArrayList<byte[]> dbFiles = new ArrayList<>();
+                        for(int i =0; i<db.size(); i++) { dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP)); }
+                        writeToFile("App.db",dbFiles.get(0));
+                        writeToFile("App.db-shm",dbFiles.get(1));
+                        writeToFile("App.db-wal",dbFiles.get(2));
 
-                    Log.d("server", "통신성공 (getDB) ");
-//                    //db값은 있을 경우에만 받아옴
-//                    if(response.isSuccessful()) {
-//
-//                    }
+                        Log.d("server", "통신성공 (getDB) ");
+                    }
 //                    //서버에서 불러올 db가 없으면, 내부 db도 꺠끗하게 지워줌
 //                    else{
 //                        String path  = getDataDir()+"/databases/";

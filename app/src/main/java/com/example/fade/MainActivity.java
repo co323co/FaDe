@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         CONTEXT=this;
 
+        Log.d("server","onCreate");
         //서랍에 연결해주면, 원래 배경은 어차피 서랍에서 백(activity_main.xml)으로 인클루드 해줌
         setContentView(R.layout.drawer_main);
 

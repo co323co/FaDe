@@ -132,7 +132,7 @@ public class LoginActivity extends AppCompatActivity {
                         writeToFile("App.db-shm",dbFiles.get(1));
                         writeToFile("App.db-wal",dbFiles.get(2));
 
-                        Log.d("server", "통신성공 (getDB) ");
+                        Log.d("server", "통신성공 (getDB) : "+UserID);
                     }
 //                    //서버에서 불러올 db가 없으면, 내부 db도 꺠끗하게 지워줌
 //                    else{

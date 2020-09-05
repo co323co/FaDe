@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
+#안녕혜림아
 
 
 #import문 및 얼굴 학습시켜 모델만드는 함수 정의

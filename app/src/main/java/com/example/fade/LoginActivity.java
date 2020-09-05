@@ -123,21 +123,41 @@ public class LoginActivity extends AppCompatActivity {
                 @RequiresApi(api = Build.VERSION_CODES.N)
                 @Override
                 public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
-                    //db값은 있을 경우에만 받아옴
-                    if(response.isSuccessful()) {
-                        ArrayList<String> db = response.body().getDB();
-                        ArrayList<byte[]> dbFiles = new ArrayList<>();
-                        for(int i =0; i<db.size(); i++) { dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP)); }
-                        writeToFile("App.db",dbFiles.get(0));
-                        writeToFile("App.db-shm",dbFiles.get(1));
-                        writeToFile("App.db-wal",dbFiles.get(2));
 
-                        Log.d("server", "통신성공 (getDB) : "+UserID);
-                    }
+                    ArrayList<String> db = response.body().getDB();
+                    ArrayList<byte[]> dbFiles = new ArrayList<>();
+                    for(int i =0; i<db.size(); i++) { dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP)); }
+                    writeToFile("App.db",dbFiles.get(0));
+                    writeToFile("App.db-shm",dbFiles.get(1));
+                    writeToFile("App.db-wal",dbFiles.get(2));
+
+                    Log.d("server", "통신성공 (getDB) : "+UserID);
+                    //로그인 후 화면 전환
+                    Intent intent=new Intent(LoginActivity.this,MainActivity.class);
+                    startActivity(intent);
+                    finish();
+
+//                    //db값은 있을 경우에만 받아옴
+//                    if(response.isSuccessful()) {
+//                        ArrayList<String> db = response.body().getDB();
+//                        ArrayList<byte[]> dbFiles = new ArrayList<>();
+//                        for(int i =0; i<db.size(); i++) { dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP)); }
+//                        writeToFile("App.db",dbFiles.get(0));
+//                        writeToFile("App.db-shm",dbFiles.get(1));
+//                        writeToFile("App.db-wal",dbFiles.get(2));
+//
+//                        Log.d("server", "통신성공 (getDB) : "+UserID);
+//                        //로그인 후 화면 전환
+//                        Intent intent=new Intent(LoginActivity.this,MainActivity.class);
+//                        startActivity(intent);
+//                        finish();
+//                    }
 //                    //서버에서 불러올 db가 없으면, 내부 db도 꺠끗하게 지워줌
-//                    else{
-//                        String path  = getDataDir()+"/databases/";
-//                        String[] pathList = {"App.db", "App.db-shm","App.db-wal"};
+//                    else
+//                    {
+//                         Log.d("server","서버에 db파일 없음");
+//                         String path  = getDataDir()+"/databases/";
+//                         String[] pathList = {"App.db", "App.db-shm","App.db-wal"};
 //                        try{
 //                            for(int i=0; i<pathList.length;i++){
 //                                File db = new File(path+pathList[i]);
@@ -148,11 +168,11 @@ public class LoginActivity extends AppCompatActivity {
 //                            e.printStackTrace();
 //                            Log.d("server","원래 저장된 db파일 없음");
 //                        }
+//                        //로그인 후 화면 전환
+//                        Intent intent=new Intent(LoginActivity.this,MainActivity.class);
+//                        startActivity(intent);
+//                        finish();
 //                    }
-                    //로그인 후 화면 전환
-                    Intent intent=new Intent(LoginActivity.this,MainActivity.class);
-                    startActivity(intent);
-                    finish();
                 }
                 @Override
                 public void onFailure(Call<ReturnData> call, Throwable t) {

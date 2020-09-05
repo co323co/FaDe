@@ -1,6 +1,7 @@
 package com.example.fade;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -193,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
     }
+
 }
 
 class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
@@ -217,6 +219,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                 }
             });
         }
+
     }
 
     GroupAdapter(ArrayList<Group> groupList){

@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide;
 import com.esafirm.imagepicker.model.Image;
 import com.example.fade.Server.ConnService;
 import com.example.fade.Server.ReturnData;
+import com.example.fade.entity.Person;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,7 +52,6 @@ public class Gallery2 extends AppCompatActivity {
         setContentView(R.layout.result_photo);
         setTitle("재확인");
         bitmaps = new ArrayList<Bitmap>();
-        Intent intent = getIntent();
         List<Image> images = getIntent().getParcelableArrayListExtra("images");
 
         //Log.d(images.get(0).getUri().toString(),"images");
@@ -76,7 +76,8 @@ public class Gallery2 extends AppCompatActivity {
                 Log.e("ㅂㅁㄴㅇㄹ", bitmaps.toString());
 
                 //비트맵들을 이진파일들로 변환
-                bitmapsToByteArrayThread t = new bitmapsToByteArrayThread(getApplicationContext(),bitmaps,byteList);
+                ConvertFile convertFile  = new ConvertFile();
+                ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(getApplicationContext(),bitmaps,byteList);
                 t.start();
                 try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
@@ -93,7 +94,6 @@ public class Gallery2 extends AppCompatActivity {
                 rp_input.put("pid", 1);
                 rp_input.put("pictureList", enPicureList);
 
-
                 ConnService.postRegisterPerson(rp_input).enqueue(new Callback<ReturnData>() {
                     @Override
                     public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
@@ -108,11 +108,18 @@ public class Gallery2 extends AppCompatActivity {
                     }
                 });
 
+                String profile_name = getIntent().getExtras().getString("profile_name");
+                byte[] profile_thumbnail = getIntent().getExtras().getByteArray("profile_thumbnail");
+                Person person = new Person(profile_name);
+
+                DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
+                t1.start();
+                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                startActivity(intent);
+                finish();
             }
         });
-
-
-
 
 
 
@@ -235,9 +242,6 @@ public class Gallery2 extends AppCompatActivity {
 
 
 
-
-
-
         private int calculateInSampleSize(
                 BitmapFactory.Options options, int reqWidth, int reqHeight) {
             // Raw height and width of image
@@ -294,50 +298,4 @@ public class Gallery2 extends AppCompatActivity {
 
 
     }
-
-}
-//비트맵을 바이트로 바꿔주는  스래드
-class bitmapsToByteArrayThread extends Thread
-{
-    Context context;
-    ArrayList<Bitmap> bitmaps;
-    ArrayList<byte[]> byteList;
-
-    public bitmapsToByteArrayThread(Context context, ArrayList<Bitmap> bitmaps, ArrayList<byte[]> byteList)
-    {
-        this.context=context;
-        this.bitmaps=bitmaps;
-        this.byteList=byteList;
-    }
-    @Override
-    public void run() {
-        super.run();
-
-        for(int i=0; i<bitmaps.size();i++)
-        {
-            ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-            bitmaps.get(i).compress(Bitmap.CompressFormat.JPEG, 100, byteArray);
-            byteList.add(byteArray.toByteArray());
-//            writeToFile(i+".png",byteList.get(i));
-
-        }
-
-    }
-
-    //바이트array를 파일로 저장하게 해주는 함수
-//    public void writeToFile(String filename, byte[] pData) {
-//        if(pData == null){ return; }
-//        int lByteArraySize = pData.length;
-//        System.out.println(filename);
-//        try{
-//            File lOutFile = new File(context.getFilesDir()+filename);
-//            FileOutputStream lFileOutputStream = new FileOutputStream(lOutFile);
-//            lFileOutputStream.write(pData);
-//            lFileOutputStream.close();
-//        }catch(Throwable e){
-//            e.printStackTrace(System.out);
-//            Log.d("data",e.toString());
-//        }
-//    }
-
 }

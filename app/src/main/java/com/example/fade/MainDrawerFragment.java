@@ -24,10 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import static android.app.Activity.RESULT_OK;
+
 public class MainDrawerFragment extends Fragment {
 
+    final int CODE_REGI_PERSON = 0;
     PersonAdapter personAdapter;
     ArrayList<Person> personList=new ArrayList<Person>();
+    RecyclerView rv;
     int n=0;
     @Nullable
     @Override
@@ -36,7 +40,7 @@ public class MainDrawerFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_drawer_main,container,false);
 
         //리싸이클러뷰 만들고 설정
-        final RecyclerView rv = view.findViewById(R.id.rv_nameList);
+        rv  = view.findViewById(R.id.rv_nameList);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(view.getContext());
         rv.setLayoutManager(linearLayoutManager);
         rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
@@ -54,7 +58,7 @@ public class MainDrawerFragment extends Fragment {
 
                 Intent intent = new Intent(getContext(), Gallery.class);
                 startActivity(intent);
-//                Person person = new Person("테스트"+n);
+                getActivity().finish();
 //                n++;
 //                DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
 //                //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
@@ -73,8 +77,27 @@ public class MainDrawerFragment extends Fragment {
         });
         return view;
     }
-}
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //인물등록하고 넘어옴
+        if(requestCode==CODE_REGI_PERSON){
+            if (requestCode==RESULT_OK) Log.d("argtest", "Result OK");
+            else {
+                Log.d("argtest", "Result CANCLE");
+            }
+            if(data==null)
+            {
+                Log.d("argtest", "main : data is null");
+                return;
+            }
+            String profile_name = data.getExtras().getString("profile_name");
+            byte[] profile_thumbnail = data.getExtras().getByteArray("profile_thumbnail");
+
+        }
+    }
+}
 
 //PersonRecyclerViewAdapter
 class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{

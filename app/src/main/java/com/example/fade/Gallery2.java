@@ -75,6 +75,21 @@ public class Gallery2 extends AppCompatActivity {
 
                 Log.e("ㅂㅁㄴㅇㄹ", bitmaps.toString());
 
+                ///////////////////내부 DB저장 코드
+                String profile_name = getIntent().getExtras().getString("profile_name");
+                byte[] profile_thumbnail = getIntent().getExtras().getByteArray("profile_thumbnail");
+                Person person = new Person(profile_name);
+
+                DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
+                t1.start();
+                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+                int[] pid = new int[1];
+                DBThread.SelectRecentlyPIDThread t2 = new DBThread.SelectRecentlyPIDThread(pid);
+                t2.start();
+                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                        ////////////////
+
                 //비트맵들을 이진파일들로 변환
                 ConvertFile convertFile  = new ConvertFile();
                 ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(getApplicationContext(),bitmaps,byteList);
@@ -88,10 +103,9 @@ public class Gallery2 extends AppCompatActivity {
 
                 //////////////////////////////////
 
-
                 HashMap<String, Object> rp_input = new HashMap<>();
-                rp_input.put("uid", "20171218");
-                rp_input.put("pid", 1);
+                rp_input.put("uid", LoginActivity.UserID);
+                rp_input.put("pid", pid[0]);
                 rp_input.put("pictureList", enPicureList);
 
                 ConnService.postRegisterPerson(rp_input).enqueue(new Callback<ReturnData>() {
@@ -108,13 +122,6 @@ public class Gallery2 extends AppCompatActivity {
                     }
                 });
 
-                String profile_name = getIntent().getExtras().getString("profile_name");
-                byte[] profile_thumbnail = getIntent().getExtras().getByteArray("profile_thumbnail");
-                Person person = new Person(profile_name);
-
-                DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
-                t1.start();
-                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 Intent intent = new Intent(getApplicationContext(),MainActivity.class);
                 startActivity(intent);
                 finish();

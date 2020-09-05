@@ -21,6 +21,9 @@ public interface PersonDAO {
     @Query("SELECT * FROM Person WHERE pid in (:pidList)")
     List<Person> getByIdList(List<Integer> pidList);
 
+    @Query("SELECT max(pid) FROM Person")
+    int getRecentlyPID();
+
     @Insert
     void insertAll(Person... people);
 

@@ -2,6 +2,7 @@ package com.example.fade;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -89,6 +90,16 @@ public class DBThread {
         public void run(){
             this.personList.clear();
             this.personList.addAll(personDAO.getAll());
+        }
+    }
+
+    //retrun이 없는 스래드 특성상 인자로 int값을 call by ref 하기 위한 배열임. 첫번째 값인 0만 사용해야 함
+    static class SelectRecentlyPIDThread extends Thread {
+        int[] pid;
+        public SelectRecentlyPIDThread(int[] pid) {this.pid=pid;}
+        @Override
+        public void run() {
+            this.pid[0]=personDAO.getRecentlyPID();
         }
     }
     static class InsertPersonThraed extends Thread {

@@ -31,8 +31,9 @@ import com.bumptech.glide.Glide;
 import com.esafirm.imagepicker.model.Image;
 import com.esafirm.imagepicker.features.ImagePicker;
 import com.example.fade.R;
+import com.example.fade.Server.ConnService;
 import com.example.fade.Server.RegiData;
-import com.google.android.gms.common.api.Response;
+import com.example.fade.Server.ReturnData;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,10 +51,11 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity2 extends AppCompatActivity {
+public class Gallery2 extends AppCompatActivity {
     private final int REQUEST_WIDTH = 512;
     private final int REQUEST_HEIGHT = 512;
     ArrayList<Bitmap> bitmaps; //갤러리사진
@@ -76,10 +78,10 @@ public class MainActivity2 extends AppCompatActivity {
 
         Button btn1 = (Button)findViewById(R.id.button);
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(FlaskService.URL)
+                .baseUrl(ConnService.URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        final FlaskService flaskService = retrofit.create(FlaskService.class);
+        final ConnService ConnService = retrofit.create(ConnService.class);
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -106,17 +108,19 @@ public class MainActivity2 extends AppCompatActivity {
                 rp_input.put("pid", 1);
                 rp_input.put("pictureList", enPicureList);
 
-                flaskService.postRegisterPerson(rp_input).enqueue(new Callback<RegiData>() {
-                    //응답
-                    public void onResponse(@NonNull Call<RegiData> call, @NonNull Response<RegiData> response) {
+
+                ConnService.postRegisterPerson(rp_input).enqueue(new Callback<ReturnData>() {
+                    @Override
+                    public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
                         if (response.isSuccessful()) {
-                            RegiData body = response.body();
+                            ReturnData body = response.body();
                             if (body != null) { Log.d("server", "사진 던져주기 성공 (postRegisterPerson)"); } }
                     }
-                    //통신을 실패했을 때
-                    @Override
-                    public void onFailure(Call<RegiData> call, Throwable t) { Log.e("server", "통신실패 (postRegisterPerson)"+t.getMessage()); }
 
+                    @Override
+                    public void onFailure(Call<ReturnData> call, Throwable t) {
+
+                    }
                 });
 
             }
@@ -231,7 +235,7 @@ public class MainActivity2 extends AppCompatActivity {
         // 이미지 경로 구하는 함수
         private String getRealPathFromURI(Uri contentURI) {
             String filePath;
-            Cursor cursor = MainActivity2.this.getContentResolver().query(contentURI, null, null, null, null);
+            Cursor cursor = Gallery2.this.getContentResolver().query(contentURI, null, null, null, null);
             if (cursor == null) {
                 filePath = contentURI.getPath();
             }

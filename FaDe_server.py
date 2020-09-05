@@ -1,5 +1,5 @@
 #안녕혜림아
-
+#뀨잉?
 
 #import문 및 얼굴 학습시켜 모델만드는 함수 정의
 import math
@@ -29,7 +29,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 def train(pid_list, train_dir, model_save_path=None, n_neighbors=None, knn_algo='ball_tree', verbose=False):
     X = []
     y = []
-    z = []
     i = 0
     # Loop through each person in the training set
     for class_dir in os.listdir(train_dir):   #현재 디렉토리에 있는 모든 파일(디렉토리) 리스트를 가져온다.

@@ -14,8 +14,6 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.fade.Server.ConnService;
-import com.example.fade.Server.DetData;
-import com.example.fade.Server.RegiData;
 import com.example.fade.Server.ReturnData;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -28,10 +26,8 @@ import com.google.android.gms.tasks.Task;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;

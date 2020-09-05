@@ -152,7 +152,7 @@ def show_user(username):
     print("get")
     return {'uid': username , 'pid' : 77}
 
-@app.route('/db/upload/<uid>')
+@app.route('/db/download/<uid>')
 def getDB(uid):
     print("getDB")
     try:
@@ -178,6 +178,32 @@ def getDB(uid):
         f.close()
     #JSON으로 바꿔줌 {파일명 : 바이트, ...} 형태
     return { 'db0':dbFiles[0], 'db1':dbFiles[1], 'db2':dbFiles[2] }
+
+@app.route('/db/upload/<uid>',methods = ['POST'])
+def postDB(uid):
+    try:
+        if not os.path.exists('./DATA'):
+            os.makedirs('./DATA')
+        if not os.path.exists('./DATA/uid_'+ uid) :
+            os.makedirs('./DATA/uid_'+ uid)
+        if not os.path.exists('./DATA/uid_'+ uid+'/databases') :
+            os.makedirs('./DATA/uid_'+ uid+'/databases')
+    except:
+        print('Error : Creating directory')
+        
+    parser = reqparse.RequestParser()
+    parser.add_argument('dbFiles', type=str)
+    args = parser.parse_args()
+    dbFiles_en=args['dbFiles']
+    dbFiles=[]
+    x = json.loads(dbFiles_en)
+    path = './DATA/uid_'+uid+'/databases/'
+    for k, v in x.items():
+        f=open(path+k,"wb")
+        f.write(base64.b64decode(v))
+        f.close()
+    print("postDB")
+    return {'result':True}
 
 
 class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없으므로 detection으로 학습기능 빼냄(즉, 사진 폴더별로 저장만)

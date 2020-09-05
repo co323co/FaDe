@@ -81,9 +81,6 @@ def train(pid_list, train_dir, model_save_path=None, n_neighbors=None, knn_algo=
     return i
 
 
-# In[2]:
-
-
 #사진 받아오면 어떤 사람의 얼굴인지 판별하는 함수 정의
 def predict(X_img_path, knn_clf=None, model_path=None, distance_threshold=0.375):
     
@@ -132,9 +129,6 @@ def findBestFitModel(arg):
         if (v[1]/int(v[0])) > (b[1]/int(b[0])):
             b=v
     return [k for k, v in arg.items() if v == b][0]
-
-
-# In[3]:
 
 
 main_folder = './DATA/'  #최상위 폴더 이름 지정 가능

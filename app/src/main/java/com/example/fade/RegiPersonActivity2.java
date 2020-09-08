@@ -212,8 +212,6 @@ public class RegiPersonActivity2 extends AppCompatActivity {
     private String getRotationOfAllImage(String path)
     {
         Uri uri;
-        SimpleDateFormat dateFormat;
-        String last_update; //제일 마지막에 업뎃한 시간
 
         String result = null;
         uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;

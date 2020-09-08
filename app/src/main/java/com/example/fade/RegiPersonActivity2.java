@@ -10,6 +10,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -34,7 +35,9 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -111,9 +114,10 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-                    Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)
-
+//                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+//                    Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
+                    String orientation = getRotationOfAllImage(filePath);
+                    Bitmap bmRotated = rotateBitmap2(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
                     bitmaps.add(bmRotated);
                 }
 
@@ -204,6 +208,68 @@ public class RegiPersonActivity2 extends AppCompatActivity {
         }
     }
 
+
+    private String getRotationOfAllImage(String path)
+    {
+        Uri uri;
+        SimpleDateFormat dateFormat;
+        String last_update; //제일 마지막에 업뎃한 시간
+
+        String result = null;
+        uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        String[] projection = {
+                MediaStore.MediaColumns.DATA,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.ORIENTATION
+        };
+
+        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'";
+
+        Cursor cursor = getContentResolver().query(uri, projection, where, null, MediaStore.MediaColumns.DATE_ADDED + " DESC");
+
+        int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA); //절대경로 메타데이터에서 가져오기
+        int columnDisplayname = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);//파일 이름 메타데이터에서 가져오기
+        int columnDate = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED); //생성된 날짜 메타데이터에서 가져오기
+        int columnRotation = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.ORIENTATION);
+
+        int lastIndex;
+
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        int i = 0;
+
+        while (cursor.moveToNext())
+        {
+
+
+            String absolutePathOfImage = cursor.getString(columnIndex);
+            String nameOfFile = cursor.getString(columnDisplayname);
+            String DateOfImage = dateFormat.format(new Date(cursor.getLong(columnDate) * 1000L));
+            String rotationOfImage = cursor.getString(columnRotation);
+
+
+            lastIndex = absolutePathOfImage.lastIndexOf(nameOfFile);
+            lastIndex = lastIndex >= 0 ? lastIndex : nameOfFile.length() - 1;
+
+            if (!TextUtils.isEmpty(absolutePathOfImage)) {//이미지 파일목록을 싹 돈다(언니 이쪽 부분만 바꾸면돼! 나만 쓰고 언니가 안쓰는 변수명은 지우고 행(날짜같은거))
+                if(absolutePathOfImage.equals(path)){//마지막 업뎃 날짜보다 미래이면(업뎃하지 않은 사진이면)---->언니는 아마 선택한 파일 이름을 가지고 파일이름이 서로 같으면 리스트에 파일 절대경로 추가하면 될듯해
+                    if(rotationOfImage==null) result="0";
+                    else {
+                        result = rotationOfImage;
+                    }
+                    i++;
+                }
+            }
+        }
+        cursor.close();
+
+        Log.d("rotatest",path + " :: " + result);
+        return result;
+    }
+
+
+
     // 이미지 회전 함수
     public Bitmap rotateBitmap(Bitmap bitmap, int orientation) {
         Matrix matrix = new Matrix();
@@ -255,6 +321,37 @@ public class RegiPersonActivity2 extends AppCompatActivity {
         }
     }
 
+    // 이미지 회전 함수
+    public Bitmap rotateBitmap2(Bitmap bitmap, String orientation) {
+        Matrix matrix = new Matrix();
+        switch (orientation) {
+
+            case "0" :
+                return bitmap;
+
+            case "180":
+                matrix.setRotate(180);
+                break;
+
+            case "90":
+                matrix.setRotate(90);
+                break;
+
+            case "270":
+                matrix.setRotate(-90);
+                break;
+            default:
+                return bitmap;
+        }
+        try {
+            Bitmap bmRotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            bitmap.recycle();
+            return bmRotated;
+        } catch (OutOfMemoryError e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     // 이미지 경로 구하는 함수
     private String getRealPathFromURI(Uri contentURI) {
@@ -279,7 +376,7 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 
         BitmapFactory.Options options = new BitmapFactory.Options();
         try {
-            BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options); // 1번
+         BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options); // 1번
 
             int width = options.outWidth;
             int height = options.outHeight;
@@ -301,6 +398,47 @@ public class RegiPersonActivity2 extends AppCompatActivity {
             e.printStackTrace();
         }
         return resizeBitmap;
+//
+//        Bitmap resizeBitmap=null;
+//
+//        final BitmapFactory.Options options = new BitmapFactory.Options();
+//        options.inJustDecodeBounds = true;
+//        BitmapFactory.decodeStream(is, null, options);
+//
+//        // Calculate inSampleSize
+//        options.inSampleSize = calculateInSampleSize(options, 100, 100);
+//
+//        // Decode bitmap with inSampleSize set
+//        options.inJustDecodeBounds = false;
+//        try {
+//            resizeBitmap =  BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        return resizeBitmap;
+    }
+
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 
 }

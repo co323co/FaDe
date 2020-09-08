@@ -100,6 +100,7 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class); //getResult()로 GoogleSignInAccount 객체 반환
@@ -109,12 +110,12 @@ public class LoginActivity extends AppCompatActivity {
             //첫 로그인 or 재로그인시 서버에서 DB받아옴
             ///////////////////////////////////////////////////////////
             UserID = userAccount.getId();
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(ConnService.URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-            ConnService connService = retrofit.create(ConnService.class);
-
+//            Retrofit retrofit = new Retrofit.Builder()
+//                    .baseUrl(ConnService.URL)
+//                    .addConverterFactory(GsonConverterFactory.create())
+//                    .build();
+//            ConnService connService = retrofit.create(ConnService.class);
+//
 //            connService.getDB(UserID).enqueue(new Callback<ReturnData>() {
 //                @RequiresApi(api = Build.VERSION_CODES.N)
 //                @Override
@@ -161,10 +162,10 @@ public class LoginActivity extends AppCompatActivity {
 //                }
 //            });
             ////////////////////////////////////////
-
-
-            //profile();  //사용자 정보 토스트로 출력
-
+            profile();  //사용자 정보 토스트로 출력
+            Intent intent=new Intent(getApplicationContext(),MainActivity.class);
+            startActivity(intent);
+            finish();
             // Signed in successfully, show authenticated UI.
         } catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.

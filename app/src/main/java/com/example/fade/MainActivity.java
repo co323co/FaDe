@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.drawer_main);
 
         //툴바 설정
+        //TODO: 나중에 메뉴바에 갤러리 갱신 버튼 이뿌게 넣기><
         Toolbar tb = (Toolbar) findViewById(R.id.main_toolbar) ;
         setSupportActionBar(tb);
         ActionBar ab = getSupportActionBar() ;

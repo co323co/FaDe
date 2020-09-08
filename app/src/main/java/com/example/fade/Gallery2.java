@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -31,6 +33,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +45,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Gallery2 extends AppCompatActivity {
-    private final int REQUEST_WIDTH = 512;
-    private final int REQUEST_HEIGHT = 512;
     ArrayList<Bitmap> bitmaps; //갤러리사진
 
     @Override
@@ -53,9 +54,6 @@ public class Gallery2 extends AppCompatActivity {
         setTitle("재확인");
         bitmaps = new ArrayList<Bitmap>();
         List<Image> images = getIntent().getParcelableArrayListExtra("images");
-
-        //Log.d(images.get(0).getUri().toString(),"images");
-        //Log.d(images.get(1).toString(),"images");
         MyGridAdapter gAdapter = new MyGridAdapter(this, images);
         final GridView gv = (GridView) findViewById(R.id.folder_gridView);
         gv.setAdapter(gAdapter);
@@ -129,7 +127,6 @@ public class Gallery2 extends AppCompatActivity {
         });
 
 
-
     }
 
     public class MyGridAdapter extends BaseAdapter {
@@ -170,11 +167,6 @@ public class Gallery2 extends AppCompatActivity {
             Log.d(String.valueOf(mimages.get(position).getUri()), "images uri");
             Uri uri = Uri.parse(mimages.get(position).getUri().toString());
 
-
-            //return ivUser;
-            //ivUser.setImageURI(uri);
-
-
             Glide.with(mcontext)
                     .load(uri)
                     .override(500)
@@ -184,50 +176,73 @@ public class Gallery2 extends AppCompatActivity {
 
             Bitmap bm = null;
             bm = resize(getApplicationContext(), uri, 100);
-            bitmaps.add(bm);
-            /*
+
+            String filePath = getRealPathFromURI(uri); // 절대경로 구하기
+            ExifInterface exif = null; // 회전값
             try {
-                bm = resize(getApplicationContext(), uri, 200);
-                bm = MediaStore.Images.Media.getBitmap(mcontext.getContentResolver(), uri);
-                bitmaps.add(bm);
-                Log.e(bitmaps.toString(),"ㅁㄴㅇㄹㅁㄴㅇㄹㅁㄴㅇㄹ");
+                exif = new ExifInterface(filePath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-/*
-            /*try {
-                Bitmap bm, br = null;
-                bm = MediaStore.Images.Media.getBitmap(mcontext.getContentResolver(), uri);
-                br = resize(mcontext, uri, 200);
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+            Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)
 
-                ivUser.setImageBitmap(br);
-                //Log.d(br.getPixels, "images uri");
-
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            */
-            /*BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            try {
-                BitmapFactory.decodeStream(mcontext.getContentResolver().openInputStream(uri), null, options);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-
-            int imageHeight = options.outHeight;
-            int imageWidth = options.outWidth;
-            String imageType = options.outMimeType;
-            options.inSampleSize = calculateInSampleSize(options, 100, 100);*/
-
-
-
+            bitmaps.add(bmRotated);
 
             return ivUser;
+        }
+
+
+
+        // 이미지 회전 함수
+        public Bitmap rotateBitmap(Bitmap bitmap, int orientation) {
+            Matrix matrix = new Matrix();
+            switch (orientation) {
+
+                case ExifInterface.ORIENTATION_NORMAL:
+                    return bitmap;
+
+                case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                    matrix.setScale(-1, 1);
+                    break;
+
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    matrix.setRotate(180);
+                    break;
+
+                case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                    matrix.setRotate(180);
+                    matrix.postScale(-1, 1);
+                    break;
+
+                case ExifInterface.ORIENTATION_TRANSPOSE:
+                    matrix.setRotate(90);
+                    matrix.postScale(-1, 1);
+                    break;
+
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    matrix.setRotate(90);
+                    break;
+
+                case ExifInterface.ORIENTATION_TRANSVERSE:
+                    matrix.setRotate(-90);
+                    matrix.postScale(-1, 1);
+                    break;
+
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    matrix.setRotate(-90);
+                    break;
+                default:
+                    return bitmap;
+            }
+            try {
+                Bitmap bmRotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                bitmap.recycle();
+                return bmRotated;
+            } catch (OutOfMemoryError e) {
+                e.printStackTrace();
+                return null;
+            }
         }
 
 
@@ -248,32 +263,7 @@ public class Gallery2 extends AppCompatActivity {
         }
 
 
-
-        private int calculateInSampleSize(
-                BitmapFactory.Options options, int reqWidth, int reqHeight) {
-            // Raw height and width of image
-            final int height = options.outHeight;
-            final int width = options.outWidth;
-            int inSampleSize = 1;
-
-            if (height > reqHeight || width > reqWidth) {
-
-                final int halfHeight = height / 2;
-                final int halfWidth = width / 2;
-
-                // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-                // height and width larger than the requested height and width.
-                while ((halfHeight / inSampleSize) >= reqHeight
-                        && (halfWidth / inSampleSize) >= reqWidth) {
-                    inSampleSize *= 2;
-                }
-            }
-
-            return inSampleSize;
-        }
-
-
-
+        // 이미지 사이즈 조절 함수
         private Bitmap resize(Context context,Uri uri,int resize){
             Bitmap resizeBitmap=null;
 

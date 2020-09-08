@@ -231,26 +231,15 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 
         int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA); //절대경로 메타데이터에서 가져오기
         int columnDisplayname = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);//파일 이름 메타데이터에서 가져오기
-        int columnDate = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED); //생성된 날짜 메타데이터에서 가져오기
         int columnRotation = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.ORIENTATION);
 
-        int lastIndex;
-
-        dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         int i = 0;
 
         while (cursor.moveToNext())
         {
-
-
             String absolutePathOfImage = cursor.getString(columnIndex);
             String nameOfFile = cursor.getString(columnDisplayname);
-            String DateOfImage = dateFormat.format(new Date(cursor.getLong(columnDate) * 1000L));
             String rotationOfImage = cursor.getString(columnRotation);
-
-
-            lastIndex = absolutePathOfImage.lastIndexOf(nameOfFile);
-            lastIndex = lastIndex >= 0 ? lastIndex : nameOfFile.length() - 1;
 
             if (!TextUtils.isEmpty(absolutePathOfImage)) {//이미지 파일목록을 싹 돈다(언니 이쪽 부분만 바꾸면돼! 나만 쓰고 언니가 안쓰는 변수명은 지우고 행(날짜같은거))
                 if(absolutePathOfImage.equals(path)){//마지막 업뎃 날짜보다 미래이면(업뎃하지 않은 사진이면)---->언니는 아마 선택한 파일 이름을 가지고 파일이름이 서로 같으면 리스트에 파일 절대경로 추가하면 될듯해

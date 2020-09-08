@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
 
     <GridView
-        android:id="@+id/folder_gridView"
-        android:layout_width="match_parent"
-        android:layout_height="565dp"
+        android:layout_weight="10"
+        android:id="@+id/gv_regiperson2"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
         android:background="@android:color/white"
         android:columnWidth="200dp"
         android:gravity="center"
@@ -15,11 +16,12 @@
         android:stretchMode="columnWidth"></GridView>
 
     <Button
-        android:id="@+id/button"
+        android:layout_margin="30dp"
+        android:layout_weight="1"
+        android:id="@+id/btn_regiperson2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right|bottom"
-        android:layout_marginTop="30dp"
         android:text="인물등록" />
 
 </LinearLayout>

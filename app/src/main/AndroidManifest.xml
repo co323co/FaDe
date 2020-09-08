@@ -28,8 +28,8 @@
         </activity>
         <activity android:name=".MainActivity"/>
         <activity android:name=".LogoutActivity"/>
-        <activity android:name=".Gallery"/>
-        <activity android:name=".Gallery2"/>
+        <activity android:name=".RegiPersonActivity1"/>
+        <activity android:name=".RegiPersonActivity2"/>
     </application>
 
 </manifest>

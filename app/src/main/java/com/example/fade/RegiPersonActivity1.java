@@ -1,5 +1,6 @@
 package com.example.fade;
 
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -25,7 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class Gallery extends AppCompatActivity {
+/////////////////////////////////////////////////////////////
+//기존 갤러리1 액티비티입니다
+//프로필(activity_regiperson1.xml) 을 등록하고 갤러리로 넘어가 사진들을 고릅니다.
+//프로필 정보와 갤러리에서 고른 사진들을 RegiPersonActivity2로 넘깁니다.
+/////////////////////////////////////////////////////////////
+
+
+public class RegiPersonActivity1 extends AppCompatActivity {
     static final int REQ_CODE_SELECT_IMAGE = 42;
     static final int SELECT_IMAGE = 100;
     CircleImageView profile;
@@ -35,9 +43,9 @@ public class Gallery extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
+        setContentView(R.layout.activity_regiperson1);
         Button profileAdd = (Button) findViewById(R.id.btn_profileAdd);
-        Button personAdd = (Button) findViewById(R.id.btn_personAdd);
+        Button personAdd = (Button) findViewById(R.id.btn_addPeroson_regiperson1);
         profile = findViewById(R.id.ivUser);
 
         profileAdd.setOnClickListener(new View.OnClickListener() {
@@ -51,7 +59,7 @@ public class Gallery extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 btn_choice = -1;
-                ImagePicker.create(Gallery.this).start();
+                ImagePicker.create(RegiPersonActivity1.this).start();
             }
         });
     }
@@ -74,14 +82,14 @@ public class Gallery extends AppCompatActivity {
                 List<Image> images = ImagePicker.getImages(data);
                 // or get a single image only
                 Image image = ImagePicker.getFirstImageOrNull(data);
-                EditText person_name = findViewById(R.id.et_setName);
+                EditText person_name = findViewById(R.id.et_profile_name_regiperson1);
 
-                Intent intent = new Intent(Gallery.this, Gallery2.class);
+                Intent intent = new Intent(RegiPersonActivity1.this, RegiPersonActivity2.class);
+                Log.d("filetest",images.size()+"");
                 intent.putParcelableArrayListExtra("images", (ArrayList<? extends Parcelable>) images);
                 intent.putExtra("profile_name", person_name.getText().toString());
 //                intent.putExtra("profile_thumbnail", new ConvertFile().UriToByteArray(getApplicationContext(), selectedImageUri));
                 startActivity(intent);
-                finish();
 
             }
 

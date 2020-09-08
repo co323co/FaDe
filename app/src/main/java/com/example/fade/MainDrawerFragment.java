@@ -56,7 +56,7 @@ public class MainDrawerFragment extends Fragment {
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(getContext(), Gallery.class);
+                Intent intent = new Intent(getContext(), RegiPersonActivity1.class);
                 startActivity(intent);
                 getActivity().finish();
 //                n++;

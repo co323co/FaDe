@@ -15,8 +15,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,6 +39,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.fade.Server.CommServer;
 import com.example.fade.entity.Group;
 import com.example.fade.entity.Person;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -44,7 +49,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import static androidx.core.content.ContextCompat.getSystemService;
 
@@ -59,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     RecyclerView rv;
     GroupAdapter groupAdapter;
     ArrayList<Group> groupList=new ArrayList<Group>();
-
+    ArrayList<String> result;
     int n=0;
 
     @Override
@@ -135,6 +142,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case 1:
                 Toast.makeText(getApplicationContext(),"튜토리얼",Toast.LENGTH_SHORT).show();
                 break;
+            case 2:
+                GetPermission.verifyStoragePermissions(this);
+                getPathOfAllImages();
+                CommServer commServer = new CommServer(this);
+                try {
+                    Log.i("postDB","실행 시작");
+                    commServer.postGalleryImg(result);
+                }catch (Exception e){
+                    Log.i("ERROR ", e.getMessage());
+                }
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -157,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //groupID,  itemID, order
         menu.add(0,0,0,"로그아웃");
         menu.add(0,1,1,"튜토리얼");
+        menu.add(0,2,2,"갤러리 갱신");
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -194,6 +213,65 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //레이아웃
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
+    }
+    private ArrayList<String> getPathOfAllImages()
+    {
+        Uri uri;
+        SimpleDateFormat dateFormat;
+        String last_update; //제일 마지막에 업뎃한 시간
+
+        result = new ArrayList<>();
+        uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        last_update = "2020/09/09";
+
+        String[] projection = {
+                MediaStore.MediaColumns.DATA,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.DATE_ADDED
+        };
+
+        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'";
+
+        Cursor cursor = getContentResolver().query(uri, projection, where, null, MediaStore.MediaColumns.DATE_ADDED + " DESC");
+
+        int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA); //절대경로 메타데이터에서 가져오기
+        int columnDisplayname = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);//파일 이름 메타데이터에서 가져오기
+        int columnDate = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED); //생성된 날짜 메타데이터에서 가져오기
+
+        int lastIndex;
+
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        int i = 0;
+
+        while (cursor.moveToNext())
+        {
+            String absolutePathOfImage = cursor.getString(columnIndex);
+            String nameOfFile = cursor.getString(columnDisplayname);
+            String DateOfImage = dateFormat.format(new Date(cursor.getLong(columnDate) * 1000L));
+
+            int compare_time_last = DateOfImage.compareTo(last_update);//사진이 생성된 날짜와 마지막 업뎃 날짜를 비교하여
+//            Log.i("  "+ last_update+" "+DateOfImage,"비교 결과 ->" + compare_time_last+"");
+//            Log.i(absolutePathOfImage+ " " + DateOfImage, "사진 정보");
+            lastIndex = absolutePathOfImage.lastIndexOf(nameOfFile);
+            lastIndex = lastIndex >= 0 ? lastIndex : nameOfFile.length() - 1;
+
+            if (!TextUtils.isEmpty(absolutePathOfImage)) {
+                if(compare_time_last>=0){//마지막 업뎃 날짜보다 미래이면(업뎃하지 않은 사진이면)
+                    result.add(absolutePathOfImage);//result 리스트에 파일 절대경로 추가
+                    i++;
+                }
+            }
+
+        }
+        cursor.close();
+/*
+        for (String string : result)
+        {   i++;
+            Log.i("사진정보 : ", string);
+
+        }Log.i("사진정보 "+i+"", "개 입력 완료");*/
+        Log.i(i+""+"개의 사진 절대경로가 담긴 리스트 리턴함", "므엥");
+        return result;
     }
 
 }

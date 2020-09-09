@@ -95,7 +95,7 @@ def postDB(uid):
         print(e)
         return {'result':False}
     
-@app.route('gallery/upload/<uid>',methods = ['POST'])
+@app.route('/gallery/upload/<uid>',methods = ['POST'])
 def postPIC(uid):
     try:
         if not os.path.exists('./DATA'):

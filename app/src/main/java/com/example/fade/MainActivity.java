@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(getApplicationContext(),"튜토리얼",Toast.LENGTH_SHORT).show();
                 break;
             case 2:
-                GetPermission.verifyStoragePermissions(this);
+                GetPermission.verifyStoragePermissions(this);//갤러리 이미지 가져오기!!!!!!!!!!!!!!!!!
                 getPathOfAllImages();
 
                 CommServer commServer = new CommServer(this);
@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
     }
-    private ArrayList<byte[]> getPathOfAllImages()
+    private ArrayList<byte[]> getPathOfAllImages()   //갤러리 이미지 가져오기!!!!!!!!!!!!!
     {
         Uri uri;
         SimpleDateFormat dateFormat;

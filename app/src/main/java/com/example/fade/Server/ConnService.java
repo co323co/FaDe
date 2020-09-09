@@ -33,7 +33,7 @@ public interface ConnService {
     Call<ResponseBody> postDB(@Path("uid") String uid, @FieldMap HashMap<String, Object> param);
 
     @FormUrlEncoded
-    @POST("/db/upload/{uid}")
+    @POST("/gallery/upload/{uid}")
     Call<ResponseBody> postGalleryImg(@Path("uid") String uid, @FieldMap HashMap<String, Object> param);
 
     @FormUrlEncoded

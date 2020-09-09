@@ -1,5 +1,6 @@
 package com.example.fade;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -9,6 +10,7 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -67,19 +69,20 @@ public class RegiPersonActivity2 extends AppCompatActivity {
         gv.setAdapter(gAdapter);
 
 
-        Button btn1 = (Button)findViewById(R.id.btn_regiperson2);
+        Button btn = (Button)findViewById(R.id.btn_regiperson2);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         final ConnService ConnService = retrofit.create(ConnService.class);
-        btn1.setOnClickListener(new View.OnClickListener() {
+        btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
+                btn.setClickable(false);
+
                 ArrayList<byte[]> byteList=new ArrayList<byte[]>();
 
-                Log.e("ㅂㅁㄴㅇㄹ", bitmaps.toString());
 
                 ///////////////////내부 DB저장 코드
                 String profile_name = getIntent().getExtras().getString("profile_name");
@@ -100,26 +103,52 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                 //서버에 이미지들을 보내는 코드
                 /////////////////////////////////////////////////////////////////////
 
+                Log.d("testtest", "시작");
+                ArrayList<String> pathList=new ArrayList<>();
                 //이미지들 비트맵으로 변환
                 for (Image image : images)
                 {
                     Uri uri = Uri.parse(image.getUri().toString());
-                    Bitmap bm = null;
-                    bm = resize(getApplicationContext(), uri, 100);
-
                     String filePath = getRealPathFromURI(uri); // 절대경로 구하기
-                    ExifInterface exif = null; // 회전값
-                    try {
-                        exif = new ExifInterface(filePath);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    pathList.add(filePath);
+                }
+                ArrayList<String> orientation=null;
+                try{
+                    orientation = getRotationOfAllImage(pathList.toArray(new String[pathList.size()]));
+                }
+                catch (Exception e) {Log.e("testtest", "getRotationOfAllImage 에러 :: " + e.toString());}
+                Log.d("testtest", "완료");
+                for (int i =0; i< images.size(); i++){
+                    Bitmap bm = null;
+                    Uri uri = Uri.parse(images.get(i).getUri().toString());
+                    bm = resize(getApplicationContext(), uri, 100);
+//                    try {
+//                        bm  =  MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uri);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                    Log.d("testtest", "resize 완료");
+//                    Log.d("testtest", "uri to bm 완료");
+
+                    Bitmap bmRotated=null;
+                    try{
+                        bmRotated = rotateBitmap2(bm, orientation.get(i)); //bitmap 사진 파일(bitmap형태의)i
+//                        Log.d("testtest", "rotate 완료");
+
                     }
-//                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-//                    Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
-                    String orientation = getRotationOfAllImage(filePath);
-                    Bitmap bmRotated = rotateBitmap2(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
+                    catch (Exception e) {Log.e("testtest", "rotateBitmap2 에러 :: " + e.toString());}
                     bitmaps.add(bmRotated);
                 }
+                /////////////API 낮은버전 (혹시모르니 지우지말자)
+//                    ExifInterface exif = null; // 회전값
+//                    try {
+//                        exif = new ExifInterface(filePath);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+//                    Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
+                Log.d("testtest", "찐완료");
 
                 //////////////////비트맵들을 이진파일들로 변환
                 ConvertFile convertFile  = new ConvertFile();
@@ -209,12 +238,24 @@ public class RegiPersonActivity2 extends AppCompatActivity {
     }
 
 
-    private String getRotationOfAllImage(String path)
+    private ArrayList<String> getRotationOfAllImage(String[] pathList)
     {
         Uri uri;
 
-        String result = null;
+        ArrayList<String> result = new ArrayList<String>();
         uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        ContentResolver resolver = getApplicationContext()
+                .getContentResolver();
+//// "rw" for read-and-write;
+//// "rwt" for truncating or overwriting existing file contents.
+//        String readOnlyMode = "r";
+//        try (ParcelFileDescriptor pfd =
+//                     resolver.openFileDescriptor(uri, readOnlyMode)) {
+//            // Perform operations on "pfd".
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         String[] projection = {
                 MediaStore.MediaColumns.DATA,
@@ -223,8 +264,18 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                 MediaStore.MediaColumns.ORIENTATION
         };
 
-        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'";
+        String quary = "(";
+        for (int i=0; i<pathList.length; i++)
+        {
+            quary+="'" + pathList[i] + "'";
+            if(i!=(pathList.length-1)) quary+=", ";
+        }
+        quary+=")";
+        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg' AND " + MediaStore.MediaColumns.DATA + " in "+quary;
 
+//        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'";
+
+        String[] whereArgs = pathList;
         Cursor cursor = getContentResolver().query(uri, projection, where, null, MediaStore.MediaColumns.DATE_ADDED + " DESC");
 
         int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA); //절대경로 메타데이터에서 가져오기
@@ -239,19 +290,24 @@ public class RegiPersonActivity2 extends AppCompatActivity {
             String nameOfFile = cursor.getString(columnDisplayname);
             String rotationOfImage = cursor.getString(columnRotation);
 
+
             if (!TextUtils.isEmpty(absolutePathOfImage)) {//이미지 파일목록을 싹 돈다(언니 이쪽 부분만 바꾸면돼! 나만 쓰고 언니가 안쓰는 변수명은 지우고 행(날짜같은거))
-                if(absolutePathOfImage.equals(path)){//마지막 업뎃 날짜보다 미래이면(업뎃하지 않은 사진이면)---->언니는 아마 선택한 파일 이름을 가지고 파일이름이 서로 같으면 리스트에 파일 절대경로 추가하면 될듯해
-                    if(rotationOfImage==null) result="0";
+                    if(rotationOfImage==null) result.add("0");
                     else {
-                        result = rotationOfImage;
+                        result.add(rotationOfImage) ;
+                        Log.d("rotatest",absolutePathOfImage + " :: " + rotationOfImage);
                     }
                     i++;
-                }
             }
+
+//            if(rotationOfImage==null) result="0";
+//            else {
+//                result = rotationOfImage;
+//            }
+//            i++;
         }
         cursor.close();
 
-        Log.d("rotatest",path + " :: " + result);
         return result;
     }
 

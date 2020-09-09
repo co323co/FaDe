@@ -98,12 +98,10 @@ def postDB(uid):
 @app.route('/gallery/upload/<uid>',methods = ['POST'])
 def postPIC(uid):
     try:
-        if not os.path.exists('./DATA'):
-            os.makedirs('./DATA')
-        if not os.path.exists('./DATA/uid_'+ uid) :
-            os.makedirs('./DATA/uid_'+ uid)
-        if not os.path.exists('./DATA/uid_'+ uid+'/databases') :
-            os.makedirs('./DATA/uid_'+ uid+'/databases')
+        if not os.path.exists('./tmp'):
+            os.makedirs('./tmp')
+        if not os.path.exists('./tmp/uid_'+ uid) :
+            os.makedirs('./tmp/uid_'+ uid)
     except:
         print('Error : Creating directory')
         
@@ -113,7 +111,7 @@ def postPIC(uid):
         args = parser.parse_args()
         Files_en=args['GalleryFiles']
         x = json.loads(Files_en)
-        path = './DATA/uid_'+uid+'/databases/'
+        path = './tmp/uid_'+uid+'/'
         for k, v in x.items():
             f=open(path+k,"wb")
             f.write(base64.b64decode(v))

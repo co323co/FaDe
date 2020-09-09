@@ -17,7 +17,7 @@ import retrofit2.http.Path;
 
 public interface ConnService {
 
-    public static final String URL = "http://220.123.36.108:1213";
+    public static final String URL = "http://192.168.219.106:5000";
 
 //    @GET("/{userId}")
 //    Call<RegiData> getFirst(@Path("userId") String id);
@@ -31,6 +31,10 @@ public interface ConnService {
     @FormUrlEncoded
     @POST("/db/upload/{uid}")
     Call<ResponseBody> postDB(@Path("uid") String uid, @FieldMap HashMap<String, Object> param);
+
+    @FormUrlEncoded
+    @POST("/db/upload/{uid}")
+    Call<ResponseBody> postGalleryImg(@Path("uid") String uid, @FieldMap HashMap<String, Object> param);
 
     @FormUrlEncoded
     @POST("/reg/person")

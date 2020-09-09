@@ -77,19 +77,53 @@ def postDB(uid):
     except:
         print('Error : Creating directory')
         
-    parser = reqparse.RequestParser()
-    parser.add_argument('dbFiles', type=str)
-    args = parser.parse_args()
-    dbFiles_en=args['dbFiles']
-    x = json.loads(dbFiles_en)
-    path = './DATA/uid_'+uid+'/databases/'
-    for k, v in x.items():
-        f=open(path+k,"wb")
-        f.write(base64.b64decode(v))
-        f.close()
-    print("postDB")
-    return {'result':True}
-
+    try:
+        parser = reqparse.RequestParser()
+        parser.add_argument('dbFiles', type=str)
+        args = parser.parse_args()
+        dbFiles_en=args['dbFiles']
+        x = json.loads(dbFiles_en)
+        path = './DATA/uid_'+uid+'/databases/'
+        for k, v in x.items():
+            f=open(path+k,"wb")
+            f.write(base64.b64decode(v))
+            f.close()
+        print("postDB")
+        return {'result':True}
+        
+    except Exception as e:
+        print(e)
+        return {'result':False}
+    
+@app.route('gallery/upload/<uid>',methods = ['POST'])
+def postPIC(uid):
+    try:
+        if not os.path.exists('./DATA'):
+            os.makedirs('./DATA')
+        if not os.path.exists('./DATA/uid_'+ uid) :
+            os.makedirs('./DATA/uid_'+ uid)
+        if not os.path.exists('./DATA/uid_'+ uid+'/databases') :
+            os.makedirs('./DATA/uid_'+ uid+'/databases')
+    except:
+        print('Error : Creating directory')
+        
+    try:
+        parser = reqparse.RequestParser()
+        parser.add_argument('GalleryFiles', type=str)
+        args = parser.parse_args()
+        Files_en=args['GalleryFiles']
+        x = json.loads(Files_en)
+        path = './DATA/uid_'+uid+'/databases/'
+        for k, v in x.items():
+            f=open(path+k,"wb")
+            f.write(base64.b64decode(v))
+            f.close()
+        print("postPIC")
+        return {'result':True}
+        
+    except Exception as e:
+        print(e)
+        return {'result':False}
 
 class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없으므로 detection으로 학습기능 빼냄(즉, 사진 폴더별로 저장만)
     def post(self):                        #json으로 전송해야할 것 : uid, pid, 사진 리스트

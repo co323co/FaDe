@@ -91,13 +91,13 @@ public class CommServer {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void postGalleryImg(ArrayList<String> imgpathList) throws IOException {
-        final OkHttpClient okHttpClient = new OkHttpClient.Builder()
+    public void postGalleryImg(ArrayList<byte[]> imgpathList) throws IOException {
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(40, TimeUnit.SECONDS)
+                .readTimeout(1, TimeUnit.MINUTES)
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .build();
-
 
 //        Log.d("server", ""+context.getDataDir()+"/databases/");
         Retrofit retrofit = new Retrofit.Builder()
@@ -107,25 +107,8 @@ public class CommServer {
                 .build();
         final ConnService connService = retrofit.create(ConnService.class);
 
-        String path  = context.getDataDir()+"/databases/";
-
-        ArrayList<String> pathList = imgpathList;
-        Log.i("pathList 받아오기 성공 ", pathList.toString());
-        ArrayList<byte[]> byteList = new ArrayList<>();
-        Log.i("byteList 받아오기 성공 ", byteList.toString());
-
-        for(int i=0; i<pathList.size();i++)
-        {
-            Log.i("포문 진입", "ㅅㅂ");
-            File db = new File(pathList.get(i));
-            Log.i("바이트 변환 시작", db+"");
-            FileInputStream fileInputStream = new FileInputStream(db);
-            Log.i("바이트 변환 중", fileInputStream+"");
-            byteList.add(inputStreamToByteArray(fileInputStream));
-            fileInputStream.close();
-            Log.i("pathList 바이트로 변환 중... ", "므엑");
-        }
-        Log.i("pathList 바이트로 변환 완료 ", "므엑");
+        ArrayList<byte[]> byteList = imgpathList;
+        Log.i("pathList 받아오기 성공 ", byteList.toString());
 
         //바이트사진들 -> base64String으로 인코딩
         //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.

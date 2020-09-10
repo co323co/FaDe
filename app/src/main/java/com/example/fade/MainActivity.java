@@ -70,8 +70,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     RecyclerView rv;
     GroupAdapter groupAdapter;
     ArrayList<Group> groupList=new ArrayList<Group>();
-    ArrayList<Uri> result;
-    ArrayList<byte[]> byteList;
     int n=0;
 
     @Override
@@ -150,11 +148,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case 2:
                 GetPermission.verifyStoragePermissions(this);//갤러리 이미지 가져오기!!!!!!!!!!!!!!!!!
-                getPathOfAllImages();
+                ArrayList<byte[]> byteList = getByteArrayOfAllImages();
 
                 CommServer commServer = new CommServer(this);
                 try {
-                    Log.i("postDB","실행 시작");
+                    Log.i("updateGalleryImg","실행 시작");
                     commServer.updateGalleryImg(byteList);
                 }catch (Exception e){
                     Log.i("ERROR ", e.getMessage());
@@ -221,12 +219,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
     }
-    private ArrayList<byte[]> getPathOfAllImages()   //갤러리 이미지 가져오기!!!!!!!!!!!!!
+    private ArrayList<byte[]> getByteArrayOfAllImages()   //갤러리 이미지 가져오기!!!!!!!!!!!!!
     {
         Uri uri;
         SimpleDateFormat dateFormat;
+        ArrayList<byte[]> byteList = new ArrayList<byte[]>();
         String last_update; //제일 마지막에 업뎃한 시간
-        byteList = new ArrayList<byte[]>();
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         last_update = "2020/09/11";
 

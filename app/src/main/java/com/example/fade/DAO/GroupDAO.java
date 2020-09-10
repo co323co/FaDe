@@ -42,6 +42,8 @@ public interface GroupDAO {
     @Query("DELETE  FROM `Group` WHERE gid = :gid")
     void deleteById(int gid);
 
+
+
     @Delete
     void delete(Group group);
 

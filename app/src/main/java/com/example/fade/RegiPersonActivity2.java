@@ -243,7 +243,7 @@ public class RegiPersonActivity2 extends AppCompatActivity {
         Uri uri;
 
         ArrayList<String> result = new ArrayList<String>();
-        uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
         ContentResolver resolver = getApplicationContext()
                 .getContentResolver();
@@ -295,7 +295,7 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                     if(rotationOfImage==null) result.add("0");
                     else {
                         result.add(rotationOfImage) ;
-                        Log.d("rotatest",absolutePathOfImage + " :: " + rotationOfImage);
+                        Log.d("rotatest",nameOfFile + " :: " + rotationOfImage);
                     }
                     i++;
             }
@@ -307,7 +307,8 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 //            i++;
         }
         cursor.close();
-
+        Log.i(i+""+"개의 사진 절대경로가 담긴 리스트 리턴함", "므엥");
+        Log.i(result.toString(), "   ");
         return result;
     }
 

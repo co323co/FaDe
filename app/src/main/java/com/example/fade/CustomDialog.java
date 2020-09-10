@@ -186,7 +186,7 @@ class AddGroupDialog extends Dialog {
         @Override
         public RVHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_profile_horizon, parent, false);
-            return new RightAdapter.RVHolder(view);
+            return new RVHolder(view);
         }
 
         @Override

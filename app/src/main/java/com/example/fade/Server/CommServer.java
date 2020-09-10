@@ -8,7 +8,13 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 
 import com.example.fade.LoginActivity;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,18 +98,21 @@ public class CommServer {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void postGalleryImg(ArrayList<byte[]> imgpathList) throws IOException {
+    public void updateGalleryImg(ArrayList<byte[]> imgpathList) throws IOException {
 
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(2, TimeUnit.MINUTES)
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .build();
 
 //        Log.d("server", ""+context.getDataDir()+"/databases/");
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .client(okHttpClient)
                 .build();
         final ConnService connService = retrofit.create(ConnService.class);
@@ -118,12 +128,29 @@ public class CommServer {
         HashMap<String, Object> input = new HashMap<>();
         input.put("GalleryFiles", enDBFiles);
         Log.i("pathList 묶기 완료 ", "므엑");
-        connService.postGalleryImg("20171108", input).enqueue(new Callback<ResponseBody>() {
+
+        connService.postDetectionPicture("20171108", input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
-                    Log.i("server", "통신성공 (putDB) : " + response.body().string());
-                } catch (IOException e) {
+                    ArrayList<String> jsonresult = new ArrayList<>();
+
+                    JSONObject jsonObject = new JSONObject(response.body().string());
+                    JSONArray jsonArray = jsonObject.getJSONArray("gid_list");
+                    int index = 0;
+
+                    ReturnData returnData = gson.fromJson(jsonArray.toString(), ReturnData.class);
+                    jsonresult = returnData.getGidList();
+
+
+
+
+                    Log.i("server", "통신성공 (putDB) : " + jsonresult);
+
+
+
+
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -155,6 +182,24 @@ public class CommServer {
         }
 
         return resBytes;
+    }
+    public ArrayList<String> getJSONdata(String data){
+
+        ArrayList<String> result = new ArrayList<>();
+
+        try {
+            JsonParser jsonParser = new JsonParser();
+            JsonArray jsonArray = (JsonArray) jsonParser.parse(data);
+            for(int i = 0; i < jsonArray.size(); i++ ){
+                JsonObject object = (JsonObject) jsonArray.get(i);
+                result.add(object.get("gid").toString());
+                Log.i(result.toString(), "이히~");
+                //Do something..
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
 }

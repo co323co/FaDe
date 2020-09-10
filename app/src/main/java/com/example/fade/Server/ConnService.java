@@ -17,7 +17,12 @@ import retrofit2.http.Path;
 
 public interface ConnService {
 
-    public static final String URL = "http://192.168.219.106:5000";
+
+    //혜림
+//    public static final String URL = "http://192.168.219.106:5000";
+    //민정
+    public static final String URL = "http://220.123.36.108:1213";
+
 
 //    @GET("/{userId}")
 //    Call<RegiData> getFirst(@Path("userId") String id);

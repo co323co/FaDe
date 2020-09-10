@@ -104,41 +104,33 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                 /////////////////////////////////////////////////////////////////////
 
                 Log.d("testtest", "시작");
-                ArrayList<String> pathList=new ArrayList<>();
                 //이미지들 비트맵으로 변환
-                for (Image image : images)
-                {
-                    Uri uri = Uri.parse(image.getUri().toString());
-                    String filePath = getRealPathFromURI(uri); // 절대경로 구하기
-                    pathList.add(filePath);
-                }
-                ArrayList<String> orientation=null;
-                try{
-                    orientation = getRotationOfAllImage(pathList.toArray(new String[pathList.size()]));
-                }
-                catch (Exception e) {Log.e("testtest", "getRotationOfAllImage 에러 :: " + e.toString());}
-                Log.d("testtest", "완료");
-                for (int i =0; i< images.size(); i++){
+                for (Image image : images) {
+
+                    Uri uri = image.getUri();
+                    String rotation = getRotationOfAllImage(uri);
+                    Log.d("testtest", "완료");
+
                     Bitmap bm = null;
-                    Uri uri = Uri.parse(images.get(i).getUri().toString());
-                    bm = resize(getApplicationContext(), uri, 100);
-//                    try {
-//                        bm  =  MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uri);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
+//                    Bitmap bm  = resize(getApplicationContext(), uri, 100);
+                    try {
+                        bm  =  MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uri);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     Log.d("testtest", "resize 완료");
 //                    Log.d("testtest", "uri to bm 완료");
 
                     Bitmap bmRotated=null;
                     try{
-                        bmRotated = rotateBitmap2(bm, orientation.get(i)); //bitmap 사진 파일(bitmap형태의)i
+                        bmRotated = rotateBitmap2(bm, rotation); //bitmap 사진 파일(bitmap형태의)i
 //                        Log.d("testtest", "rotate 완료");
-
                     }
                     catch (Exception e) {Log.e("testtest", "rotateBitmap2 에러 :: " + e.toString());}
                     bitmaps.add(bmRotated);
                 }
+                Log.d("testtest", "찐완료");
+
                 /////////////API 낮은버전 (혹시모르니 지우지말자)
 //                    ExifInterface exif = null; // 회전값
 //                    try {
@@ -148,7 +140,6 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 //                    }
 //                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
 //                    Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
-                Log.d("testtest", "찐완료");
 
                 //////////////////비트맵들을 이진파일들로 변환
                 ConvertFile convertFile  = new ConvertFile();
@@ -237,48 +228,21 @@ public class RegiPersonActivity2 extends AppCompatActivity {
         }
     }
 
-
-    private ArrayList<String> getRotationOfAllImage(String[] pathList)
+    private String getRotationOfAllImage(Uri uri)
     {
-        Uri uri;
-
-        ArrayList<String> result = new ArrayList<String>();
-        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        ContentResolver resolver = getApplicationContext()
-                .getContentResolver();
-//// "rw" for read-and-write;
-//// "rwt" for truncating or overwriting existing file contents.
-//        String readOnlyMode = "r";
-//        try (ParcelFileDescriptor pfd =
-//                     resolver.openFileDescriptor(uri, readOnlyMode)) {
-//            // Perform operations on "pfd".
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        String result = null;
+//        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
         String[] projection = {
-                MediaStore.MediaColumns.DATA,
+                MediaStore.Images.Media._ID,
                 MediaStore.MediaColumns.DISPLAY_NAME,
                 MediaStore.MediaColumns.DATE_ADDED,
                 MediaStore.MediaColumns.ORIENTATION
         };
 
-        String quary = "(";
-        for (int i=0; i<pathList.length; i++)
-        {
-            quary+="'" + pathList[i] + "'";
-            if(i!=(pathList.length-1)) quary+=", ";
-        }
-        quary+=")";
-        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg' AND " + MediaStore.MediaColumns.DATA + " in "+quary;
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, MediaStore.MediaColumns.DATE_ADDED + " DESC");
 
-//        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'";
-
-        String[] whereArgs = pathList;
-        Cursor cursor = getContentResolver().query(uri, projection, where, null, MediaStore.MediaColumns.DATE_ADDED + " DESC");
-
-        int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA); //절대경로 메타데이터에서 가져오기
+        int columnID = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
         int columnDisplayname = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);//파일 이름 메타데이터에서 가져오기
         int columnRotation = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.ORIENTATION);
 
@@ -286,34 +250,25 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 
         while (cursor.moveToNext())
         {
-            String absolutePathOfImage = cursor.getString(columnIndex);
             String nameOfFile = cursor.getString(columnDisplayname);
             String rotationOfImage = cursor.getString(columnRotation);
+            Long id = cursor.getLong(columnID);
+            Uri contentUri = Uri.withAppendedPath(uri, id.toString());
 
-
-            if (!TextUtils.isEmpty(absolutePathOfImage)) {//이미지 파일목록을 싹 돈다(언니 이쪽 부분만 바꾸면돼! 나만 쓰고 언니가 안쓰는 변수명은 지우고 행(날짜같은거))
-                    if(rotationOfImage==null) result.add("0");
-                    else {
-                        result.add(rotationOfImage) ;
-                        Log.d("rotatest",nameOfFile + " :: " + rotationOfImage);
-                    }
-                    i++;
+            if (contentUri!=null) {//이미지 파일목록을 싹 돈다(언니 이쪽 부분만 바꾸면돼! 나만 쓰고 언니가 안쓰는 변수명은 지우고 행(날짜같은거))
+                if(rotationOfImage==null) result = "0";
+                else {
+                    result=rotationOfImage ;
+                    Log.d("rotatest",nameOfFile + " :: " + rotationOfImage);
+                }
+                i++;
             }
-
-//            if(rotationOfImage==null) result="0";
-//            else {
-//                result = rotationOfImage;
-//            }
-//            i++;
         }
         cursor.close();
-        Log.i(i+""+"개의 사진 절대경로가 담긴 리스트 리턴함", "므엥");
-        Log.i(result.toString(), "   ");
         return result;
     }
 
-
-
+    //API 10.0 미만 사용
     // 이미지 회전 함수
     public Bitmap rotateBitmap(Bitmap bitmap, int orientation) {
         Matrix matrix = new Matrix();
@@ -365,6 +320,8 @@ public class RegiPersonActivity2 extends AppCompatActivity {
         }
     }
 
+
+    //API 10.0부터 사용
     // 이미지 회전 함수
     public Bitmap rotateBitmap2(Bitmap bitmap, String orientation) {
         Matrix matrix = new Matrix();

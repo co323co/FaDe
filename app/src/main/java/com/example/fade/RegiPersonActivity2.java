@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -76,11 +77,13 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         final ConnService ConnService = retrofit.create(ConnService.class);
-        ProgressBar pb = (ProgressBar)findViewById(R.id.pb_loading_regiperson2);
         btn.setOnClickListener(view -> {
 
             btn.setClickable(false);
+            ProgressBar pb = (ProgressBar)findViewById(R.id.pb_loading_regiperson2);
+            TextView tv = (TextView)findViewById(R.id.tv_regiperson2);
             pb.setVisibility(View.VISIBLE);
+            tv.setVisibility(View.VISIBLE);
 
             ///////////////////내부 DB저장 코드
             String profile_name = getIntent().getExtras().getString("profile_name");
@@ -114,13 +117,13 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                        String rotation = getRotationOfAllImage(uri);
 //                    Log.d("testtest", "get로테완료");
 
-                       Bitmap bm = null;
-//                    Bitmap bm  = resize(getApplicationContext(), uri, 100);
-                       try {
-                           bm  =  MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uri);
-                       } catch (IOException e) {
-                           e.printStackTrace();
-                       }
+//                       Bitmap bm = null;
+                    Bitmap bm  = resize(getApplicationContext(), uri, 100);
+//                       try {
+//                           bm  =  MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uri);
+//                       } catch (IOException e) {
+//                           e.printStackTrace();
+//                       }
                        Log.d("testtest", "resize 완료");
 //                    Log.d("testtest", "uri to bm 완료");
 

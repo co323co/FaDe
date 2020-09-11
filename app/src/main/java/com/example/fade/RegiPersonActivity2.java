@@ -1,6 +1,5 @@
 package com.example.fade;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -10,9 +9,7 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
-import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -36,15 +33,14 @@ import com.example.fade.entity.Person;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import me.echodev.resizer.Resizer;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -62,6 +58,7 @@ public class RegiPersonActivity2 extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        GetPermission.verifyStoragePermissions(this);
         setContentView(R.layout.activity_regiperson2);
         setTitle("재확인");
         bitmaps = new ArrayList<Bitmap>();
@@ -118,7 +115,16 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 //                    Log.d("testtest", "get로테완료");
 
 //                       Bitmap bm = null;
-                    Bitmap bm  = resize(getApplicationContext(), uri, 100);
+//                    Bitmap bm  = resize(getApplicationContext(), uri, 200);
+                       Bitmap bm = null;
+                       try {
+                           bm = new Resizer(getApplicationContext())
+                                   .setTargetLength(500)
+                                   .setSourceImage(new File(getRealPathFromURI(uri)))
+                                   .getResizedBitmap();
+                       } catch (IOException e) {
+                           e.printStackTrace();
+                       }
 //                       try {
 //                           bm  =  MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uri);
 //                       } catch (IOException e) {
@@ -220,9 +226,9 @@ public class RegiPersonActivity2 extends AppCompatActivity {
             ImageView ivUser;
             if (convertView == null) {
                 ivUser = new ImageView(mcontext);
-                //ivUser.setLayoutParams(new GridView.LayoutParams(400,350));
+                ivUser.setLayoutParams(new GridView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                 //ivUser.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                ivUser.setPadding(5, 5, 5, 5);
+                ivUser.setPadding(3, 0, 3, 0);
             } else {
                 ivUser = (ImageView) convertView;
             }
@@ -232,9 +238,9 @@ public class RegiPersonActivity2 extends AppCompatActivity {
             Glide.with(mcontext)
                     .load(uri)
                     .override(500)
-                    .fitCenter()
+                    .centerCrop()
                     .into(ivUser);
-            Log.d(getRealPathFromURI(uri), "이미지 경로");
+//            Log.d(getRealPathFromURI(uri), "이미지 경로");
 
             return ivUser;
         }
@@ -332,7 +338,6 @@ public class RegiPersonActivity2 extends AppCompatActivity {
         }
     }
 
-
     //API 10.0부터 사용
     // 이미지 회전 함수
     public Bitmap rotateBitmap2(Bitmap bitmap, String orientation) {
@@ -382,7 +387,6 @@ public class RegiPersonActivity2 extends AppCompatActivity {
         return filePath;
     }
 
-
     // 이미지 사이즈 조절 함수
     private Bitmap resize(Context context,Uri uri,int resize){
         Bitmap resizeBitmap=null;
@@ -411,47 +415,7 @@ public class RegiPersonActivity2 extends AppCompatActivity {
             e.printStackTrace();
         }
         return resizeBitmap;
-//
-//        Bitmap resizeBitmap=null;
-//
-//        final BitmapFactory.Options options = new BitmapFactory.Options();
-//        options.inJustDecodeBounds = true;
-//        BitmapFactory.decodeStream(is, null, options);
-//
-//        // Calculate inSampleSize
-//        options.inSampleSize = calculateInSampleSize(options, 100, 100);
-//
-//        // Decode bitmap with inSampleSize set
-//        options.inJustDecodeBounds = false;
-//        try {
-//            resizeBitmap =  BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options);
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//        return resizeBitmap;
     }
 
-    public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) >= reqHeight
-                    && (halfWidth / inSampleSize) >= reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
-    }
 
 }

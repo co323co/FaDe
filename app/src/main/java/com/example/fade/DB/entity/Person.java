@@ -1,8 +1,7 @@
-package com.example.fade.entity;
+package com.example.fade.DB.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.ForeignKey;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 

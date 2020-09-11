@@ -1,10 +1,9 @@
-package com.example.fade;
+package com.example.fade.DB;
 
 
 import androidx.room.TypeConverter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Converters {
     @TypeConverter

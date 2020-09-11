@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,13 +15,11 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
-import com.example.fade.entity.Person;
+import com.example.fade.DB.DBThread;
+import com.example.fade.DB.entity.Person;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 
 import static android.app.Activity.RESULT_OK;
 

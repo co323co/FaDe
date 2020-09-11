@@ -1,14 +1,12 @@
-package com.example.fade.DAO;
+package com.example.fade.DB.DAO;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
-import androidx.room.TypeConverters;
 import androidx.room.Update;
 
-import com.example.fade.Converters;
-import com.example.fade.entity.Person;
+import com.example.fade.DB.entity.Person;
 
 import java.util.List;
 

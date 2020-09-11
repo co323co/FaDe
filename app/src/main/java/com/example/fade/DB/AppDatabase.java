@@ -1,17 +1,16 @@
-package com.example.fade;
+package com.example.fade.DB;
 
 import android.content.Context;
 
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-import androidx.room.TypeConverter;
 import androidx.room.TypeConverters;
 
-import com.example.fade.entity.*;
-import com.example.fade.DAO.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.example.fade.DB.DAO.GroupDAO;
+import com.example.fade.DB.DAO.PersonDAO;
+import com.example.fade.DB.entity.Group;
+import com.example.fade.DB.entity.Person;
 
 
 //추상클래스

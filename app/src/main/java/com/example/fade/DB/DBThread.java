@@ -1,4 +1,4 @@
-package com.example.fade;
+package com.example.fade.DB;
 
 import android.content.Context;
 import android.os.Build;
@@ -6,13 +6,14 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.example.fade.DB.DAO.GroupDAO;
+import com.example.fade.DB.DAO.PersonDAO;
+import com.example.fade.DB.entity.Group;
+import com.example.fade.DB.entity.Person;
+import com.example.fade.MainActivity;
 import com.example.fade.Server.CommServer;
-import com.example.fade.entity.Group;
-import com.example.fade.entity.Person;
-import com.example.fade.DAO.*;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class DBThread {
@@ -32,7 +33,7 @@ public class DBThread {
 
 
     //그룹Table 관리 스래드
-    static class SelectGroupThraed extends Thread {
+    public static class SelectGroupThraed extends Thread {
         ArrayList<Group> groupList;
         public SelectGroupThraed(ArrayList<Group> groupList) {
             this.groupList = groupList;
@@ -44,7 +45,7 @@ public class DBThread {
         }
     }
 
-    static public class SelectGnameThraed extends Thread {
+    public static class SelectGnameThraed extends Thread {
         ArrayList<Integer> gidList;
         ArrayList<String> gnameList;
         public SelectGnameThraed(ArrayList<Integer> gidList, ArrayList<String> gnameList) {
@@ -61,7 +62,7 @@ public class DBThread {
         }
     }
 
-    static class InsertTGroupThraed extends Thread {
+    public static class InsertTGroupThraed extends Thread {
         Group group;
         public InsertTGroupThraed(Group group) {
             this.group=group;
@@ -74,7 +75,7 @@ public class DBThread {
             try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
-    static class UpdateGroupThraed extends Thread {
+    public static class UpdateGroupThraed extends Thread {
         Group  group;
         public UpdateGroupThraed(Group group) {
             this.group = group;}
@@ -86,7 +87,7 @@ public class DBThread {
             try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
-    static class DeleteGroupThraed extends Thread {
+    public static class DeleteGroupThraed extends Thread {
         Group  group;
         public DeleteGroupThraed(Group group) {
             this.group = group;}
@@ -100,7 +101,7 @@ public class DBThread {
     }
 
     //퍼슨Table 관리 스래드
-    static class SelectPersonThraed extends Thread {
+    public static class SelectPersonThraed extends Thread {
         ArrayList<Person> personList;
         public SelectPersonThraed(ArrayList<Person> personList) {
             this.personList = personList;
@@ -113,7 +114,7 @@ public class DBThread {
     }
 
     //retrun이 없는 스래드 특성상 인자로 int값을 call by ref 하기 위한 배열임. 첫번째 값인 0만 사용해야 함
-    static class SelectRecentlyPIDThread extends Thread {
+    public static class SelectRecentlyPIDThread extends Thread {
         int[] pid;
         public SelectRecentlyPIDThread(int[] pid) {this.pid=pid;}
         @Override
@@ -121,7 +122,7 @@ public class DBThread {
             this.pid[0]=personDAO.getRecentlyPID();
         }
     }
-    static class InsertPersonThraed extends Thread {
+    public static class InsertPersonThraed extends Thread {
         Person person;
         public InsertPersonThraed(Person person) {
             this.person=person;
@@ -134,7 +135,7 @@ public class DBThread {
             try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
-    static class DeletePersonThraed extends Thread {
+    public static class DeletePersonThraed extends Thread {
         Person person;
         public DeletePersonThraed(Person person) {
             this.person = person;}
@@ -148,7 +149,7 @@ public class DBThread {
     }
 
     //복합 스래드
-    static class SelectPListByGidThread extends Thread {
+    public static class SelectPListByGidThread extends Thread {
 
         ArrayList<Person> personList;
         int gid;
@@ -165,7 +166,7 @@ public class DBThread {
             this.personList.addAll(personDAO.getByIdList(personIdList));
         }
     }
-    static class SelectPidListByGIdThraed extends Thread {
+    public static class SelectPidListByGIdThraed extends Thread {
         GroupDAO dao;
         int  gid;
         ArrayList<Integer> personIdList;

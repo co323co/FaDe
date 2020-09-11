@@ -26,9 +26,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.esafirm.imagepicker.model.Image;
+import com.example.fade.DB.DBThread;
 import com.example.fade.Server.ConnService;
 import com.example.fade.Server.ReturnData;
-import com.example.fade.entity.Person;
+import com.example.fade.DB.entity.Person;
 
 import org.json.JSONException;
 import org.json.JSONObject;

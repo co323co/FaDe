@@ -1,16 +1,14 @@
-package com.example.fade.entity;
+package com.example.fade.DB.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.ForeignKey;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
-import com.example.fade.Converters;
+import com.example.fade.DB.Converters;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @TypeConverters(Converters.class)
 @Entity

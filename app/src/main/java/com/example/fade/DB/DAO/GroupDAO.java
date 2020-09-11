@@ -1,4 +1,4 @@
-package com.example.fade.DAO;
+package com.example.fade.DB.DAO;
 
 
 import androidx.room.Dao;
@@ -8,8 +8,8 @@ import androidx.room.Query;
 import androidx.room.TypeConverters;
 import androidx.room.Update;
 
-import com.example.fade.Converters;
-import com.example.fade.entity.Group;
+import com.example.fade.DB.Converters;
+import com.example.fade.DB.entity.Group;
 
 import java.util.ArrayList;
 import java.util.List;

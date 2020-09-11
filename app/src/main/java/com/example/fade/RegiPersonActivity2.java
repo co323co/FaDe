@@ -21,6 +21,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -75,63 +76,65 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         final ConnService ConnService = retrofit.create(ConnService.class);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        ProgressBar pb = (ProgressBar)findViewById(R.id.pb_loading_regiperson2);
+        btn.setOnClickListener(view -> {
 
-                btn.setClickable(false);
+            btn.setClickable(false);
+            pb.setVisibility(View.VISIBLE);
 
-                ArrayList<byte[]> byteList=new ArrayList<byte[]>();
+            ///////////////////내부 DB저장 코드
+            String profile_name = getIntent().getExtras().getString("profile_name");
+            byte[] profile_thumbnail = getIntent().getExtras().getByteArray("profile_thumbnail");
+            Person person = new Person(profile_name);
+
+            DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
+            t1.start();
+            try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+            int[] pid = new int[1];
+            DBThread.SelectRecentlyPIDThread t2 = new DBThread.SelectRecentlyPIDThread(pid);
+            t2.start();
+            try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+            ////////////////////////////////////////////
 
 
-                ///////////////////내부 DB저장 코드
-                String profile_name = getIntent().getExtras().getString("profile_name");
-                byte[] profile_thumbnail = getIntent().getExtras().getByteArray("profile_thumbnail");
-                Person person = new Person(profile_name);
+            /////////////////////////////////////////////////////////////////////
+            //서버에 이미지들을 보내는 코드
+            /////////////////////////////////////////////////////////////////////
+           Thread t = new Thread()
+           {
+               @Override
+               public void run() {
 
-                DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
-                t1.start();
-                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                   Log.d("testtest", "실행시작");
+                   //이미지들 비트맵으로 변환
+                   for (Image image : images) {
 
-                int[] pid = new int[1];
-                DBThread.SelectRecentlyPIDThread t2 = new DBThread.SelectRecentlyPIDThread(pid);
-                t2.start();
-                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                ////////////////////////////////////////////
+                       Uri uri = image.getUri();
+                       String rotation = getRotationOfAllImage(uri);
+//                    Log.d("testtest", "get로테완료");
 
-                /////////////////////////////////////////////////////////////////////
-                //서버에 이미지들을 보내는 코드
-                /////////////////////////////////////////////////////////////////////
-
-                Log.d("testtest", "시작");
-                //이미지들 비트맵으로 변환
-                for (Image image : images) {
-
-                    Uri uri = image.getUri();
-                    String rotation = getRotationOfAllImage(uri);
-                    Log.d("testtest", "완료");
-
-                    Bitmap bm = null;
+                       Bitmap bm = null;
 //                    Bitmap bm  = resize(getApplicationContext(), uri, 100);
-                    try {
-                        bm  =  MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uri);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Log.d("testtest", "resize 완료");
+                       try {
+                           bm  =  MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), uri);
+                       } catch (IOException e) {
+                           e.printStackTrace();
+                       }
+                       Log.d("testtest", "resize 완료");
 //                    Log.d("testtest", "uri to bm 완료");
 
-                    Bitmap bmRotated=null;
-                    try{
-                        bmRotated = rotateBitmap2(bm, rotation); //bitmap 사진 파일(bitmap형태의)i
+                       Bitmap bmRotated=null;
+                       try{
+                           bmRotated = rotateBitmap2(bm, rotation); //bitmap 사진 파일(bitmap형태의)i
 //                        Log.d("testtest", "rotate 완료");
-                    }
-                    catch (Exception e) {Log.e("testtest", "rotateBitmap2 에러 :: " + e.toString());}
-                    bitmaps.add(bmRotated);
-                }
-                Log.d("testtest", "찐완료");
+                       }
+                       catch (Exception e) {Log.e("testtest", "rotateBitmap2 에러 :: " + e.toString());}
+                       bitmaps.add(bmRotated);
+                   }
+                   Log.d("testtest", "실행완료");
 
-                /////////////API 낮은버전 (혹시모르니 지우지말자)
+                   /////////////API 낮은버전 (혹시모르니 지우지말자)
 //                    ExifInterface exif = null; // 회전값
 //                    try {
 //                        exif = new ExifInterface(filePath);
@@ -141,39 +144,45 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 //                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
 //                    Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
 
-                //////////////////비트맵들을 이진파일들로 변환
-                ConvertFile convertFile  = new ConvertFile();
-                ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(getApplicationContext(),bitmaps,byteList);
-                t.start();
-                try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                   //////////////////비트맵들을 이진파일들로 변환
+                   ArrayList<byte[]> byteList=new ArrayList<byte[]>();
 
-                //바이트사진들 -> base64String으로 인코딩
-                //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
-                JSONObject enPicureList = new JSONObject();
-                for(int i=0; i< byteList.size();i++){ try { enPicureList.put("byte_"+i, Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
+                   ConvertFile convertFile  = new ConvertFile();
+                   ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(getApplicationContext(),bitmaps,byteList);
+                   t.start();
+                   try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-                //////////////////
-                HashMap<String, Object> rp_input = new HashMap<>();
-                rp_input.put("uid", LoginActivity.UserID);
-                rp_input.put("pid", pid[0]);
-                rp_input.put("pictureList", enPicureList);
+                   //바이트사진들 -> base64String으로 인코딩
+                   //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
+                   JSONObject enPicureList = new JSONObject();
+                   for(int i=0; i< byteList.size();i++){ try { enPicureList.put("byte_"+i, Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
 
-                ConnService.postRegisterPerson(rp_input).enqueue(new Callback<ReturnData>() {
-                    @Override
-                    public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
-                        if (response.isSuccessful()) {
-                            ReturnData body = response.body();
-                            if (body != null) { Log.d("server", "사진 던져주기 성공 (postRegisterPerson)"); } }
-                    }
-                    @Override
-                    public void onFailure(Call<ReturnData> call, Throwable t) {
-                        Log.e("server", "postRegisterPerson : " + t.getMessage()); }
-                });
+                   //////////////////
+                   HashMap<String, Object> rp_input = new HashMap<>();
+                   rp_input.put("uid", LoginActivity.UserID);
+                   rp_input.put("pid", pid[0]);
+                   rp_input.put("pictureList", enPicureList);
 
-                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
-                startActivity(intent);
-                finish();
-            }
+                   ConnService.postRegisterPerson(rp_input).enqueue(new Callback<ReturnData>() {
+                       @Override
+                       public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
+                           if (response.isSuccessful()) {
+                               ReturnData body = response.body();
+                               if (body != null) { Log.d("server", "사진 던져주기 성공 (postRegisterPerson)"); } }
+                       }
+                       @Override
+                       public void onFailure(Call<ReturnData> call, Throwable t) {
+                           Log.e("server", "postRegisterPerson : " + t.getMessage()); }
+                   });
+                   Log.d("testtest", "서버전송 완료");
+                   Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                   startActivity(intent);
+                   finish();
+               }
+           };
+            t.start();
+//            try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
         });
 
 

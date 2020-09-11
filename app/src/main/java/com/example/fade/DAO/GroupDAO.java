@@ -11,6 +11,7 @@ import androidx.room.Update;
 import com.example.fade.Converters;
 import com.example.fade.entity.Group;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @TypeConverters({Converters.class})
@@ -43,6 +44,9 @@ public interface GroupDAO {
     void deleteById(int gid);
 
 
+
+    @Query("SELECT name FROM `Group` WHERE gid in (:gidList)")
+    List<String> getGnameList(ArrayList<Integer> gidList);
 
     @Delete
     void delete(Group group);

@@ -6,17 +6,21 @@ public class ReturnData {
 
     private String db0, db1, db2;
     private boolean result;
-    private ArrayList<String> gidList;
+    private ArrayList<String> gid_list;
 
 
     //JSON key 문자열이랑 변수명랑 이름이 같아야함
-    public ReturnData(String  db0, String db1, String db2, boolean result, ArrayList<String> gidList) {
+    public ReturnData(String  db0, String db1, String db2, boolean result, ArrayList<String> gid_list) {
         this.db0=db0;
         this.db1=db1;
         this.db2=db2;
         this.result=result;
-        this.gidList=gidList;
+        this.gid_list=gid_list;
     }
+    public ReturnData(ArrayList<String> gid_list){
+        this.gid_list = gid_list;
+    }
+
     public ArrayList<String> getDB(){
         ArrayList<String> dbFileList=new ArrayList<>();
         if(db0!=null)
@@ -29,6 +33,6 @@ public class ReturnData {
         return result;
     }
     public ArrayList<String> getGidList(){
-        return gidList;
+        return gid_list;
     }
 }

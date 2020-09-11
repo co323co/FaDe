@@ -149,11 +149,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case 2:
                 GetPermission.verifyStoragePermissions(this);//갤러리 이미지 가져오기!!!!!!!!!!!!!!!!!
                 ArrayList<byte[]> byteList = getByteArrayOfAllImages();
-
+                ArrayList<String> gidList;
                 CommServer commServer = new CommServer(this);
                 try {
                     Log.i("updateGalleryImg","실행 시작");
                     commServer.updateGalleryImg(byteList);
+
+
                 }catch (Exception e){
                     Log.i("ERROR ", e.getMessage());
                 }

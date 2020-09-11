@@ -7,6 +7,7 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.example.fade.DBThread;
 import com.example.fade.LoginActivity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -128,24 +129,25 @@ public class CommServer {
         HashMap<String, Object> input = new HashMap<>();
         input.put("GalleryFiles", enDBFiles);
         Log.i("pathList 묶기 완료 ", "므엑");
+        ArrayList<String> jsonresult = new ArrayList<>();
 
         connService.postDetectionPicture("20171108", input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
-                    ArrayList<String> jsonresult = new ArrayList<>();
-
+/*
                     JSONObject jsonObject = new JSONObject(response.body().string());
                     JSONArray jsonArray = jsonObject.getJSONArray("gid_list");
+                    Log.i("server", "통신성공 (putDB) : " + jsonArray);
                     int index = 0;
 
-                    ReturnData returnData = gson.fromJson(jsonArray.toString(), ReturnData.class);
-                    jsonresult = returnData.getGidList();
-
-
-
-
-                    Log.i("server", "통신성공 (putDB) : " + jsonresult);
+                    if (jsonArray != null) {
+                        for (int i=0;i<jsonArray.length();i++){
+                            jsonresult.add(jsonArray.getString(i));
+                        }
+                    }
+                    Log.i("server", "통신성공 (putDB) : " + jsonresult);*/
+                    getJSONdata(response.body().string());
 
 
 
@@ -160,6 +162,7 @@ public class CommServer {
                 Log.i("server", "통신실패 (putDB) : " + t.getMessage()+"" );
             }
         });
+        Log.i("ㅁㄴㅇㄹㅁㄴㅇ", "ㅁㄴㅇㄹ");
     }
     //inputStram을 byte[]로 바꿔준다
     byte[] inputStreamToByteArray(InputStream is) {
@@ -185,21 +188,36 @@ public class CommServer {
     }
     public ArrayList<String> getJSONdata(String data){
 
-        ArrayList<String> result = new ArrayList<>();
+        ArrayList<Integer> result = new ArrayList<>();
+        ArrayList<String> gnameResult = new ArrayList<>();
 
         try {
-            JsonParser jsonParser = new JsonParser();
+                JSONObject jsonObject = new JSONObject(data);
+                JSONArray jsonArray = jsonObject.getJSONArray("gid_list");
+                Log.i("server", "통신성공 (putDB) : " + jsonArray);
+                int index = 0;
+
+                if (jsonArray != null) {
+                    for (int i=0;i<jsonArray.length();i++){
+                        result.add(jsonArray.getInt(i));
+                    }
+                }
+                Log.i("server", "통신성공 (putDB) : " + result);
+                DBThread.SelectGnameThraed t1 = new DBThread.SelectGnameThraed(result, gnameResult);
+                t1.start();
+                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                Log.i("gname 리스트", gnameResult.toString());
+            /*JsonParser jsonParser = new JsonParser();
             JsonArray jsonArray = (JsonArray) jsonParser.parse(data);
             for(int i = 0; i < jsonArray.size(); i++ ){
                 JsonObject object = (JsonObject) jsonArray.get(i);
                 result.add(object.get("gid").toString());
                 Log.i(result.toString(), "이히~");
-                //Do something..
-            }
+                //Do something..*/
+
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        return result;
+        }return gnameResult;
     }
 
 }

@@ -12,6 +12,7 @@ import com.example.fade.entity.Person;
 import com.example.fade.DAO.*;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class DBThread {
@@ -42,6 +43,24 @@ public class DBThread {
             this.groupList.addAll(groupDAO.getAll());
         }
     }
+
+    static public class SelectGnameThraed extends Thread {
+        ArrayList<Integer> gidList;
+        ArrayList<String> gnameList;
+        public SelectGnameThraed(ArrayList<Integer> gidList, ArrayList<String> gnameList) {
+            this.gidList = gidList;
+            this.gnameList = gnameList;
+
+        }
+        @Override
+        public void run(){
+            groupDAO.getGnameList(gidList);
+            this.gnameList.clear();
+            this.gnameList.addAll(groupDAO.getGnameList(gidList));
+            Log.i("리스뜨", gnameList.toString());
+        }
+    }
+
     static class InsertTGroupThraed extends Thread {
         Group group;
         public InsertTGroupThraed(Group group) {

@@ -157,6 +157,40 @@ public class CommServer {
         });
         Log.i("ㅁㄴㅇㄹㅁㄴㅇ", "ㅁㄴㅇㄹ");
     }
+
+
+//        <<그룹등록>>
+//        서버에 uid, gid, (그룹의)pidList 던져주는 함수
+//         (서버 : pid폴더들에서 사진 찾아내서 그룹단위 모델을 학습함 -> uid/group_model 폴더에 모델 저장
+    public void postRegisterGroup(String uid ,int gid, ArrayList<Integer> pidList){
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        HashMap<String, Object> rg_input = new HashMap<>();
+        rg_input.put("uid", uid);
+        rg_input.put("gid", gid);
+        rg_input.put("pidList", pidList);
+
+        connService.postRegisterGroup(rg_input).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    ResponseBody body = response.body();
+                    if (body != null) { Log.d("server", "그룹 등록하기 성공 (postRegisterGroup)"); } }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
+
+        });
+
+
+    }
+
     //inputStram을 byte[]로 바꿔준다
     byte[] inputStreamToByteArray(InputStream is) {
 
@@ -179,6 +213,8 @@ public class CommServer {
 
         return resBytes;
     }
+
+
     public ArrayList<String> getJSONdata(String data){
 
         ArrayList<Integer> result = new ArrayList<>();

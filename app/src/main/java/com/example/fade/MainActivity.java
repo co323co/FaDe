@@ -190,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final AddGroupDialog addGroupDialog= new AddGroupDialog(this, result, new CustomDialogClickListener() {
             @Override
             public void onPositiveClick() {
+                Toast.makeText(getApplicationContext(),"그룹을 등록 중입니다", Toast.LENGTH_SHORT).show();
                 Group group = new Group(result.name, result.personIDList);
                 DBThread.InsertTGroupThraed t1 = new DBThread.InsertTGroupThraed(group);
                 DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
@@ -199,6 +200,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 groupAdapter.notifyDataSetChanged();
                 rv.scrollToPosition(groupList.size()-1);
+
+                //방금 만든 Group의 GID 얻는 부분
+                int[] gid = new int[1];
+                DBThread.SelectRecentlyGIDThread t3 = new DBThread.SelectRecentlyGIDThread(gid);
+                t3.start();
+                try { t3.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+                //서버에 그룹모델 만들도록 하는 코드
+                new CommServer(getApplicationContext()).postRegisterGroup(LoginActivity.UserID, gid[0], result.personIDList);
+                Toast.makeText(getApplicationContext(),"그룹을 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
+
             }
             @Override
             public void onNegativeClick() { }

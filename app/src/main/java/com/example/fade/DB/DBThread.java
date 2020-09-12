@@ -45,6 +45,16 @@ public class DBThread {
         }
     }
 
+    //retrun이 없는 스래드 특성상 인자로 int값을 call by ref 하기 위한 배열임. 첫번째 값인 0만 사용해야 함
+    public static class SelectRecentlyGIDThread extends Thread {
+        int[] gid;
+        public SelectRecentlyGIDThread(int[] gid) {this.gid=gid;}
+        @Override
+        public void run() {
+            this.gid[0]=groupDAO.getRecentlyGID();
+        }
+    }
+
     public static class SelectGnameThraed extends Thread {
         ArrayList<Integer> gidList;
         ArrayList<String> gnameList;
@@ -75,6 +85,7 @@ public class DBThread {
             try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
+
     public static class UpdateGroupThraed extends Thread {
         Group  group;
         public UpdateGroupThraed(Group group) {
@@ -122,6 +133,7 @@ public class DBThread {
             this.pid[0]=personDAO.getRecentlyPID();
         }
     }
+
     public static class InsertPersonThraed extends Thread {
         Person person;
         public InsertPersonThraed(Person person) {

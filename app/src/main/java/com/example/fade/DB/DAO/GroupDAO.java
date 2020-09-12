@@ -28,6 +28,9 @@ public interface GroupDAO {
     @Query("SELECT personIdList FROM `GROUP` WHERE gid = :gid")
     String getPidList(int gid);
 
+    @Query("SELECT max(gid) FROM `Group`")
+    int getRecentlyGID();
+
     @Query("SELECT count(*) FROM `GROUP`")
     int getCount();
 

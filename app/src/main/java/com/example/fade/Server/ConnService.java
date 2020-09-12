@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
@@ -19,9 +18,9 @@ public interface ConnService {
 
 
     //혜림
-    public static final String URL = "http://192.168.219.101:5000";
+//    public static final String URL = "http://192.168.219.101:5000";
     //민정
-//    public static final String URL = "http://220.123.36.108:1213";
+    public static final String URL = "http://220.123.36.108:1213";
 
 
 //    @GET("/{userId}")
@@ -47,7 +46,7 @@ public interface ConnService {
 
     @FormUrlEncoded
     @POST("/reg/group")
-    Call<ReturnData> postRegisterGroup(@FieldMap HashMap<String, Object> param);
+    Call<ResponseBody> postRegisterGroup(@FieldMap HashMap<String, Object> param);
 
     @FormUrlEncoded
     @POST("/det/{uid}")

@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(drawerLayout.isDrawerOpen(GravityCompat.START))  drawerLayout.closeDrawer(GravityCompat.START);
                 else drawerLayout.openDrawer(GravityCompat.START);
                 break;
-            case 0:
+            case R.id.menu_logout:
                 Toast.makeText(getApplicationContext(),"로그아웃",Toast.LENGTH_SHORT).show();
 //                Intent intent = new Intent(getApplicationContext(), LogoutActivity.class);
 //                intent.putExtra("setting_name","로그아웃");
@@ -133,10 +133,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
                 break;
-            case 1:
+            case R.id.menu_tutorial:
                 Toast.makeText(getApplicationContext(),"튜토리얼",Toast.LENGTH_SHORT).show();
                 break;
-            case 2:
+            case R.id.menu_galleryRefresh:
                 GetPermission.verifyStoragePermissions(this);//갤러리 이미지 가져오기!!!!!!!!!!!!!!!!!
                 ArrayList<byte[]> byteList = getByteArrayOfAllImages();
                 ArrayList<String> gidList;
@@ -169,11 +169,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        //groupID,  itemID, order
-        menu.add(0,0,0,"로그아웃");
-        menu.add(0,1,1,"튜토리얼");
-        menu.add(0,2,2,"갤러리 갱신");
-        return super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
     }
 
     //다이얼로그에서 받아올 값들을 클래스로 묶어둔 것

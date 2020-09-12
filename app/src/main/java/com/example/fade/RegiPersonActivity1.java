@@ -1,13 +1,7 @@
 package com.example.fade;
 
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -17,13 +11,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.esafirm.imagepicker.features.ImagePicker;
 import com.esafirm.imagepicker.model.Image;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /////////////////////////////////////////////////////////////
@@ -84,11 +80,12 @@ public class RegiPersonActivity1 extends AppCompatActivity {
                 Image image = ImagePicker.getFirstImageOrNull(data);
                 EditText person_name = findViewById(R.id.et_profile_name_regiperson1);
 
+//                Log.d(String.valueOf(byteList.size()),"사이즈ㄴㅁ");
                 Intent intent = new Intent(RegiPersonActivity1.this, RegiPersonActivity2.class);
                 Log.d("filetest",images.size()+"");
                 intent.putParcelableArrayListExtra("images", (ArrayList<? extends Parcelable>) images);
                 intent.putExtra("profile_name", person_name.getText().toString());
-//                intent.putExtra("profile_thumbnail", new ConvertFile().UriToByteArray(getApplicationContext(), selectedImageUri));
+                intent.putExtra("profile_thumbnail", new ConvertFile().UriToByteArray(getApplicationContext(), selectedImageUri));
                 startActivity(intent);
 
             }

@@ -92,7 +92,7 @@ public class CommServer {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void updateGalleryImg(ArrayList<byte[]> imgpathList) throws IOException {
+    public void updateGalleryImg(ArrayList<byte[]> imgByteList) throws IOException {
 
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -111,17 +111,17 @@ public class CommServer {
                 .build();
         final ConnService connService = retrofit.create(ConnService.class);
 
-        ArrayList<byte[]> byteList = imgpathList;
-        Log.i("pathList 받아오기 성공 ", byteList.toString());
+        ArrayList<byte[]> byteList = imgByteList;
+        Log.i("updateGalleryImg", "imgByteList 받아오기 성공 : " + byteList.toString());
 
         //바이트사진들 -> base64String으로 인코딩
         //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
-        JSONObject enDBFiles = new JSONObject();
-        for(int i=0; i< byteList.size();i++){ try { enDBFiles.put(i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
+        JSONObject enFiles = new JSONObject();
+        for(int i=0; i< byteList.size();i++){ try { enFiles.put(i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
 
         HashMap<String, Object> input = new HashMap<>();
-        input.put("GalleryFiles", enDBFiles);
-        Log.i("pathList 묶기 완료 ", "므엑");
+        input.put("GalleryFiles", enFiles);
+        Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
         ArrayList<String> jsonresult = new ArrayList<>();
 
         connService.postDetectionPicture(LoginActivity.UserID, input).enqueue(new Callback<ResponseBody>() {
@@ -137,7 +137,7 @@ public class CommServer {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.i("server", "통신실패 (putDB) : " + t.getMessage()+"" );
+                Log.i("server", "통신실패 (postDetectionPicture) : " + t.getMessage()+"" );
             }
         });
     }
@@ -214,7 +214,7 @@ public class CommServer {
                         try { t1.join();} catch (InterruptedException e) { e.printStackTrace(); }
                     }
                 }
-                Log.i("server", "통신성공 (putDB) : " + result+"    "+gnameResult);
+                Log.i("server", "통신성공 (postDetectionPicture -> getJSONdata) : " + result+"    "+gnameResult);
 
 
         } catch (Exception e) {

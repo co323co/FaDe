@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -57,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     DrawerLayout drawerLayout;
 
+    Menu mMenu;
+
     RecyclerView rv;
     GroupAdapter groupAdapter;
     ArrayList<Group> groupList=new ArrayList<Group>();
@@ -103,6 +106,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab.setOnClickListener(this);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        mMenu = menu;
+        return true;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -138,18 +148,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.menu_galleryRefresh:
                 GetPermission.verifyStoragePermissions(this);//갤러리 이미지 가져오기!!!!!!!!!!!!!!!!!
-                ArrayList<byte[]> byteList = getByteArrayOfRecentlyImages();
-                ArrayList<String> gidList;
 
-                CommServer commServer = new CommServer(this);
-                try {
-                    Log.i("updateGalleryImg","실행 시작");
-                    commServer.updateGalleryImg(byteList);
+                Toast.makeText(getApplicationContext(),"이미지 분류 시작", Toast.LENGTH_SHORT ).show();
 
+                mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(false);
 
-                }catch (Exception e){
-                    Log.i("ERROR ", e.getMessage());
-                }
+                Handler handler = new Handler();
+
+                Thread t = new Thread(){
+                    @Override
+                    public void run() {
+                        super.run();
+                        try {
+                            ArrayList<byte[]> byteList = getByteArrayOfRecentlyImages();
+                            CommServer commServer = new CommServer(getApplicationContext());
+                            Log.i("updateGalleryImg","실행 시작");
+                            commServer.updateGalleryImg(byteList);
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
+                                    Toast.makeText(getApplicationContext(),"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
+                                }
+                            });
+                        }catch (Exception e){
+                            Log.i("ERROR ", e.getMessage());
+                            Toast.makeText(getApplicationContext(),"이미지 분류 실패", Toast.LENGTH_SHORT ).show();
+                        }
+                    }
+                };
+             t.start();
 
         }
         return super.onOptionsItemSelected(item);
@@ -166,12 +194,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
         rv.removeAllViewsInLayout();
         rv.setAdapter(groupAdapter);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu);
-        return true;
     }
 
     //다이얼로그에서 받아올 값들을 클래스로 묶어둔 것
@@ -265,8 +287,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String nameOfFile = cursor.getString(columnDisplayname);
             String DateOfImage = dateFormat.format(new Date(cursor.getLong(columnDate) * 1000L));
             ContentResolver contentResolver = getContentResolver();
-
-
 
             int compare_time_last = DateOfImage.compareTo(last_update);//사진이 생성된 날짜와 마지막 업뎃 날짜를 비교하여
             if(compare_time_last>=0){

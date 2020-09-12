@@ -124,7 +124,7 @@ public class CommServer {
         Log.i("pathList 묶기 완료 ", "므엑");
         ArrayList<String> jsonresult = new ArrayList<>();
 
-        connService.postDetectionPicture("20171108", input).enqueue(new Callback<ResponseBody>() {
+        connService.postDetectionPicture(LoginActivity.UserID, input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {

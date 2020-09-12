@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -44,7 +45,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -138,8 +138,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.menu_galleryRefresh:
                 GetPermission.verifyStoragePermissions(this);//갤러리 이미지 가져오기!!!!!!!!!!!!!!!!!
-                ArrayList<byte[]> byteList = getByteArrayOfAllImages();
+                ArrayList<byte[]> byteList = getByteArrayOfRecentlyImages();
                 ArrayList<String> gidList;
+
                 CommServer commServer = new CommServer(this);
                 try {
                     Log.i("updateGalleryImg","실행 시작");
@@ -221,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
     }
-    private ArrayList<byte[]> getByteArrayOfAllImages()   //갤러리 이미지 가져오기!!!!!!!!!!!!!
+    private ArrayList<byte[]> getByteArrayOfRecentlyImages()   //최근 갤러리 이미지 가져오기!!!!!!!!!!!!!
     {
         Uri uri;
         SimpleDateFormat dateFormat;
@@ -251,6 +252,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         int i = 0;
+
+        ArrayList<Bitmap>bitmaps = new ArrayList<Bitmap>();
         while (cursor.moveToNext())
         {
 
@@ -268,13 +271,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int compare_time_last = DateOfImage.compareTo(last_update);//사진이 생성된 날짜와 마지막 업뎃 날짜를 비교하여
             if(compare_time_last>=0){
                 try{
-                    InputStream inputStream = getContentResolver().openInputStream(uriimage);
-                    if (inputStream != null) {
-                        byte[] buffer = new byte[inputStream.available()];
-                        inputStream.read(buffer);
-                        byteList.add(buffer);
-                    }
-                    inputStream.close();
+                    bitmaps.add(new ConvertFile().resize(getApplicationContext(), uriimage, 200));
                     i++;
 
                 }catch(Exception e){
@@ -283,7 +280,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         cursor.close();
-        Log.i(i+""+"개의 사진 절대경로가 담긴 리스트 리턴함", "므엥");
+
+        //리사이즈된 비트맵들을 바이트들로 바꿔줌
+        ConvertFile convertFile  = new ConvertFile();
+        ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(getApplicationContext(),bitmaps,byteList);
+        t.start();
+        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        Log.i("getByteArrayOfRecentlyImages", i+"개의 사진 절대경로가 담긴 리스트 리턴함");
         return byteList;
     }
 }

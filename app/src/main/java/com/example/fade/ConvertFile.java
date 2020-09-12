@@ -2,21 +2,24 @@ package com.example.fade;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class ConvertFile {
 
     //비트맵을 바이트로 바꿔주는  스래드
+
     class bitmapsToByteArrayThread extends Thread
     {
-        Context context;
         ArrayList<Bitmap> bitmaps;
         ArrayList<byte[]> byteList;
+        Context context;
 
         public bitmapsToByteArrayThread(Context context, ArrayList<Bitmap> bitmaps, ArrayList<byte[]> byteList)
         {
@@ -33,8 +36,8 @@ public class ConvertFile {
                 ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
                 bitmaps.get(i).compress(Bitmap.CompressFormat.JPEG, 100, byteArray);
                 byteList.add(byteArray.toByteArray());
+                try { byteArray.close(); } catch (IOException e) { e.printStackTrace(); }
 //            writeToFile(i+".png",byteList.get(i));
-
             }
 
         }
@@ -65,5 +68,35 @@ public class ConvertFile {
         bm.compress(Bitmap.CompressFormat.JPEG, 100, byteArray);
         return byteArray.toByteArray();
 
+    }
+
+    // 이미지 사이즈 조절 함수
+    public Bitmap resize(Context context,Uri uri,int resize){
+        Bitmap resizeBitmap=null;
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        try {
+            BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options); // 1번
+
+            int width = options.outWidth;
+            int height = options.outHeight;
+            int samplesize = 1;
+
+            while (true) {//2번
+                if (width / 2 < resize || height / 2 < resize)
+                    break;
+                width /= 2;
+                height /= 2;
+                samplesize *= 2;
+            }
+
+            options.inSampleSize = samplesize;
+            Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options); //3번
+            resizeBitmap=bitmap;
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return resizeBitmap;
     }
 }

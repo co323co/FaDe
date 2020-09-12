@@ -85,7 +85,7 @@ public class RegiPersonActivity1 extends AppCompatActivity {
                 Log.d("filetest",images.size()+"");
                 intent.putParcelableArrayListExtra("images", (ArrayList<? extends Parcelable>) images);
                 intent.putExtra("profile_name", person_name.getText().toString());
-                intent.putExtra("profile_thumbnail", new ConvertFile().UriToByteArray(getApplicationContext(), selectedImageUri));
+//                intent.putExtra("profile_thumbnail", new ConvertFile().UriToByteArray(getApplicationContext(), selectedImageUri));
                 startActivity(intent);
 
             }

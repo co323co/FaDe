@@ -56,9 +56,9 @@ public class DBThread {
     }
 
     public static class SelectGnameThraed extends Thread {
-        ArrayList<Integer> gidList;
+        int gidList;
         ArrayList<String> gnameList;
-        public SelectGnameThraed(ArrayList<Integer> gidList, ArrayList<String> gnameList) {
+        public SelectGnameThraed(int gidList, ArrayList<String> gnameList) {
             this.gidList = gidList;
             this.gnameList = gnameList;
 
@@ -66,9 +66,8 @@ public class DBThread {
         @Override
         public void run(){
             groupDAO.getGnameList(gidList);
-            this.gnameList.clear();
+//            this.gnameList.clear();
             this.gnameList.addAll(groupDAO.getGnameList(gidList));
-            Log.i("리스뜨", gnameList.toString());
         }
     }
 

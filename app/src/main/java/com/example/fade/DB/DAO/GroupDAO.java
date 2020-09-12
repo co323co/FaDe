@@ -49,7 +49,7 @@ public interface GroupDAO {
 
 
     @Query("SELECT name FROM `Group` WHERE gid in (:gidList)")
-    List<String> getGnameList(ArrayList<Integer> gidList);
+    List<String> getGnameList(int gidList);
 
     @Delete
     void delete(Group group);

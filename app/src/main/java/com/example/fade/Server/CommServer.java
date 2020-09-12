@@ -128,22 +128,7 @@ public class CommServer {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
-/*
-                    JSONObject jsonObject = new JSONObject(response.body().string());
-                    JSONArray jsonArray = jsonObject.getJSONArray("gid_list");
-                    Log.i("server", "통신성공 (putDB) : " + jsonArray);
-                    int index = 0;
-
-                    if (jsonArray != null) {
-                        for (int i=0;i<jsonArray.length();i++){
-                            jsonresult.add(jsonArray.getString(i));
-                        }
-                    }
-                    Log.i("server", "통신성공 (putDB) : " + jsonresult);*/
                     getJSONdata(response.body().string());
-
-
-
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -155,7 +140,6 @@ public class CommServer {
                 Log.i("server", "통신실패 (putDB) : " + t.getMessage()+"" );
             }
         });
-        Log.i("ㅁㄴㅇㄹㅁㄴㅇ", "ㅁㄴㅇㄹ");
     }
 
 
@@ -219,30 +203,19 @@ public class CommServer {
 
         ArrayList<Integer> result = new ArrayList<>();
         ArrayList<String> gnameResult = new ArrayList<>();
-
         try {
                 JSONObject jsonObject = new JSONObject(data);
                 JSONArray jsonArray = jsonObject.getJSONArray("gid_list");
-                Log.i("server", "통신성공 (putDB) : " + jsonArray);
-                int index = 0;
-
                 if (jsonArray != null) {
                     for (int i=0;i<jsonArray.length();i++){
                         result.add(jsonArray.getInt(i));
+                        DBThread.SelectGnameThraed t1 = new DBThread.SelectGnameThraed(result.get(i), gnameResult);
+                        t1.start();
+                        try { t1.join();} catch (InterruptedException e) { e.printStackTrace(); }
                     }
                 }
-                Log.i("server", "통신성공 (putDB) : " + result);
-                DBThread.SelectGnameThraed t1 = new DBThread.SelectGnameThraed(result, gnameResult);
-                t1.start();
-                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                Log.i("gname 리스트", gnameResult.toString());
-            /*JsonParser jsonParser = new JsonParser();
-            JsonArray jsonArray = (JsonArray) jsonParser.parse(data);
-            for(int i = 0; i < jsonArray.size(); i++ ){
-                JsonObject object = (JsonObject) jsonArray.get(i);
-                result.add(object.get("gid").toString());
-                Log.i(result.toString(), "이히~");
-                //Do something..*/
+                Log.i("server", "통신성공 (putDB) : " + result+"    "+gnameResult);
+
 
         } catch (Exception e) {
             e.printStackTrace();

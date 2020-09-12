@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ArrayList<byte[]> byteList = new ArrayList<byte[]>();
         String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/09/11";
+        last_update = "2020/09/13";
 
         String[] projection = {
 //                MediaStore.MediaColumns.DATA,

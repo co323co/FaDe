@@ -112,7 +112,7 @@ public class CommServer {
         final ConnService connService = retrofit.create(ConnService.class);
 
         ArrayList<byte[]> byteList = imgByteList;
-        Log.i("updateGalleryImg", "imgByteList 받아오기 성공 : " + byteList.toString());
+//        Log.i("updateGalleryImg", "imgByteList 받아오기 성공 : " + byteList.toString());
 
         //바이트사진들 -> base64String으로 인코딩
         //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.

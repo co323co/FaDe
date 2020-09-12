@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -36,7 +37,8 @@ public class ConvertFile {
                 ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
                 bitmaps.get(i).compress(Bitmap.CompressFormat.JPEG, 100, byteArray);
                 byteList.add(byteArray.toByteArray());
-                try { byteArray.close(); } catch (IOException e) { e.printStackTrace(); }
+                try { byteArray.close(); } catch (IOException e) { e.printStackTrace();
+                    Log.e("bitmapsToByteArrayThread",e.toString());}
 //            writeToFile(i+".png",byteList.get(i));
             }
 
@@ -91,7 +93,7 @@ public class ConvertFile {
             }
 
             options.inSampleSize = samplesize;
-            Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options); //3번
+                Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options); //3번
             resizeBitmap=bitmap;
 
         } catch (FileNotFoundException e) {

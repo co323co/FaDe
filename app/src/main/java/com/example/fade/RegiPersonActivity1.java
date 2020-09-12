@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -82,7 +81,7 @@ public class RegiPersonActivity1 extends AppCompatActivity {
 
 //                Log.d(String.valueOf(byteList.size()),"사이즈ㄴㅁ");
                 Intent intent = new Intent(RegiPersonActivity1.this, RegiPersonActivity2.class);
-                Log.d("filetest",images.size()+"");
+//                Log.d("filetest",images.size()+"");
                 intent.putParcelableArrayListExtra("images", (ArrayList<? extends Parcelable>) images);
                 intent.putExtra("profile_name", person_name.getText().toString());
 //                intent.putExtra("profile_thumbnail", new ConvertFile().UriToByteArray(getApplicationContext(), selectedImageUri));

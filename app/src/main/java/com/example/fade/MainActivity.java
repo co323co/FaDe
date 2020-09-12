@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(getApplicationContext(),"튜토리얼",Toast.LENGTH_SHORT).show();
                 break;
             case R.id.menu_galleryRefresh:
-                GetPermission.verifyStoragePermissions(this);//갤러리 이미지 가져오기!!!!!!!!!!!!!!!!!
+                GetPermission.verifyStoragePermissions(this);
 
                 Toast.makeText(getApplicationContext(),"이미지 분류 시작", Toast.LENGTH_SHORT ).show();
 
@@ -160,9 +160,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void run() {
                         super.run();
                         try {
+                            //갤러리 이미지 가져오기
                             ArrayList<byte[]> byteList = getByteArrayOfRecentlyImages();
                             CommServer commServer = new CommServer(getApplicationContext());
                             Log.i("updateGalleryImg","실행 시작");
+                            //서버에 보낸 후 값 받기
                             commServer.updateGalleryImg(byteList);
                             handler.post(new Runnable() {
                                 @Override
@@ -244,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
     }
-    private ArrayList<byte[]> getByteArrayOfRecentlyImages()   //최근 갤러리 이미지 가져오기!!!!!!!!!!!!!
+    private ArrayList<byte[]> getByteArrayOfRecentlyImages()   //최근 갤러리 이미지 가져오기
     {
         Uri uri;
         SimpleDateFormat dateFormat;
@@ -261,7 +263,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         };
 
         String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'";
-        Log.e(" uri 찍어보기", uri+"");
         Cursor cursor = getContentResolver().query(uri, projection, where, null, MediaStore.MediaColumns.DATE_ADDED + " DESC");
 
 

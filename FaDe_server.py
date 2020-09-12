@@ -194,6 +194,7 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
         classifier = FaceTrain.train(pid_list, path, model_save_path=model_path+str(uid)+'_'+str(gid)+'_'+'model.clf', n_neighbors=2)
         model_face_num.append(str(uid)+'_'+str(gid)+'_'+'model.clf')
         model_face_num.append(classifier)
+        model_face_num.append(gid)
         print("================================")
 
         print(str(classifier)+" faces training complete! (pid_list : "+str(pid_list)+")")
@@ -212,45 +213,46 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
     
 class DetectionPicture(Resource):
     
-    def post(self):
+    def post(self, uid):
         ts_total = time.time()
-        
-        parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=str)
-        parser.add_argument('pictureList', type=str)
-        args = parser.parse_args()
- 
-        uid = args['uid']
-        pictureList_en = args['pictureList']
-        pictureList=[]
-        
 
-        #인코딩된 사진 리스트들을 가진 Json을 디코딩 하는 과정
-        x = json.loads(pictureList_en)
-        for v in x.values():
-            print(len(v))
-            pictureList.append(base64.b64decode(v))
-        
-        path = main_folder+ 'uid_'+str(uid)+'/'
-        
         try:
-            if not os.path.exists(path+'tmp/'):
-                os.makedirs(path+'tmp/')
+            if not os.path.exists('./DATA'):
+                os.makedirs('./DATA')
+            if not os.path.exists('./DATA/uid_'+ uid) :
+                os.makedirs('./DATA/uid_'+ uid)
+            if not os.path.exists('./DATA/uid_'+ uid+'/tmp') :
+                os.makedirs('./DATA/uid_'+ uid+'/tmp')
         except:
             print('Error : Creating directory')
-            
-        for i in range(len(pictureList)):
-            f=open(path+ 'tmp/'+uid + "_" + str(i) +".jpeg","wb")
-            f.write(pictureList[i])
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('GalleryFiles', type=str)
+        args = parser.parse_args()
+        GalleryFiles_en=args['GalleryFiles']
+        GalleryFiles=[]
+        x = json.loads(GalleryFiles_en)
+
+        path = main_folder+ 'uid_'+str(uid)+'/'
+
+        #path = './DATA/uid_'+uid+'/tmp/'
+
+        for k, v in x.items():
+            f=open(path+"/tmp/"+k,"wb")
+            f.write(base64.b64decode(v))
             f.close()
 
-        elapsed = time.time()-ts_total
+        print("postGalleryPic")
+
+
+        elapsed = time.time() - ts_total
         print("사진 받아오는데 걸린 시간: " +str(elapsed))
         print("-------------------------------------------------------")
 
-        reg_group = []
 
-#==========사진 받아온 후 ====================
+        reg_group = []
+        gid_list = []
+    #==========사진 받아온 후 ====================
         f = open(path+'model_face_num.csv', 'r', encoding='utf-8-sig')
         rdr = csv.reader(f)
         for line in rdr:
@@ -263,7 +265,7 @@ class DetectionPicture(Resource):
             ts = time.time()
             # Find all people in the image using a trained classifier model
             # Note: You can pass in either a classifier file name or a classifier model instance
-            
+
             for model_file in os.listdir(path+'group_model'):
                 full_model_path = os.path.join(path+'group_model', model_file)
                 predictions = FaceDetect.predict(full_img_path, model_path=full_model_path)
@@ -273,25 +275,32 @@ class DetectionPicture(Resource):
             print(reg_group)
             check_group = {}
             for i in reg_group:
-                check_group[i[0]] = [i[1], i[2]]
-                del i[2]
-
+                check_group[i[2]] = [i[1], i[3]]
+                del i[3]
+            
             group = FaceDetect.findBestFitModel(check_group)
-            print(image_file+"은 "+group+"그룹에 적합한 사진입니다!")
+            if group == -1:
+                print(image_file+"은 적합한 그룹이 없습니다!!")
+            else:
+                print(image_file+"은 "+group+"그룹에 적합한 사진입니다!")
+
+            gid_list.append(group)
             elapsed = time.time()-ts
             print("얼굴 판별에 걸린 시간: " +str(elapsed))
             print("-------------------------------------------------------")
         #shutil.rmtree('./DATA/uid_20171108/tmp', ignore_errors=True)  #폴더 삭제
-        
+
         print("================================")
         elapsed = time.time()-ts_total
         print("서버 반환 시간: " +str(elapsed))
         print("================================\n")
-        return {'gid': str(group)}
+
+        print(gid_list)
+        return {"gid_list" : gid_list}
     
 api.add_resource(RegistPerson, '/reg/person')
 api.add_resource(RegistGroup, '/reg/group')
-api.add_resource(DetectionPicture, '/det')
+api.add_resource(DetectionPicture, '/det/<uid>')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000)

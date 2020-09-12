@@ -17,7 +17,7 @@ import csv
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 #사진 받아오면 어떤 사람의 얼굴인지 판별하는 함수 정의
-def predict(X_img_path, knn_clf=None, model_path=None, distance_threshold=0.375):
+def predict(X_img_path, knn_clf=None, model_path=None, distance_threshold=0.36):
     
     if not os.path.isfile(X_img_path) or os.path.splitext(X_img_path)[1][1:] not in ALLOWED_EXTENSIONS:
         raise Exception("Invalid image path: {}".format(X_img_path))
@@ -57,7 +57,9 @@ def predict(X_img_path, knn_clf=None, model_path=None, distance_threshold=0.375)
 #적합모델 판단하는 함수    
 def findBestFitModel(arg):
     l = arg.values()
-    findNum = [v[1] for v in l]
+    findNum = [v[1] if v[1] else 0 for v in l]
+    if max(findNum) == 0:
+        return -1
     result1=[v for v in l if v[1]==max(findNum)]
     b =result1[0]
     for v in result1:

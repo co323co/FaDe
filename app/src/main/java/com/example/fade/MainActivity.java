@@ -255,6 +255,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         last_update = "2020/09/13";
 
+        ConvertFile convertFile  = new ConvertFile(getApplicationContext());
+
+
         String[] projection = {
 //                MediaStore.MediaColumns.DATA,
                 MediaStore.MediaColumns._ID,
@@ -292,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int compare_time_last = DateOfImage.compareTo(last_update);//사진이 생성된 날짜와 마지막 업뎃 날짜를 비교하여
             if(compare_time_last>=0){
                 try{
-                    bitmaps.add(new ConvertFile().resize(getApplicationContext(), uriimage, 200));
+                    bitmaps.add(convertFile.resize(uriimage, 200));
                     i++;
 
                 }catch(Exception e){
@@ -303,8 +306,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cursor.close();
 
         //리사이즈된 비트맵들을 바이트들로 바꿔줌
-        ConvertFile convertFile  = new ConvertFile();
-        ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(getApplicationContext(),bitmaps,byteList);
+        ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmaps,byteList);
         t.start();
         try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 

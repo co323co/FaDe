@@ -2,10 +2,12 @@ package com.example.fade;
 
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -84,7 +86,20 @@ public class RegiPersonActivity1 extends AppCompatActivity {
 //                Log.d("filetest",images.size()+"");
                 intent.putParcelableArrayListExtra("images", (ArrayList<? extends Parcelable>) images);
                 intent.putExtra("profile_name", person_name.getText().toString());
-//                intent.putExtra("profile_thumbnail", new ConvertFile().UriToByteArray(getApplicationContext(), selectedImageUri));
+
+                ConvertFile convertFile  = new ConvertFile(getApplicationContext());
+                ArrayList<byte[]> byteArray = new ArrayList<byte[]>();
+                ArrayList<Bitmap> bitmap = new ArrayList<Bitmap>();
+
+                Bitmap bm = convertFile.resize(selectedImageUri,200);
+                String rotation = convertFile.getRotationOfAllImage(selectedImageUri);
+                bitmap.add(convertFile.rotateBitmap2(bm, rotation));
+                ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmap,byteArray);
+                t.start();
+                try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+                Log.d("Regi2 : onActivityResult :  ", "사이즈 : " + byteArray.get(0).length);
+                intent.putExtra("profile_thumbnail", byteArray);
                 startActivity(intent);
 
             }

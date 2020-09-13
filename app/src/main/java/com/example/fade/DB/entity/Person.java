@@ -12,12 +12,18 @@ public class Person {
     private int pid;
     @ColumnInfo
     private String name;
+    private byte[] profile_picture;
 
     @Ignore
     public Person() { }
 
-    public Person(String name) {
+//    public Person(String name) {
+//        this.name = name;
+//    }
+
+    public Person(String name, byte[] profile_picture) {
         this.name = name;
+        this.profile_picture = profile_picture;
     }
 
     public int getPid() {
@@ -32,5 +38,12 @@ public class Person {
     }
     public void setName(String name) {
         this.name = name;
+    }
+
+    public byte[] getProfile_picture(){
+        return profile_picture;
+    }
+    public void setProfile_picture(byte[] profile_picture){
+        this.profile_picture = profile_picture;
     }
 }

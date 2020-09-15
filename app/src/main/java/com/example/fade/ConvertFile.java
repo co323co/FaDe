@@ -82,8 +82,11 @@ public class ConvertFile {
     public Bitmap resize(Uri uri,int resize){
         Bitmap resizeBitmap=null;
 
+        if(uri == null) return null;
+
         BitmapFactory.Options options = new BitmapFactory.Options();
         try {
+
             BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options); // 1번
 
             int width = options.outWidth;

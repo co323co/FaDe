@@ -82,6 +82,9 @@ public class RegiPersonActivity2 extends AppCompatActivity {
             ///////////////////내부 DB저장 코드
             String profile_name = getIntent().getExtras().getString("profile_name");
             byte[] profile_thumbnail = getIntent().getExtras().getByteArray("profile_thumbnail");
+            if(profile_thumbnail==null) Log.d("RegiPersonActivity2", "profile_thumbnail is null, 프로필 선택 안함");
+            else  Log.d("RegiPersonActivity2", "profile_thumbnail 길이 : " + profile_thumbnail.length );
+
             Person person = new Person(profile_name, profile_thumbnail);
 
             DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);

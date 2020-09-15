@@ -92,14 +92,20 @@ public class RegiPersonActivity1 extends AppCompatActivity {
                 ArrayList<Bitmap> bitmap = new ArrayList<Bitmap>();
 
                 Bitmap bm = convertFile.resize(selectedImageUri,200);
-                String rotation = convertFile.getRotationOfAllImage(selectedImageUri);
-                bitmap.add(convertFile.rotateBitmap2(bm, rotation));
-                ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmap,byteArray);
-                t.start();
-                try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                if(bm!=null){
+                    String rotation = convertFile.getRotationOfAllImage(selectedImageUri);
+                    bitmap.add(convertFile.rotateBitmap2(bm, rotation));
+                    ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmap,byteArray);
+                    t.start();
+                    try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-                Log.d("Regi2 : onActivityResult :  ", "사이즈 : " + byteArray.get(0).length);
-                intent.putExtra("profile_thumbnail", byteArray);
+                    Log.d("RegiPersonActivity1 : onActivityResult :  ", "사이즈 : " + byteArray.get(0).length);
+                    intent.putExtra("profile_thumbnail", byteArray.get(0));
+                }
+                else{
+                    Log.d("RegiPersonActivity1 : onActivityResult :  ", "프로필 선택 안함");
+                    intent.putExtra("profile_thumbnail", (byte[]) null);
+                }
                 startActivity(intent);
 
             }

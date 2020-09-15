@@ -20,9 +20,9 @@ public interface ConnService {
     //혜림
 //    public static final String URL = "http://192.168.219.101:5000";
     //민정
-//    public static final String URL = "http://220.123.36.108:1213";
+    public static final String URL = "http://220.123.36.108:1213";
     //다빈
-    public static final String URL = "http://192.168.25.41:3157";
+//    public static final String URL = "http://192.168.25.41:3157";
 
 
 //    @GET("/{userId}")

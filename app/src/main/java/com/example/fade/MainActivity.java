@@ -145,6 +145,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.menu_tutorial:
                 Toast.makeText(getApplicationContext(),"튜토리얼",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getApplicationContext(),TutorialActivity.class);
+                startActivity(intent);
+
                 break;
             case R.id.menu_galleryRefresh:
                 GetPermission.verifyStoragePermissions(this);

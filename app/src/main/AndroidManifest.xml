@@ -33,6 +33,8 @@
         <activity android:name=".LogoutActivity"/>
         <activity android:name=".RegiPersonActivity1"/>
         <activity android:name=".RegiPersonActivity2"/>
+        <activity android:name=".TutorialActivity"/>
+
     </application>
 
 </manifest>

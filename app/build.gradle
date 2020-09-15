@@ -82,4 +82,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
     implementation 'id.zelory:compressor:1.0.4'
     implementation 'com.github.hkk595:Resizer:v1.5'
+
+    implementation 'me.relex:circleindicator:2.1.4'
+
 }

@@ -1,12 +1,15 @@
 package com.example.fade;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -100,6 +103,13 @@ public class MainDrawerFragment extends Fragment {
 class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
     ArrayList<Person> personList;
+    Context context;
+
+    public PersonAdapter(Context context){
+        this.context = context;
+    }
+
+
 
     class PVHolder extends  RecyclerView.ViewHolder {
 
@@ -128,6 +138,16 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
         TextView tv_name = holder.view.findViewById(R.id.tv_nameList_name);
         tv_name.setText(personList.get(position).getName());
+
+
+        ImageView tv_profile = holder.view.findViewById(R.id.iv_nameList_profile);
+        ConvertFile convertFile = new ConvertFile(context);
+
+        Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(position).getProfile_picture());
+
+        tv_profile.setImageBitmap(bitmap);
+
+
 
         Button btn_subPerson = holder.view.findViewById(R.id.btn_subPerson);
         btn_subPerson.setOnClickListener(new View.OnClickListener() {

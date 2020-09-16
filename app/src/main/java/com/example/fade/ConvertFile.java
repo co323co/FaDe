@@ -23,6 +23,7 @@ public class ConvertFile {
         this.context = context;
     }
 
+
     //비트맵을 바이트로 바꿔주는  스래드
     class bitmapsToByteArrayThread extends Thread
     {
@@ -50,6 +51,7 @@ public class ConvertFile {
 
         }
 
+
         //바이트array를 파일로 저장하게 해주는 함수
 //    public void writeToFile(String filename, byte[] pData) {
 //        if(pData == null){ return; }
@@ -66,6 +68,13 @@ public class ConvertFile {
 //        }
 //    }
 
+    }
+
+
+
+    public Bitmap byteArrayToBitmap(byte[] byteArray) {
+        Bitmap bitmap = BitmapFactory.decodeByteArray( byteArray, 0, byteArray.length ) ;
+        return bitmap ;
     }
 
     public byte[] UriToByteArray(Context context, Uri uri) {

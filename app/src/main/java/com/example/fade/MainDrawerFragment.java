@@ -143,9 +143,13 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
         ImageView iv_profile = holder.view.findViewById(R.id.iv_nameList_profile);
         ConvertFile convertFile = new ConvertFile(context);
 
-        Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(position).getProfile_picture());
-
-        iv_profile.setImageBitmap(bitmap);
+        //프로필 사진 없으면 기본 이미지 띄움
+        if(personList.get(position).getProfile_picture() != null){
+            Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(position).getProfile_picture());
+            iv_profile.setImageBitmap(bitmap);
+        }
+        else
+        { iv_profile.setImageResource(R.drawable.ic_profile); }
 
 
 

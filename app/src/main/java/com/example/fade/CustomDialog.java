@@ -165,9 +165,13 @@ class AddGroupDialog extends Dialog {
             ImageView profile = view.findViewById(R.id.iv_profile_horizon_profile);
             ConvertFile convertFile = new ConvertFile(context);
 
-            Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(i).getProfile_picture());
-
-            profile.setImageBitmap(bitmap);
+            //프로필 사진 없으면 기본 이미지 띄움
+            if(personList.get(i).getProfile_picture() != null){
+                Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(i).getProfile_picture());
+                profile.setImageBitmap(bitmap);
+            }
+            else
+            { profile.setImageResource(R.drawable.ic_profile); }
 
 
 
@@ -206,9 +210,13 @@ class AddGroupDialog extends Dialog {
             ImageView iv_profile = holder.view.findViewById(R.id.iv_profile_horizon_profile);
             ConvertFile convertFile = new ConvertFile(context);
 
-            Bitmap bitmap = convertFile.byteArrayToBitmap(checkedList.get(position).getProfile_picture());
-
-            iv_profile.setImageBitmap(bitmap);
+            //프로필 사진 없으면 기본 이미지 띄움
+            if(checkedList.get(position).getProfile_picture() != null){
+                Bitmap bitmap = convertFile.byteArrayToBitmap(checkedList.get(position).getProfile_picture());
+                iv_profile.setImageBitmap(bitmap);
+            }
+            else
+            { iv_profile.setImageResource(R.drawable.ic_profile); }
         }
 
         @Override

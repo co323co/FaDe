@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             CommServer commServer = new CommServer(getApplicationContext());
                             Log.i("updateGalleryImg","실행 시작");
                             //서버에 보낸 후 값 받기
-                            commServer.updateGalleryImg(byteList, groupUriList);
+                            commServer.updateGalleryImg(byteList, groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {

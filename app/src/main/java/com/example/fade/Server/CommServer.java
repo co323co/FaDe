@@ -209,7 +209,7 @@ public class CommServer {
         return resBytes;
     }
 
-//서버에서 받은 gid를 가지고 gname 리스트를 만드는 함수
+//서버에서 받은 gid를 가지고 gname 리스트를 만드는 함수(그룹에 해당되지 않는 사진은 None으로 반환)
     public ArrayList<String> getJSONdata(String data){
 
         ArrayList<Integer> result = new ArrayList<>();
@@ -243,7 +243,7 @@ public class CommServer {
         }return gnameResult;
     }
 
-    //gname리스트로 날짜에 해당되는 사진들을
+    //gname리스트와 받아온 uri 리스트를 통해 gname에 해당하는 폴더로 경로 이동(None일 경우 폴더 변경x pass)
     public boolean moveGalleryImage(ArrayList<String> gname, ArrayList<Uri> uriArrayList)
     {
 

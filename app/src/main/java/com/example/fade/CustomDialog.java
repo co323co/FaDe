@@ -2,6 +2,7 @@ package com.example.fade;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -160,6 +162,15 @@ class AddGroupDialog extends Dialog {
             TextView name = view.findViewById(R.id.tv_profile_horizon_name);
             name.setText(personList.get(i).getName());
 
+            ImageView profile = view.findViewById(R.id.iv_profile_horizon_profile);
+            ConvertFile convertFile = new ConvertFile(context);
+
+            Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(i).getProfile_picture());
+
+            profile.setImageBitmap(bitmap);
+
+
+
             if (isChecked[i]==true) view.setBackgroundColor(SELECTED_COLOR);
             return view;
         }
@@ -191,6 +202,13 @@ class AddGroupDialog extends Dialog {
         public void onBindViewHolder(@NonNull final RVHolder holder, final int position) {
             TextView tv_name = holder.view.findViewById(R.id.tv_profile_horizon_name);
             tv_name.setText(checkedList.get(position).getName());
+
+            ImageView iv_profile = holder.view.findViewById(R.id.iv_profile_horizon_profile);
+            ConvertFile convertFile = new ConvertFile(context);
+
+            Bitmap bitmap = convertFile.byteArrayToBitmap(checkedList.get(position).getProfile_picture());
+
+            iv_profile.setImageBitmap(bitmap);
         }
 
         @Override

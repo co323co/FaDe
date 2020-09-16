@@ -140,12 +140,12 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
         tv_name.setText(personList.get(position).getName());
 
 
-        ImageView tv_profile = holder.view.findViewById(R.id.iv_nameList_profile);
+        ImageView iv_profile = holder.view.findViewById(R.id.iv_nameList_profile);
         ConvertFile convertFile = new ConvertFile(context);
 
         Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(position).getProfile_picture());
 
-        tv_profile.setImageBitmap(bitmap);
+        iv_profile.setImageBitmap(bitmap);
 
 
 

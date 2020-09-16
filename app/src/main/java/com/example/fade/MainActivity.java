@@ -21,6 +21,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -456,6 +457,11 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
 
     ArrayList<Person> itemList;
+    Context context;
+
+    public ProfileAdapter(Context context){
+        this.context = context;
+    }
 
     public class PVHolder extends RecyclerView.ViewHolder{
         public View view;
@@ -481,6 +487,13 @@ class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
 
         TextView tv_name = holder.view.findViewById(R.id.tv_group_profileName);
         tv_name.setText(itemList.get(position).getName());
+
+        ImageView iv_profile = holder.view.findViewById(R.id.iv_group_profileImgae);
+        ConvertFile convertFile = new ConvertFile(context);
+
+        Bitmap bitmap = convertFile.byteArrayToBitmap(itemList.get(position).getProfile_picture());
+
+        iv_profile.setImageBitmap(bitmap);
     }
 
     @Override

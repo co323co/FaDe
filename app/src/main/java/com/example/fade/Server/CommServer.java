@@ -1,7 +1,12 @@
 package com.example.fade.Server;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 
@@ -35,17 +40,21 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class CommServer {
     public Context context;
-
+    ArrayList<String> jsonresult = new ArrayList<>();
+    ArrayList<Uri> uriArrayList_;
     public  CommServer(Context context)
     {
         this.context=context;
     }
 
+    public CommServer(Context context, ArrayList<Uri> uriArrayList)
+    {
+        this.context = context; this.uriArrayList_ = uriArrayList;
+    }
+
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void postDB() throws IOException {
-
-
-//        Log.d("server", ""+context.getDataDir()+"/databases/");
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -92,7 +101,7 @@ public class CommServer {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void updateGalleryImg(ArrayList<byte[]> imgByteList) throws IOException {
+    public void updateGalleryImg(ArrayList<byte[]> imgByteList, ArrayList<Uri> uriArrayList) throws IOException {
 
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -122,13 +131,15 @@ public class CommServer {
         HashMap<String, Object> input = new HashMap<>();
         input.put("GalleryFiles", enFiles);
         Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
-        ArrayList<String> jsonresult = new ArrayList<>();
 
-        connService.postDetectionPicture(LoginActivity.UserID, input).enqueue(new Callback<ResponseBody>() {
+        //selectGalleryImage selectGalleryImage = new selectGalleryImage(context);
+        connService.postDetectionPicture("20171108", input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
-                    getJSONdata(response.body().string());
+
+                    jsonresult = getJSONdata(response.body().string());
+                    moveGalleryImage(jsonresult, uriArrayList);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -198,7 +209,7 @@ public class CommServer {
         return resBytes;
     }
 
-
+//서버에서 받은 gid를 가지고 gname 리스트를 만드는 함수
     public ArrayList<String> getJSONdata(String data){
 
         ArrayList<Integer> result = new ArrayList<>();
@@ -209,9 +220,19 @@ public class CommServer {
                 if (jsonArray != null) {
                     for (int i=0;i<jsonArray.length();i++){
                         result.add(jsonArray.getInt(i));
-                        DBThread.SelectGnameThraed t1 = new DBThread.SelectGnameThraed(result.get(i), gnameResult);
-                        t1.start();
-                        try { t1.join();} catch (InterruptedException e) { e.printStackTrace(); }
+                        if(result.get(i) == -1){
+                            gnameResult.add("None");
+                        }
+                        else{
+                            DBThread.SelectGnameThraed t1 = new DBThread.SelectGnameThraed(result.get(i), gnameResult);
+
+                            t1.start();
+                            try {
+                                t1.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
                 Log.i("server", "통신성공 (postDetectionPicture -> getJSONdata) : " + result+"    "+gnameResult);
@@ -222,4 +243,26 @@ public class CommServer {
         }return gnameResult;
     }
 
+    //gname리스트로 날짜에 해당되는 사진들을
+    public boolean moveGalleryImage(ArrayList<String> gname, ArrayList<Uri> uriArrayList)
+    {
+
+        String relativeLocation = Environment.DIRECTORY_PICTURES+ File.separator+"FADE"+ File.separator;
+
+        ContentResolver contentResolver = context.getContentResolver();
+        ContentValues contentValues = new ContentValues();
+        for(int i = 0; i<uriArrayList.size();i++){
+            if(gname.get(i)=="None"){
+                    continue;
+            }
+            else{
+                contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, relativeLocation+gname.get(i));
+                contentResolver.update(uriArrayList.get(i), contentValues,null,null);
+            }
+
+        }
+        Log.i(uriArrayList.size()+"개의 사진 업데이트 완료함", "므엥");
+
+        return true;
+    }
 }

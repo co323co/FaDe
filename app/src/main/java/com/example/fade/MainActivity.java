@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     RecyclerView rv;
     GroupAdapter groupAdapter;
     ArrayList<Group> groupList=new ArrayList<Group>();
+    ArrayList<Uri> groupUriList;
     int n=0;
 
     @Override
@@ -159,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 Handler handler = new Handler();
 
+                //selectGalleryImage selectGalleryImage = new selectGalleryImage(getApplicationContext());
                 Thread t = new Thread(){
                     @Override
                     public void run() {
@@ -169,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             CommServer commServer = new CommServer(getApplicationContext());
                             Log.i("updateGalleryImg","실행 시작");
                             //서버에 보낸 후 값 받기
-                            commServer.updateGalleryImg(byteList);
+                            commServer.updateGalleryImg(byteList, groupUriList);
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -255,9 +257,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Uri uri;
         SimpleDateFormat dateFormat;
         ArrayList<byte[]> byteList = new ArrayList<byte[]>();
+        groupUriList = new ArrayList<>();
         String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/09/13";
+        last_update = "2020/09/16";
 
         ConvertFile convertFile  = new ConvertFile(getApplicationContext());
 
@@ -291,7 +294,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Uri  uriimage = Uri.withAppendedPath(uri,""+IdOfImage);
 
 
-//            String absolutePathOfImage = cursor.getString(columnIndex);
             String nameOfFile = cursor.getString(columnDisplayname);
             String DateOfImage = dateFormat.format(new Date(cursor.getLong(columnDate) * 1000L));
             ContentResolver contentResolver = getContentResolver();
@@ -300,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(compare_time_last>=0){
                 try{
                     bitmaps.add(convertFile.resize(uriimage, 200));
+                    groupUriList.add(uriimage);
                     i++;
 
                 }catch(Exception e){
@@ -314,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         t.start();
         try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-        Log.i("getByteArrayOfRecentlyImages", i+"개의 사진 절대경로가 담긴 리스트 리턴함");
+        Log.i("getByteArrayOfRecentlyImages", i+"개의 사진의 바이트가 담긴 리스트 리턴함");
         return byteList;
     }
 }

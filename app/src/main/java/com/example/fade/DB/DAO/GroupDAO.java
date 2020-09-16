@@ -47,8 +47,7 @@ public interface GroupDAO {
     void deleteById(int gid);
 
 
-
-    @Query("SELECT name FROM `Group` WHERE gid in (:gidList)")
+    @Query("SELECT name FROM `Group` WHERE gid = (:gidList)")
     List<String> getGnameList(int gidList);
 
     @Delete

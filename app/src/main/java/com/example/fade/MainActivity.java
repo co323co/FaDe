@@ -47,6 +47,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -158,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(false);
 
                 Handler handler = new Handler();
-
                 //selectGalleryImage selectGalleryImage = new selectGalleryImage(getApplicationContext());
                 Thread t = new Thread(){
                     @Override
@@ -171,16 +171,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Log.i("updateGalleryImg","실행 시작");
                             //서버에 보낸 후 값 받기
                             commServer.updateGalleryImg(byteList, groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
-                                    Toast.makeText(getApplicationContext(),"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
-                                }
+                            handler.post(() -> {
+                                mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
+                                Toast.makeText(getApplicationContext(),"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
                             });
-                        }catch (Exception e){
-                            Log.i("ERROR ", e.getMessage());
-                            Toast.makeText(getApplicationContext(),"이미지 분류 실패", Toast.LENGTH_SHORT ).show();
+
+                        }catch (IOException e){
+                            Log.i("updateGalleryImg ", e.getMessage());
+                            mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
+                            handler.post(() -> Toast.makeText(getApplicationContext(),"이미지 분류 실패", Toast.LENGTH_SHORT ).show());
                         }
                     }
                 };

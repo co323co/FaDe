@@ -103,7 +103,7 @@ public class CommServer {
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void updateGalleryImg(ArrayList<byte[]> imgByteList, ArrayList<Uri> uriArrayList) throws IOException {
 
-        Gson gson = new GsonBuilder()
+            Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
@@ -112,7 +112,6 @@ public class CommServer {
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .build();
 
-//        Log.d("server", ""+context.getDataDir()+"/databases/");
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
@@ -121,7 +120,6 @@ public class CommServer {
         final ConnService connService = retrofit.create(ConnService.class);
 
         ArrayList<byte[]> byteList = imgByteList;
-//        Log.i("updateGalleryImg", "imgByteList 받아오기 성공 : " + byteList.toString());
 
         //바이트사진들 -> base64String으로 인코딩
         //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
@@ -132,25 +130,30 @@ public class CommServer {
         input.put("GalleryFiles", enFiles);
         Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
 
+        final boolean[] result = new boolean[1];
+
         //selectGalleryImage selectGalleryImage = new selectGalleryImage(context);
-        connService.postDetectionPicture("20171108", input).enqueue(new Callback<ResponseBody>() {
+        connService.postDetectionPicture(LoginActivity.UserID, input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
-
                     jsonresult = getJSONdata(response.body().string());
                     moveGalleryImage(jsonresult, uriArrayList);
+                    result[0] =true;
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    result[0] =false;
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.i("server", "통신실패 (postDetectionPicture) : " + t.getMessage()+"" );
+                result[0]=false;
             }
         });
+        if(result[0]==false) throw new IOException("통신실패");
     }
 
 
@@ -184,9 +187,9 @@ public class CommServer {
         });
     }
 
-    //        <<그룹등록>>
+ //        <<그룹편집>>
 //        서버에 uid, gid, (그룹의)pidList 던져주는 함수
-//         (서버 : pid폴더들에서 사진 찾아내서 그룹단위 모델을 학습함 -> uid/group_model 폴더에 모델 저장
+//         (서버 : 그룹모델 업데이트)
     public void postEditGroup(String uid ,int gid, ArrayList<Integer> pidList){
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -210,7 +213,6 @@ public class CommServer {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
-
         });
 
     }
@@ -293,5 +295,22 @@ public class CommServer {
         Log.i(uriArrayList.size()+"개의 사진 업데이트 완료함", "므엥");
 
         return true;
+    }
+
+    class MyCallback implements Callback<ResponseBody> {
+        ArrayList<byte[]> imagByteList;
+        ArrayList<Uri> uriArrayList;
+
+        public MyCallback(ArrayList<byte[]> imgByteList, ArrayList<Uri> uriArrayList) {
+        }
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+        }
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+        }
     }
 }

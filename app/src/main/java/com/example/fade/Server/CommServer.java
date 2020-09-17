@@ -182,7 +182,36 @@ public class CommServer {
             public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
 
         });
+    }
 
+    //        <<그룹등록>>
+//        서버에 uid, gid, (그룹의)pidList 던져주는 함수
+//         (서버 : pid폴더들에서 사진 찾아내서 그룹단위 모델을 학습함 -> uid/group_model 폴더에 모델 저장
+    public void postEditGroup(String uid ,int gid, ArrayList<Integer> pidList){
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        HashMap<String, Object> input = new HashMap<>();
+        input.put("uid", uid);
+        input.put("gid", gid);
+        input.put("pidList", pidList);
+
+        connService.postEditGroup(input).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    ResponseBody body = response.body();
+                    if (body != null) { Log.d("server", "그룹 편집하기 성공 (postEditGroup)"); } }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
+
+        });
 
     }
 

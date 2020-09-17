@@ -54,6 +54,10 @@ public interface ConnService {
     @POST("/det/{uid}")
     Call<ResponseBody> postDetectionPicture(@Path("uid") String uid, @FieldMap HashMap<String, Object> param);
 
+    @FormUrlEncoded
+    @POST("/edit/group")
+    Call<ResponseBody> postEditGroup(@FieldMap HashMap<String, Object> param);
+
 }
 
 

@@ -13,8 +13,8 @@
     <ImageView
         android:scaleType="centerCrop"
         android:id="@+id/iv_group_profileImgae"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="5dp"

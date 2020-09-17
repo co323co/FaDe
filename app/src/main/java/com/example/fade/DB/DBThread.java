@@ -2,7 +2,6 @@ package com.example.fade.DB;
 
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -11,9 +10,7 @@ import com.example.fade.DB.DAO.PersonDAO;
 import com.example.fade.DB.entity.Group;
 import com.example.fade.DB.entity.Person;
 import com.example.fade.MainActivity;
-import com.example.fade.Server.CommServer;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class DBThread {
@@ -80,8 +77,6 @@ public class DBThread {
         @Override
         public void run(){
             groupDAO.insert(group);
-            CommServer comm=new CommServer(context);
-            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
 
@@ -93,8 +88,6 @@ public class DBThread {
         @Override
         public void run(){
             groupDAO.update(this.group);
-            CommServer comm=new CommServer(context);
-            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
     public static class DeleteGroupThraed extends Thread {
@@ -105,8 +98,6 @@ public class DBThread {
         @Override
         public void run(){
             groupDAO.delete(this.group);
-            CommServer comm=new CommServer(context);
-            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
 
@@ -142,8 +133,6 @@ public class DBThread {
         @Override
         public void run(){
             personDAO.insert(person);
-            CommServer comm=new CommServer(context);
-            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
     public static class DeletePersonThraed extends Thread {
@@ -154,8 +143,6 @@ public class DBThread {
         @Override
         public void run(){
             personDAO.delete(this.person);
-            CommServer comm=new CommServer(context);
-            try { comm.postDB(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
 
@@ -178,12 +165,10 @@ public class DBThread {
         }
     }
     public static class SelectPidListByGIdThraed extends Thread {
-        GroupDAO dao;
         int  gid;
         ArrayList<Integer> personIdList;
 
-        public SelectPidListByGIdThraed(GroupDAO dao, int gid, ArrayList<Integer> personIdList) {
-            this.dao = dao;
+        public SelectPidListByGIdThraed(int gid, ArrayList<Integer> personIdList) {
             this.gid=gid;
             this.personIdList=personIdList;
 
@@ -194,7 +179,7 @@ public class DBThread {
             personIdList.clear();
 //            int count = dao.getCount();
 //            Log.d("COUNT", ""+count);
-            personIdList.addAll(Converters.fromString(dao.getPidList(gid)));
+            personIdList.addAll(Converters.fromString(groupDAO.getPidList(gid)));
         }
     }
 

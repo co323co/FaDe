@@ -357,6 +357,12 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         return new GVHolder(view);
     }
 
+    //다이얼로그에서 받아올 값들을 클래스로 묶어둔 것
+    class rst {
+        String name;
+        ArrayList<Integer> personIDList=new ArrayList<Integer>();
+    }
+
     @Override
     public void onBindViewHolder(@NonNull GVHolder holder, final int position) {
 
@@ -368,34 +374,28 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         final ImageButton ibtn_check = holder.view.findViewById(R.id.ibtn_editCheck);
 
         //연필버튼을 누르면 연필버튼을 없애고 체크버튼을 나타냄. 그리고 이름을 수정 가능하게 함
-        ibtn_edit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                et_name.setEnabled(true);
-                //포커스 줌
-                et_name.requestFocus();
-                et_name.setSelection(et_name.length());
-                ibtn_check.setVisibility(View.VISIBLE);
-                ibtn_edit.setVisibility(View.GONE);
+        ibtn_edit.setOnClickListener(view -> {
+            et_name.setEnabled(true);
+            //포커스 줌
+            et_name.requestFocus();
+            et_name.setSelection(et_name.length());
+            ibtn_check.setVisibility(View.VISIBLE);
+            ibtn_edit.setVisibility(View.GONE);
 
-                //키보드 올리는 코드
-                InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-            }
+            //키보드 올리는 코드
+            InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
         });
         //체크버튼을 누르면 이름 수정이 완료되고 DB에 반영됨. 체크버튼이 사라지고 다시 연필버튼이 나타남
-        ibtn_check.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        ibtn_check.setOnClickListener(view -> {
 
-                Group group = groupList.get(position);
-                group.setName(et_name.getText().toString());
-                new DBThread.UpdateGroupThraed(group).start();
+            Group group = groupList.get(position);
+            group.setName(et_name.getText().toString());
+            new DBThread.UpdateGroupThraed(group).start();
 
-                et_name.setEnabled(false);
-                ibtn_check.setVisibility(View.GONE);
-                ibtn_edit.setVisibility(View.VISIBLE);
-            }
+            et_name.setEnabled(false);
+            ibtn_check.setVisibility(View.GONE);
+            ibtn_edit.setVisibility(View.VISIBLE);
         });
 
         //그룹X버튼을 눌렀을 때 동작 (그룹을 삭제함)
@@ -414,12 +414,46 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
             }
         });
 
+        ImageButton ibtn_editGroup = holder.view.findViewById(R.id.ibtn_editGroupPerson);
+        ibtn_editGroup.setOnClickListener(view -> {
 
-        //
+            final rst result = new rst();
+            //다이얼로그에서 받아올 값을 생성자로 넘겨줌
+            Group group = groupList.get(position);
+            ArrayList<Integer> pidList = groupList.get(position).getPersonIDList();
+            final EditGroupDialog editGroupDialog= new EditGroupDialog(view.getContext(),pidList, result, new CustomDialogClickListener() {
+                @Override
+                public void onPositiveClick() {
+                    group.setName(result.name);
+                    group.setPersonIDList(result.personIDList);
+                    DBThread.UpdateGroupThraed t1 = new DBThread.UpdateGroupThraed(group);
+                    DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
+                    t1.start();
+                    try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                    t2.start();
+                    try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                    notifyDataSetChanged();
+
+//                    //서버에 그룹모델 수정하도록 하는 코드
+                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserID, group.getGid(), result.personIDList);
+                    Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
+                }
+                @Override
+                public void onNegativeClick() { }
+            });
+            //다이얼로그 밖을 터치했을 때 다이얼로그가 꺼짐
+            editGroupDialog.setCanceledOnTouchOutside(true);
+            //뒤로가기 버튼으로 다이얼로그 끌 수 있음
+            editGroupDialog.setCancelable(true);
+            //레이아웃
+            editGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
+            editGroupDialog.show();
+
+        });
+
+        //////////////////////////////////
         //프로필리싸이클러뷰 생성 과정
-        //
-
-
+        /////////////////////////////////
         ProfileAdapter profileAdapter;
         ArrayList<Person> profileList=new ArrayList<Person>();
 

@@ -95,27 +95,11 @@
                 android:orientation="horizontal"
                 android:gravity="center">
                 <ImageButton
-                    android:id="@+id/ibtn_addGroupPerson"
+                    android:id="@+id/ibtn_Favorites"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:padding="9dp"
-                    android:src="@drawable/ic_addperson"
-                    android:scaleType="fitCenter"
-                    android:tint="@color/sky"
-                    android:background="@android:color/white"
-                    android:layout_weight="1"/>
-
-                <ImageView
-                    android:layout_width="1dp"
-                    android:layout_height="match_parent"
-                    android:background="#2F000000"/>
-
-                <ImageButton
-                    android:id="@+id/ibtn_subGroupPerson"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:padding="9dp"
-                    android:src="@drawable/ic_subperson"
+                    android:src="@drawable/ic_star"
                     android:scaleType="fitCenter"
                     android:tint="@color/sky"
                     android:background="@android:color/white"
@@ -135,6 +119,24 @@
                     android:src="@drawable/ic_gallery"
                     android:background="@android:color/white"
                     android:layout_weight="1"/>
+
+                <ImageView
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:background="#2F000000"/>
+
+
+                <ImageButton
+                    android:id="@+id/ibtn_editGroupPerson"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_editperson"
+                    android:scaleType="fitCenter"
+                    android:tint="@color/sky"
+                    android:background="@android:color/white"
+                    android:layout_weight="1"/>
+
 
                 <ImageView
                     android:layout_width="1dp"

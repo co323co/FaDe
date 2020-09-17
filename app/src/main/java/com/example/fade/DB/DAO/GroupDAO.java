@@ -11,7 +11,6 @@ import androidx.room.Update;
 import com.example.fade.DB.Converters;
 import com.example.fade.DB.entity.Group;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @TypeConverters({Converters.class})
@@ -41,7 +40,7 @@ public interface GroupDAO {
     void insert(Group group);
 
     @Update
-    void  update(Group person);
+    void  update(Group group);
 
     @Query("DELETE  FROM `Group` WHERE gid = :gid")
     void deleteById(int gid);

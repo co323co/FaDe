@@ -400,6 +400,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         //그룹X버튼을 눌렀을 때 동작 (그룹을 삭제함)
         ImageButton ibtn_subGroup = holder.view.findViewById(R.id.ibtn_subGroup);
         ibtn_subGroup.setOnClickListener(new View.OnClickListener() {
+            Group group = groupList.get(position);
             @Override
             public void onClick(View view) {
                 DBThread.DeleteGroupThraed t1 = new DBThread.DeleteGroupThraed(groupList.get((position)));
@@ -410,6 +411,9 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                 t2.start();
                 try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 notifyDataSetChanged();
+
+                new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserID, group.getGid());
+                Toast.makeText(holder.view.getContext(),"그룹 삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
             }
         });
 

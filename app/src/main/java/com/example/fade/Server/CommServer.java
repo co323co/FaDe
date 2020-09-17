@@ -216,6 +216,31 @@ public class CommServer {
         });
 
     }
+    public void DeleteGroup(String uid ,int gid){
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        HashMap<String, Object> input = new HashMap<>();
+        input.put("uid", uid);
+        input.put("gid", gid);
+
+        connService.DeleteGroup(input).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    ResponseBody body = response.body();
+                    if (body != null) { Log.d("server", "그룹 삭제 성공 (postEditGroup)"); } }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
+        });
+
+    }
 
     //inputStram을 byte[]로 바꿔준다
     byte[] inputStreamToByteArray(InputStream is) {

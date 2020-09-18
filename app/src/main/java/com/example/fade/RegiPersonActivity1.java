@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,7 +32,6 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class RegiPersonActivity1 extends AppCompatActivity {
-    static final int REQ_CODE_SELECT_IMAGE = 42;
     static final int SELECT_IMAGE = 100;
     CircleImageView profile;
     Uri selectedImageUri;
@@ -56,7 +56,8 @@ public class RegiPersonActivity1 extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 btn_choice = -1;
-                ImagePicker.create(RegiPersonActivity1.this).start();
+                Toast.makeText(getApplicationContext(),"사진을 5장 이하로 선택해주세요.",Toast.LENGTH_SHORT).show();
+                ImagePicker.create(RegiPersonActivity1.this).limit(5).start();
             }
         });
     }
@@ -81,7 +82,6 @@ public class RegiPersonActivity1 extends AppCompatActivity {
                 Image image = ImagePicker.getFirstImageOrNull(data);
                 EditText person_name = findViewById(R.id.et_profile_name_regiperson1);
 
-//                Log.d(String.valueOf(byteList.size()),"사이즈ㄴㅁ");
                 Intent intent = new Intent(RegiPersonActivity1.this, RegiPersonActivity2.class);
 //                Log.d("filetest",images.size()+"");
                 intent.putParcelableArrayListExtra("images", (ArrayList<? extends Parcelable>) images);
@@ -124,5 +124,4 @@ public class RegiPersonActivity1 extends AppCompatActivity {
 
 
 }
-
 

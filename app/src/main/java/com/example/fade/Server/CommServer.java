@@ -208,7 +208,7 @@ public class CommServer {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", "그룹 편집하기 성공 (postEditGroup)"); } }
+                    if (body != null) { Log.d("server", gid + "그룹 편집하기 성공 (postEditGroup)"); } }
             }
 
             @Override
@@ -234,6 +234,32 @@ public class CommServer {
                 if (response.isSuccessful()) {
                     ResponseBody body = response.body();
                     if (body != null) { Log.d("server", "그룹 삭제 성공 (postEditGroup)"); } }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
+        });
+
+    }
+    public void DeletePerson(String uid ,int gid, ArrayList<Integer> pidList){
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        HashMap<String, Object> input = new HashMap<>();
+        input.put("uid", uid);
+        input.put("gid", gid);
+        input.put("pidList", pidList);
+
+        connService.DeletePerson(input).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    ResponseBody body = response.body();
+                    if (body != null) { Log.d("server", "사람 삭제 성공 (postEditGroup)"); } }
             }
 
             @Override

@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,7 +21,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fade.DB.DBThread;
+import com.example.fade.DB.entity.Group;
 import com.example.fade.DB.entity.Person;
+import com.example.fade.Server.CommServer;
 
 import java.util.ArrayList;
 
@@ -31,6 +34,7 @@ public class MainDrawerFragment extends Fragment {
     final int CODE_REGI_PERSON = 0;
     PersonAdapter personAdapter;
     ArrayList<Person> personList=new ArrayList<Person>();
+    ArrayList<Group> groupList = new ArrayList<Group>();
     RecyclerView rv;
     int n=0;
     @Nullable
@@ -155,8 +159,34 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
         Button btn_subPerson = holder.view.findViewById(R.id.btn_subPerson);
         btn_subPerson.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
+                ArrayList<Integer> gidList = new ArrayList<>();
+                ArrayList<Integer> pidListBygid = new ArrayList<>();
+                ArrayList<Integer> gidListInpid = new ArrayList<>();
+                int d = personList.get(position).getPid();
+
+                DBThread.selectgid t3 = new DBThread.selectgid(gidList);
+                t3.start();
+                try { t3.join(); Log.e("gid 리스트", gidList+"");} catch (InterruptedException e) { e.printStackTrace(); }
+                for(int i = 0; i<gidList.size(); i++){
+                    Log.e("gid 리스트 하나씩 출력", gidList.get(i)+"");
+                    //DBThread.SelectGListByPidThread t4 = new DBThread.SelectGListByPidThread(2,a.get(i), b);
+                    //DBThread.SelectGListByPidThread3 t4 = new DBThread.SelectGListByPidThread3(2, a.get(i), b);
+
+                    DBThread.SelectPidListByGIdThraed t4 = new DBThread.SelectPidListByGIdThraed(gidList.get(i), pidListBygid);
+                    t4.start();
+                    try { t4.join(); Log.e("gid의 pidList 값 : ", pidListBygid+"");} catch (InterruptedException e) { e.printStackTrace(); }
+//
+                    if(pidListBygid.contains(d)){
+                        Log.e("결과값에 해당 pid가 들어가있음", d+"");
+                        gidListInpid.add(gidList.get(i));
+                    }
+                }
+                Log.e("최종적으로 pid가 들어있는 gid리스트 gid값들", gidListInpid+"");
+
+
                 DBThread.DeletePersonThraed t1 = new DBThread.DeletePersonThraed(personList.get(position));
                 //꼭 삭제하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
                 DBThread.SelectPersonThraed t2 = new DBThread.SelectPersonThraed(personList);
@@ -168,6 +198,18 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                 //인물리스트가 바뀌었으니 삭제되었을 것을 대비해 그룹리스트뷰도 새로고침 해준다.
                 //TODO::인물리스트에서 삭제된 애는 CASCADE해줌 (그룹리스트에서도 삭제해줌) 만약 그룹리스트가 사이즈가 0이면 그룹삭제해줌
                 ((MainActivity)MainActivity.CONTEXT).onResume();
+
+                DBThread.SelectPidListByGIdThraed t4 = new DBThread.SelectPidListByGIdThraed(gidList.get(0), pidListBygid);
+                t4.start();
+                try { t4.join(); Log.e("잘 지워졌는지 확인해보기", pidListBygid+"");} catch (InterruptedException e) { e.printStackTrace(); }
+
+                //for(int i =0; i<gidListInpid.size();i++){
+
+                    //new CommServer(holder.view.getContext()).DeletePerson(LoginActivity.UserID, gidListInpid, result.personIDList);
+
+                //}
+                Toast.makeText(holder.view.getContext(),"사람삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
+
             }
         });
 

@@ -2,6 +2,7 @@ package com.example.fade.DB;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -182,5 +183,67 @@ public class DBThread {
             personIdList.addAll(Converters.fromString(groupDAO.getPidList(gid)));
         }
     }
+    public static class SelectGListByPidThread extends Thread {
+
+        ArrayList<Integer> gidList, gidpidList;
+        int pid;
+        public SelectGListByPidThread(int pid,ArrayList<Integer> gidList, ArrayList<Integer> gidpidList) {
+            this.gidList = gidList;
+            this.gidpidList=gidpidList;
+            this.pid=pid;
+        }
+        @Override
+        public void run(){
+            gidList.clear();
+            gidList.add(groupDAO.getdeletePersonGidList(pid, gidpidList));
+        }
+    }
+
+    public static class SelectGListByPidThread2 extends Thread {
+
+        ArrayList<String> gidList;
+        int pid;
+        int gid;
+        public SelectGListByPidThread2(int pid,int gid, ArrayList<String> gidList) {
+            this.gidList = gidList;
+            this.pid=pid;
+            this.gid=gid;
+        }
+        @Override
+        public void run(){
+            this.gidList.clear();
+            this.gidList.add(groupDAO.getdeletePersonGidList2(gid));
+        }
+    }
+
+    public static class selectgid extends Thread {
+        ArrayList<Integer> gidList;
+        public selectgid(ArrayList<Integer> gidList) {
+            this.gidList = gidList;
+        }
+        @Override
+        public void run(){
+            this.gidList.clear();
+            this.gidList.addAll(groupDAO.getGidList());
+
+        }
+    }
+    public static class SelectGListByPidThread3 extends Thread {
+
+        ArrayList<Integer> gidList;
+        int pid;
+        int gid;
+        public SelectGListByPidThread3(int pid,int gid, ArrayList<Integer> gidList) {
+            this.gidList = gidList;
+            this.pid=pid;
+            this.gid=gid;
+        }
+        @Override
+        public void run(){
+            this.gidList.clear();
+            this.gidList.add(groupDAO.getdeletePersonGidList3(pid, gid));
+        }
+    }
+
 
 }

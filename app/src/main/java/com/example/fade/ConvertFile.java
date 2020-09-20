@@ -40,7 +40,6 @@ public class ConvertFile {
 
             for(int i=0; i<bitmaps.size();i++)
             {
-                System.out.println(i);
                 ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
                 bitmaps.get(i).compress(Bitmap.CompressFormat.JPEG, 100, byteArray);
                 byteList.add(byteArray.toByteArray());

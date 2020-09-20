@@ -11,8 +11,6 @@ import androidx.room.Update;
 import com.example.fade.DB.Converters;
 import com.example.fade.DB.entity.Group;
 
-
-import java.util.ArrayList;
 import java.util.List;
 
 @TypeConverters({Converters.class})
@@ -26,6 +24,10 @@ public interface GroupDAO {
     // ex) String <-> ArrayList로 컨버터를 만들어둔 경우에, 결과가 여러개일 수 있으면 List<String>으로 반환되어 컨버터가 작동을 못함
     //Count(*)처럼 그룹바이라 당연히 하나인 경우에는 아마 잘 작동하는 듯
     //List<String>가 반환된 경우에 반환형을 String으로 하면 자동으로 잘려서 맨 앞만 사용됨
+
+    @Query("SELECT * FROM `Group` WHERE gid = :gid")
+    Group getGroupByGid(int gid);
+
     @Query("SELECT personIdList FROM `GROUP` WHERE gid = :gid")
     String getPidList(int gid);
 
@@ -47,23 +49,18 @@ public interface GroupDAO {
     @Query("DELETE  FROM `Group` WHERE gid = :gid")
     void deleteById(int gid);
 
-
     @Query("SELECT name FROM `Group` WHERE gid = (:gidList)")
     List<String> getGnameList(int gidList);
 
     @Delete
     void delete(Group group);
 
-    @Query("SELECT :pid FROM `Group` WHERE :pid IN (:gidPidList)")
-    int getdeletePersonGidList(int pid, ArrayList<Integer> gidPidList);
-
-    @Query("SELECT personIdList FROM `GROUP` WHERE gid = :gid")
-    String getdeletePersonGidList2(int gid);
 
     @Query("SELECT gid FROM `GROUP`")
     List<Integer> getGidList();
 
-    @Query("SELECT gid FROM `Group`, `Person` WHERE :pid IN (SELECT personIdList FROM `GROUP` WHERE gid = :gid)")
-    int getdeletePersonGidList3(int pid, int gid);
+    // ||는 문자열 연결 연산임
+    @Query("SELECT gid FROM `Group` WHERE  personIdList LIKE '%,' || :pid || ',%'")
+    List<Integer> getGidListByPid(String pid);
 
 }

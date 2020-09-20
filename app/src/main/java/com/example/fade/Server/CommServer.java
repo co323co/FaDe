@@ -131,6 +131,7 @@ public class CommServer {
         Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
 
         final boolean[] result = new boolean[1];
+        result[0]=true;
 
         //selectGalleryImage selectGalleryImage = new selectGalleryImage(context);
         connService.postDetectionPicture(LoginActivity.UserID, input).enqueue(new Callback<ResponseBody>() {
@@ -346,22 +347,5 @@ public class CommServer {
         Log.i(uriArrayList.size()+"개의 사진 업데이트 완료함", "므엥");
 
         return true;
-    }
-
-    class MyCallback implements Callback<ResponseBody> {
-        ArrayList<byte[]> imagByteList;
-        ArrayList<Uri> uriArrayList;
-
-        public MyCallback(ArrayList<byte[]> imgByteList, ArrayList<Uri> uriArrayList) {
-        }
-        @Override
-        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-
-        }
-
-        @Override
-        public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-        }
     }
 }

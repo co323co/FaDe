@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fade.DB.DBThread;
 import com.example.fade.DB.entity.Group;
 import com.example.fade.DB.entity.Person;
-import com.example.fade.Server.CommServer;
 
 import java.util.ArrayList;
 
@@ -162,31 +161,42 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
             @Override
             public void onClick(View view) {
-                ArrayList<Integer> gidList = new ArrayList<>();
-                ArrayList<Integer> pidListBygid = new ArrayList<>();
-                ArrayList<Integer> gidListInpid = new ArrayList<>();
-                int d = personList.get(position).getPid();
 
-                DBThread.selectgid t3 = new DBThread.selectgid(gidList);
-                t3.start();
-                try { t3.join(); Log.e("gid 리스트", gidList+"");} catch (InterruptedException e) { e.printStackTrace(); }
-                for(int i = 0; i<gidList.size(); i++){
-                    Log.e("gid 리스트 하나씩 출력", gidList.get(i)+"");
-                    //DBThread.SelectGListByPidThread t4 = new DBThread.SelectGListByPidThread(2,a.get(i), b);
-                    //DBThread.SelectGListByPidThread3 t4 = new DBThread.SelectGListByPidThread3(2, a.get(i), b);
+                /////////////////만약 삭제될 pid를 가지고있는 그룹이 있다면 그룹 내에서 pid를 지워주는 코드
+                int pid = personList.get(position).getPid();
+                //삭제될 pid를 가지고 있는 그룹들을 찾아냄
+                ArrayList<Integer> gidList = new ArrayList<Integer>();
+                DBThread.SelectGidListByPid t = new DBThread.SelectGidListByPid(pid, gidList);
+                t.start();
+                try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-                    DBThread.SelectPidListByGIdThraed t4 = new DBThread.SelectPidListByGIdThraed(gidList.get(i), pidListBygid);
-                    t4.start();
-                    try { t4.join(); Log.e("gid의 pidList 값 : ", pidListBygid+"");} catch (InterruptedException e) { e.printStackTrace(); }
-//
-                    if(pidListBygid.contains(d)){
-                        Log.e("결과값에 해당 pid가 들어가있음", d+"");
-                        gidListInpid.add(gidList.get(i));
+                //각 그룹의 personIDList에서 삭제될 pid를 지움
+                for(int gid : gidList){
+                    Group group = new Group();
+                    DBThread.SelectGroupByGidThraed th= new DBThread.SelectGroupByGidThraed(gid,group);
+                    th.start();
+                    try { th.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                    ArrayList<Integer> pidList = group.getPersonIDList();
+                    pidList.remove(new Integer(pid));
+                    group.setPersonIDList(pidList);
+                    //그룹 인원이 0이되면 그룹을 아예 지운다
+                    if(pidList.size()==0){
+                        Log.e("pidList.size() is 0", pidList.size()+"");
+                        DBThread.DeleteGroupThraed th2 = new DBThread.DeleteGroupThraed(group);
+                        th2.start();
+                        try { th2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                    }
+                    //그룹 인원을 변경한 후 DB에 적용한다
+                    else{
+                        Log.e("pidList.size() is", pidList.size()+"");
+                        DBThread.UpdateGroupThraed th2 = new DBThread.UpdateGroupThraed(group);
+                        th2.start();
+                        try { th2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                     }
                 }
-                Log.e("최종적으로 pid가 들어있는 gid리스트 gid값들", gidListInpid+"");
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+                //현재 삭제버튼 눌린 person데이터를 지움
                 DBThread.DeletePersonThraed t1 = new DBThread.DeletePersonThraed(personList.get(position));
                 //꼭 삭제하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
                 DBThread.SelectPersonThraed t2 = new DBThread.SelectPersonThraed(personList);
@@ -195,13 +205,10 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                 t2.start();
                 try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 notifyDataSetChanged();
-                //인물리스트가 바뀌었으니 삭제되었을 것을 대비해 그룹리스트뷰도 새로고침 해준다.
-                //TODO::인물리스트에서 삭제된 애는 CASCADE해줌 (그룹리스트에서도 삭제해줌) 만약 그룹리스트가 사이즈가 0이면 그룹삭제해줌
-                ((MainActivity)MainActivity.CONTEXT).onResume();
 
-                DBThread.SelectPidListByGIdThraed t4 = new DBThread.SelectPidListByGIdThraed(gidList.get(0), pidListBygid);
-                t4.start();
-                try { t4.join(); Log.e("잘 지워졌는지 확인해보기", pidListBygid+"");} catch (InterruptedException e) { e.printStackTrace(); }
+                //인물리스트가 바뀌었으니  그룹리스트뷰도 새로고침 해준다.
+                //TODO:: 인물 폴더 삭제 , 그룹 CASCADE, 그룹 인원0면 아예삭제 코드 서버에서도 구현해서 연결해주기
+                ((MainActivity)MainActivity.CONTEXT).onResume();
 
                 //for(int i =0; i<gidListInpid.size();i++){
 

@@ -200,6 +200,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onResume(){
         super.onResume();
         rv.removeAllViewsInLayout();
+        //그룹리스트 새로고침
+        new DBThread.SelectGroupThraed(groupList).start();
         rv.setAdapter(groupAdapter);
     }
 

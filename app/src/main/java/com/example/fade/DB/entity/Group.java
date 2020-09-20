@@ -50,5 +50,11 @@ public class Group {
     public ArrayList<Integer> getPersonIDList() { return personIDList; }
     public void setPersonIDList(ArrayList<Integer> personIDList) { this.personIDList = personIDList; }
 
+    public void copy(Group group){
+            group.setGid(gid);
+            group.setName(name);
+            group.setPersonIDList(personIDList);
+    }
+
 }
 

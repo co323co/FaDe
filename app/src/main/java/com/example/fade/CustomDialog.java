@@ -164,6 +164,9 @@ class AddGroupDialog extends Dialog {
             name.setText(personList.get(i).getName());
 
             ImageView profile = view.findViewById(R.id.iv_profile_horizon_profile);
+            profile.setBackground(view.getContext().getDrawable(R.drawable.background_rounding));
+            profile.setClipToOutline(true);
+
             ConvertFile convertFile = new ConvertFile(context);
 
             //프로필 사진 없으면 기본 이미지 띄움
@@ -209,6 +212,9 @@ class AddGroupDialog extends Dialog {
             tv_name.setText(checkedList.get(position).getName());
 
             ImageView iv_profile = holder.view.findViewById(R.id.iv_profile_horizon_profile);
+            iv_profile.setBackground(holder.view.getContext().getDrawable(R.drawable.background_rounding));
+            iv_profile.setClipToOutline(true);
+
             ConvertFile convertFile = new ConvertFile(context);
 
             //프로필 사진 없으면 기본 이미지 띄움
@@ -234,7 +240,7 @@ class EditGroupDialog extends Dialog {
     private Button mPositiveButton;
     private Button mNegativeButton;
 
-    GroupAdapter.rst result;
+    ArrayList<Integer> result;
 
     private CustomDialogClickListener customDialogClickListener;
 
@@ -242,7 +248,7 @@ class EditGroupDialog extends Dialog {
     ArrayList<Integer> checkedIDList;
 
     //생성자 생성
-    public EditGroupDialog(@NonNull Context context, ArrayList<Integer> pidList, GroupAdapter.rst result, CustomDialogClickListener customDialogClickListener) {
+    public EditGroupDialog(@NonNull Context context, ArrayList<Integer> pidList, ArrayList<Integer> result, CustomDialogClickListener customDialogClickListener) {
         super(context);
         this.context=context;
         this.customDialogClickListener=customDialogClickListener;
@@ -254,7 +260,8 @@ class EditGroupDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_add_group);
-
+        findViewById(R.id.et_add_groupName).setVisibility(View.GONE);
+        findViewById(R.id.top_line_of_dialogAddgroup).setVisibility(View.INVISIBLE);
         //LeftListView에서 선택됐는지 안선택됐는지를 체크해놓기 위한 배열
 
         //셋팅
@@ -266,8 +273,7 @@ class EditGroupDialog extends Dialog {
         mPositiveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                result.name = ((EditText)findViewById(R.id.et_add_groupName)).getText().toString();
-                for(int i=0; i<checkedList.size(); i++) result.personIDList.add(checkedList.get(i).getPid());
+                for(int i=0; i<checkedList.size(); i++) result.add(checkedList.get(i).getPid());
 
                 customDialogClickListener.onPositiveClick();
                 dismiss();
@@ -371,6 +377,9 @@ class EditGroupDialog extends Dialog {
             name.setText(personList.get(i).getName());
 
             ImageView profile = view.findViewById(R.id.iv_profile_horizon_profile);
+            profile.setBackground(view.getContext().getDrawable(R.drawable.background_rounding));
+            profile.setClipToOutline(true);
+
             ConvertFile convertFile = new ConvertFile(context);
 
             //프로필 사진 없으면 기본 이미지 띄움
@@ -415,6 +424,8 @@ class EditGroupDialog extends Dialog {
             tv_name.setText(checkedList.get(position).getName());
 
             ImageView iv_profile = holder.view.findViewById(R.id.iv_profile_horizon_profile);
+            iv_profile.setBackground(holder.view.getContext().getDrawable(R.drawable.background_rounding));
+            iv_profile.setClipToOutline(true);
             ConvertFile convertFile = new ConvertFile(context);
 
             //프로필 사진 없으면 기본 이미지 띄움

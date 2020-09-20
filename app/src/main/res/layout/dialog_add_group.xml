@@ -6,18 +6,27 @@
     android:layout_height="wrap_content"
     android:gravity="center">
 
-    <EditText
-        android:id="@+id/et_add_groupName"
-        android:layout_margin="10dp"
-        android:hint="그룹이름"
+    <LinearLayout
+        android:id="@+id/top_of_dialogAddGroup"
         android:layout_width="match_parent"
-        android:layout_height="50dp"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <ImageView
-        android:layout_margin="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/gray"/>
+        <EditText
+            android:id="@+id/et_add_groupName"
+            android:layout_margin="10dp"
+            android:hint="그룹이름"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+
+        <ImageView
+            android:id="@+id/top_line_of_dialogAddgroup"
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray"/>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="300dp"

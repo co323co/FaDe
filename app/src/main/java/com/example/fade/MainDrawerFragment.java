@@ -61,7 +61,7 @@ public class MainDrawerFragment extends Fragment {
 
                 Intent intent = new Intent(getContext(), RegiPersonActivity1.class);
                 startActivity(intent);
-                getActivity().finish();
+//                getActivity().finish();
 //                n++;
 //                DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
 //                //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
@@ -144,6 +144,9 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
 
         ImageView iv_profile = holder.view.findViewById(R.id.iv_nameList_profile);
+        iv_profile.setBackground(holder.view.getContext().getDrawable(R.drawable.background_rounding));
+        iv_profile.setClipToOutline(true);
+
         ConvertFile convertFile = new ConvertFile(context);
 
         //프로필 사진 없으면 기본 이미지 띄움

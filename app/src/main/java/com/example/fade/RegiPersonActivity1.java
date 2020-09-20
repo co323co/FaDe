@@ -107,7 +107,7 @@ public class RegiPersonActivity1 extends AppCompatActivity {
                     intent.putExtra("profile_thumbnail", (byte[]) null);
                 }
                 startActivity(intent);
-
+                finish();
             }
 
         }

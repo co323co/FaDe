@@ -4,13 +4,17 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="40dp">
+    android:padding="40dp"
+    android:layout_marginTop="50dp">
     <TextView
+        android:layout_marginBottom="10dp"
+        android:padding="20dp"
+        android:fontFamily="@font/nanumbarunpen_b"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text = "어떤 사람을 등록할까요?"
         android:layout_gravity="center"
-        android:textSize="30dp"/>
+        android:textSize="25dp"/>
 
     <FrameLayout
         android:layout_width="200dp"
@@ -23,7 +27,7 @@
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_gravity="center_horizontal"
-            android:src="@drawable/ic_launcher_background" />
+            android:src="@drawable/ic_profile_big" />
 
         <Button
             android:id="@+id/btn_profileAdd"
@@ -34,14 +38,17 @@
     </FrameLayout>
 
     <LinearLayout
+        android:layout_marginTop="20dp"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
+            android:fontFamily="@font/nanumbarunpen_r"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="이름 : "
-            android:textSize="30dp"
+            android:padding="5dp"
+            android:textSize="25dp"
             android:layout_marginTop="30dp"/>
 
         <EditText

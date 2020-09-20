@@ -95,8 +95,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(linearLayoutManager);
 
+        groupList.clear();
         //groupList에 DB불러오기
-        new DBThread.SelectGroupThraed(groupList).start();
+        DBThread.SelectGroupThraed t =new DBThread.SelectGroupThraed(groupList);
+        t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
         groupAdapter = new GroupAdapter(groupList);
         rv.setAdapter(groupAdapter);
@@ -199,8 +201,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void onResume(){
         super.onResume();
+//        groupAdapter.notifyDataSetChanged();
         rv.removeAllViewsInLayout();
         //그룹리스트 새로고침
+        groupList.clear();
         new DBThread.SelectGroupThraed(groupList).start();
         rv.setAdapter(groupAdapter);
     }
@@ -359,12 +363,6 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         return new GVHolder(view);
     }
 
-    //다이얼로그에서 받아올 값들을 클래스로 묶어둔 것
-    class rst {
-        String name;
-        ArrayList<Integer> personIDList=new ArrayList<Integer>();
-    }
-
     @Override
     public void onBindViewHolder(@NonNull GVHolder holder, final int position) {
 
@@ -423,15 +421,16 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         ImageButton ibtn_editGroup = holder.view.findViewById(R.id.ibtn_editGroupPerson);
         ibtn_editGroup.setOnClickListener(view -> {
 
-            final rst result = new rst();
-            //다이얼로그에서 받아올 값을 생성자로 넘겨줌
+            //다이얼로그에서 받아올 값을 생성자로 넘겨줌(사용자가 편집한 pidList)
+            ArrayList<Integer> result = new ArrayList<>();
+
             Group group = groupList.get(position);
             ArrayList<Integer> pidList = groupList.get(position).getPersonIDList();
-            final EditGroupDialog editGroupDialog= new EditGroupDialog(view.getContext(),pidList, result, new CustomDialogClickListener() {
+            //현재 pid리스트와, 바뀐 pidList를 저장할 result를 인자로 넘김
+            final EditGroupDialog editGroupDialog= new EditGroupDialog(view.getContext(), pidList, result, new CustomDialogClickListener() {
                 @Override
                 public void onPositiveClick() {
-                    group.setName(result.name);
-                    group.setPersonIDList(result.personIDList);
+                    group.setPersonIDList(result);
                     DBThread.UpdateGroupThraed t1 = new DBThread.UpdateGroupThraed(group);
                     DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
                     t1.start();
@@ -441,7 +440,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                     notifyDataSetChanged();
 
 //                    //서버에 그룹모델 수정하도록 하는 코드
-                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserID, group.getGid(), result.personIDList);
+                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserID, group.getGid(), result);
                     Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
                 }
                 @Override
@@ -531,6 +530,9 @@ class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
         tv_name.setText(itemList.get(position).getName());
 
         ImageView iv_profile = holder.view.findViewById(R.id.iv_group_profileImgae);
+        iv_profile.setBackground(holder.view.getContext().getDrawable(R.drawable.background_rounding));
+        iv_profile.setClipToOutline(true);
+
         ConvertFile convertFile = new ConvertFile(context);
 
         //프로필 사진 없으면 기본 이미지 띄움

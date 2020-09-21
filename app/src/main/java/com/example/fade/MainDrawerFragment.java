@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fade.DB.DBThread;
 import com.example.fade.DB.entity.Group;
 import com.example.fade.DB.entity.Person;
+import com.example.fade.Server.CommServer;
 
 import java.util.ArrayList;
 
@@ -188,6 +189,19 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                         DBThread.DeleteGroupThraed th2 = new DBThread.DeleteGroupThraed(group);
                         th2.start();
                         try { th2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+
+                        Thread thread = new Thread(){
+                            @Override
+                            public void run() {
+                                new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserID, group.getGid(), pid);
+                            }
+                        };
+                        thread.start();
+                        try { thread.join();
+                            Toast.makeText(holder.view.getContext(),"그룹 삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
+                        } catch (InterruptedException e) { e.printStackTrace(); }
+
                     }
                     //그룹 인원을 변경한 후 DB에 적용한다
                     else{
@@ -195,6 +209,18 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                         DBThread.UpdateGroupThraed th2 = new DBThread.UpdateGroupThraed(group);
                         th2.start();
                         try { th2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                        Thread thread2 = new Thread(){
+                            @Override
+                            public void run() {
+                                new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserID, group.getGid(), pidList, pid);
+                            }
+                        };
+                        thread2.start();
+                        try { thread2.join();
+                            Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
+                        } catch (InterruptedException e) { e.printStackTrace(); }
+
+
                     }
                 }
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////

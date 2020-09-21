@@ -191,7 +191,7 @@ public class CommServer {
  //        <<그룹편집>>
 //        서버에 uid, gid, (그룹의)pidList 던져주는 함수
 //         (서버 : 그룹모델 업데이트)
-    public void postEditGroup(String uid ,int gid, ArrayList<Integer> pidList){
+    public void postEditGroup(String uid ,int gid, ArrayList<Integer> pidList, int pid){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -203,6 +203,7 @@ public class CommServer {
         input.put("uid", uid);
         input.put("gid", gid);
         input.put("pidList", pidList);
+        input.put("pid", pid);
 
         connService.postEditGroup(input).enqueue(new Callback<ResponseBody>() {
             @Override
@@ -217,7 +218,7 @@ public class CommServer {
         });
 
     }
-    public void DeleteGroup(String uid ,int gid){
+    public void DeleteGroup(String uid ,int gid, int pid){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -228,6 +229,7 @@ public class CommServer {
         HashMap<String, Object> input = new HashMap<>();
         input.put("uid", uid);
         input.put("gid", gid);
+        input.put("pid", pid);
 
         connService.DeleteGroup(input).enqueue(new Callback<ResponseBody>() {
             @Override

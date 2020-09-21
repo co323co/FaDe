@@ -265,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         groupUriList = new ArrayList<>();
         String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/09/16";
+        last_update = "2020/09/21";
 
         ConvertFile convertFile  = new ConvertFile(getApplicationContext());
 
@@ -372,6 +372,19 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         //연필 버튼 눌렀을 때 그룹이름을 수정하게 해주는 부분
         final ImageButton ibtn_edit = holder.view.findViewById(R.id.ibtn_editGroupName);
         final ImageButton ibtn_check = holder.view.findViewById(R.id.ibtn_editCheck);
+        final ImageButton ibtn_gallery = holder.view.findViewById(R.id.ibtn_openGroupGallery);
+
+
+        //갤러리 버튼 누르면 intent로 갤러리 화면으로 들어가짐
+        ibtn_gallery.setOnClickListener(view -> {
+            Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri,"image/*");
+            view.getContext().startActivity(intent);
+
+        });
 
         //연필버튼을 누르면 연필버튼을 없애고 체크버튼을 나타냄. 그리고 이름을 수정 가능하게 함
         ibtn_edit.setOnClickListener(view -> {
@@ -413,7 +426,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                 try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 notifyDataSetChanged();
 
-                new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserID, group.getGid());
+                new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserID, group.getGid(), -1);
                 Toast.makeText(holder.view.getContext(),"그룹 삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
             }
         });
@@ -440,7 +453,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                     notifyDataSetChanged();
 
 //                    //서버에 그룹모델 수정하도록 하는 코드
-                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserID, group.getGid(), result);
+                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserID, group.getGid(), result, -1);
                     Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
                 }
                 @Override

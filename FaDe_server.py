@@ -15,6 +15,7 @@ import csv
 
 import FaceTrain
 import FaceDetect
+import DeleteEdit
 
 app = Flask(__name__)
 api = Api(app)
@@ -288,7 +289,11 @@ class DetectionPicture(Resource):
             elapsed = time.time()-ts
             print("얼굴 판별에 걸린 시간: " +str(elapsed))
             print("-------------------------------------------------------")
-        #shutil.rmtree('./DATA/uid_20171108/tmp', ignore_errors=True)  #폴더 삭제
+
+        try:
+            shutil.rmtree(main_folder+'uid_'+ uid+'/tmp', ignore_errors=True)  #폴더 삭제
+        except:
+            print('Error : Removing tmp directory')    
 
         print("================================")
         elapsed = time.time()-ts_total
@@ -298,9 +303,73 @@ class DetectionPicture(Resource):
         print(gid_list)
         return {"gid_list" : gid_list}
     
+#그룹 수정 함수 
+class EditGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름, 넣을 pid들(리스트로), uid
+    def post(self):
+        ts = time.time()
+
+        parser = reqparse.RequestParser()
+
+
+        parser.add_argument('pid', type=str)
+
+        args = parser.parse_args()
+
+        pid = args['pid']
+
+        if pid == -1:
+            uid, pid_list, gid = DeleteEdit.editGroup()
+
+        else:
+            uid, pid_list, gid = DeleteEdit.editGroup()
+            shutil.rmtree(main_folder+'uid_'+ uid+face_folder+'/'+str(pid), ignore_errors=True)  #폴더 삭제
+        
+
+        elapsed = time.time()-ts
+        print("uid :" + str(uid) +" pid_list : "+str(pid_list)+ " , gid : "+str(gid))
+
+        print("서버 반환 걸린 시간: " +str(elapsed)) 
+        print("================================\n")
+        
+        return {'uid': uid , 'pid' : pid_list, 'gid' : gid}
+        
+
+class DeleteGroup(Resource):    #json으로 전송해야할 것 : uid, gid
+    def post(self):
+        #모델파일 없애고, csv파일 수정
+        ts = time.time()
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('pid', type=str) 
+        args = parser.parse_args()
+    
+        pid = args['pid']
+
+        if pid == -1:
+            uid_, gid = DeleteEdit.deleteGroup()
+
+
+        else:
+            uid_, gid = DeleteEdit.deleteGroup()
+            shutil.rmtree(main_folder+'uid_'+ uid_+face_folder+'/'+str(pid), ignore_errors=True)  #폴더 삭제
+
+
+        elapsed = time.time() - ts
+        print("uid :" + str(uid_) +" , gid : "+str(gid))
+        print("서버 반환 걸린 시간: " +str(elapsed)) 
+        print("================================\n")
+        return {'uid': uid_ , 'gid' : gid}
+
+
+        
+    
+
 api.add_resource(RegistPerson, '/reg/person')
 api.add_resource(RegistGroup, '/reg/group')
 api.add_resource(DetectionPicture, '/det/<uid>')
+api.add_resource(EditGroup, '/edit/group')
+api.add_resource(DeleteGroup, '/delete/group')
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000)

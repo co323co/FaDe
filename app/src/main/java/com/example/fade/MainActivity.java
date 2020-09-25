@@ -52,6 +52,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -99,10 +100,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(linearLayoutManager);
 
-
-
-//        Animation fab_open = AnimationUtils.loadAnimation(CONTEXT, R.anim.fab_open);
-//        Animation fab_close = AnimationUtils.loadAnimation(CONTEXT, R.anim.fab_close);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_main);
 
         fab.setOnClickListener(this);
@@ -360,6 +357,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
     ArrayList<Group> groupList;
+    ArrayList<Group> favorites=new ArrayList<>();
 
     class GVHolder extends RecyclerView.ViewHolder{
         public View view;
@@ -384,6 +382,8 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
     GroupAdapter(ArrayList<Group> groupList){
         this.groupList=groupList;
+        //즐겨찾기 추가된 그룹들(favorites가 1이상)은 favorites 리스트에 담아서 관리함
+        for(Group g : groupList) { if(g.getFavorites()>0) favorites.add(g); }
     }
 
     @NonNull
@@ -398,7 +398,10 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
         ImageButton ibtn_favorites = holder.view.findViewById(R.id.ibtn_Favorites);
         ImageView iv_star = holder.view.findViewById(R.id.iv_groupList_star);
-        if(groupList.get(position).getFavorites()==0) ibtn_favorites.setColorFilter(Color.parseColor("#7AB1C3"));
+        if(groupList.get(position).getFavorites()==0) {
+            ibtn_favorites.setColorFilter(Color.parseColor("#7AB1C3"));
+            iv_star.setVisibility(View.GONE);
+        }
         else {
             ibtn_favorites.setColorFilter(Color.RED);
             iv_star.setVisibility(View.VISIBLE);
@@ -407,14 +410,37 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         ibtn_favorites.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(groupList.get(position).getFavorites()==0) { groupList.get(position).setFavorites(1); }
-                else { groupList.get(position).setFavorites(0); }
-                DBThread.UpdateGroupThraed t = new DBThread.UpdateGroupThraed(groupList.get(position));
-                t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                if(groupList.get(position).getFavorites()==0) {
+                    if(favorites.size()>=3){
+                        Toast.makeText(view.getContext(), "즐겨찾기는 3개까지 가능합니다",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Group group = groupList.get(position);
+                    group.setFavorites(favorites.size()+1);
+                    favorites.add(group);
+                }
+                else {
+                    favorites.remove(groupList.get(position));
+                    groupList.get(position).setFavorites(0);
+                    Collections.sort(favorites, (g1, g2) -> {
+                        if(g1.getFavorites()<g2.getFavorites())
+                            return 1;
+                        else if(g1.getFavorites()>g2.getFavorites())
+                            return  -1;
+                        return 0;
+                    });
+                    for(int i=0; i<favorites.size(); i++) { favorites.get(i).setFavorites(i+1);}
+
+                    DBThread.UpdateGroupThraed t = new DBThread.UpdateGroupThraed(groupList.get(position));
+                    t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                }
+                for(Group g : favorites){
+                    DBThread.UpdateGroupThraed t = new DBThread.UpdateGroupThraed(g);
+                    t.start();try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                }
                 ((MainActivity)MainActivity.CONTEXT).onResume();
             }
         });
-
 
         final EditText et_name = holder.view.findViewById(R.id.et_groupList_name);
         final ImageButton ibtn_edit = holder.view.findViewById(R.id.ibtn_editGroupName);

@@ -60,6 +60,7 @@ public class Group {
             group.setGid(gid);
             group.setName(name);
             group.setPersonIDList(personIDList);
+            group.setFavorites(favorites);
     }
 
 }

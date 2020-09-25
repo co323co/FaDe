@@ -42,6 +42,18 @@ public class DBThread {
         }
     }
 
+    public static class SelectGroupAsFavoritesThraed extends Thread {
+        ArrayList<Group> groupList;
+        public SelectGroupAsFavoritesThraed(ArrayList<Group> groupList) {
+            this.groupList = groupList;
+        }
+        @Override
+        public void run(){
+            this.groupList.clear();
+            this.groupList.addAll(groupDAO.getGroupAsFavorites());
+        }
+    }
+
     public static class SelectGroupByGidThraed extends Thread {
         int gid;
         Group group;

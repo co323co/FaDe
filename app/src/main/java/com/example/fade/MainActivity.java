@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -95,13 +96,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(linearLayoutManager);
 
-        groupList.clear();
-        //groupList에 DB불러오기
-        DBThread.SelectGroupThraed t =new DBThread.SelectGroupThraed(groupList);
-        t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-        //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
-        groupAdapter = new GroupAdapter(groupList);
-        rv.setAdapter(groupAdapter);
+
 
 //        Animation fab_open = AnimationUtils.loadAnimation(CONTEXT, R.anim.fab_open);
 //        Animation fab_close = AnimationUtils.loadAnimation(CONTEXT, R.anim.fab_close);
@@ -192,6 +187,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
+    public void onResume(){
+        super.onResume();
+        /////////rv 어뎁터 연결 코드
+        //그룹리스트 새로고침
+
+        groupList.clear();
+        DBThread.SelectGroupAsFavoritesThraed t = new DBThread.SelectGroupAsFavoritesThraed(groupList);
+        t.start();try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
+        rv.removeAllViewsInLayout();
+        groupAdapter = new GroupAdapter(groupList);
+        rv.setAdapter(groupAdapter);
+
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -199,15 +210,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         drawerLayout.closeDrawer(GravityCompat.START);
     }
 
-    public void onResume(){
-        super.onResume();
-//        groupAdapter.notifyDataSetChanged();
-        rv.removeAllViewsInLayout();
-        //그룹리스트 새로고침
-        groupList.clear();
-        new DBThread.SelectGroupThraed(groupList).start();
-        rv.setAdapter(groupAdapter);
-    }
+
 
     //다이얼로그에서 받아올 값들을 클래스로 묶어둔 것
     class rst {
@@ -366,13 +369,34 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
     @Override
     public void onBindViewHolder(@NonNull GVHolder holder, final int position) {
 
-        final EditText et_name = holder.view.findViewById(R.id.et_groupList_name);
-        et_name.setText(groupList.get(position).getName());
+        ImageButton ibtn_favorites = holder.view.findViewById(R.id.ibtn_Favorites);
+        ImageView iv_star = holder.view.findViewById(R.id.iv_groupList_star);
+        if(groupList.get(position).getFavorites()==0) ibtn_favorites.setColorFilter(Color.parseColor("#7AB1C3"));
+        else {
+            ibtn_favorites.setColorFilter(Color.RED);
+            iv_star.setVisibility(View.VISIBLE);
+        }
 
-        //연필 버튼 눌렀을 때 그룹이름을 수정하게 해주는 부분
+        ibtn_favorites.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(groupList.get(position).getFavorites()==0) { groupList.get(position).setFavorites(1); }
+                else { groupList.get(position).setFavorites(0); }
+                DBThread.UpdateGroupThraed t = new DBThread.UpdateGroupThraed(groupList.get(position));
+                t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                ((MainActivity)MainActivity.CONTEXT).onResume();
+            }
+        });
+
+
+        final EditText et_name = holder.view.findViewById(R.id.et_groupList_name);
         final ImageButton ibtn_edit = holder.view.findViewById(R.id.ibtn_editGroupName);
         final ImageButton ibtn_check = holder.view.findViewById(R.id.ibtn_editCheck);
         final ImageButton ibtn_gallery = holder.view.findViewById(R.id.ibtn_openGroupGallery);
+
+        //연필 버튼 눌렀을 때 그룹이름을 수정하게 해주는 부분
+        et_name.setText(groupList.get(position).getName());
+
 
 
         //갤러리 버튼 누르면 intent로 갤러리 화면으로 들어가짐

@@ -25,6 +25,9 @@ public interface GroupDAO {
     //Count(*)처럼 그룹바이라 당연히 하나인 경우에는 아마 잘 작동하는 듯
     //List<String>가 반환된 경우에 반환형을 String으로 하면 자동으로 잘려서 맨 앞만 사용됨
 
+    @Query("SELECT * FROM `Group` order  by favorites desc")
+    List<Group> getGroupAsFavorites();
+
     @Query("SELECT * FROM `Group` WHERE gid = :gid")
     Group getGroupByGid(int gid);
 

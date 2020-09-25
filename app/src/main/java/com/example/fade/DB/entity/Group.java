@@ -24,6 +24,9 @@ public class Group {
     @ColumnInfo(name = "personIdList")
     private ArrayList<Integer> personIDList = new ArrayList();
 
+    @ColumnInfo
+    private int favorites=0;
+
     public Group() { }
 
     @Ignore
@@ -49,6 +52,9 @@ public class Group {
 
     public ArrayList<Integer> getPersonIDList() { return personIDList; }
     public void setPersonIDList(ArrayList<Integer> personIDList) { this.personIDList = personIDList; }
+
+    public int getFavorites() {return favorites;}
+    public void setFavorites(int favorites){this.favorites = favorites;}
 
     public void copy(Group group){
             group.setGid(gid);

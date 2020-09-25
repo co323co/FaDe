@@ -3,6 +3,7 @@ package com.example.fade;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -67,6 +68,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     GroupAdapter groupAdapter;
     ArrayList<Group> groupList=new ArrayList<Group>();
     ArrayList<Uri> groupUriList;
+    SharedPreferences sharedPrefs;
+
     int n=0;
 
     @Override
@@ -109,6 +112,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         mMenu = menu;
+        MenuItem item = (MenuItem) menu.findItem(R.id.menu_alarm);
+        sharedPrefs = getSharedPreferences("alarm_check", MODE_PRIVATE);
+        item.setChecked(sharedPrefs.getBoolean("check_switch", true));
+
         return true;
     }
 
@@ -116,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int item_id = item.getItemId();
-
         switch (item_id) {
             //메뉴 버튼을 눌렀을 때 드로우가 열리도록 해줌
             case android.R.id.home :
@@ -149,6 +155,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent);
 
                 break;
+
+            case R.id.menu_alarm:
+
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                    Toast.makeText(getApplicationContext(),"갤러리 자동정리 비활성화",Toast.LENGTH_SHORT).show();
+
+                }
+                else {
+                    item.setChecked(true);
+                    Toast.makeText(getApplicationContext(),"갤러리 자동정리 활성화",Toast.LENGTH_SHORT).show();
+                }
+                SharedPreferences.Editor editor = getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
+                editor.putBoolean("check_switch", item.isChecked());
+                editor.commit();
+                break;
+            case R.id.menu_option:
+                Intent intent_option = new Intent(getApplicationContext(),OptionActivity.class);
+                startActivity(intent_option);
+                break;
+
             case R.id.menu_galleryRefresh:
                 GetPermission.verifyStoragePermissions(this);
 

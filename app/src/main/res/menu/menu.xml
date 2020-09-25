@@ -16,6 +16,11 @@
             android:title="로그아웃"/>
         <item android:id="@+id/menu_tutorial"
             android:title="튜토리얼"/>
+        <item android:id="@+id/menu_alarm"
+            android:title="갤러리 자동정리"
+            android:checkable="true" />
+        <item android:id="@+id/menu_option"
+            android:title="어플 정보" />
 
     </group>
 

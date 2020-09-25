@@ -163,7 +163,7 @@ public class LoginActivity extends AppCompatActivity {
 //            });
             ////////////////////////////////////////
             profile();  //사용자 정보 토스트로 출력
-            Intent intent=new Intent(getApplicationContext(),MainActivity.class);
+            Intent intent=new Intent(getApplicationContext(),TutorialActivity.class);
             startActivity(intent);
             finish();
             // Signed in successfully, show authenticated UI.

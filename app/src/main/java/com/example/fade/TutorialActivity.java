@@ -1,6 +1,9 @@
 package com.example.fade;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,7 +18,7 @@ import me.relex.circleindicator.CircleIndicator3;
 
 public class TutorialActivity extends AppCompatActivity {
     ViewPager2 viewPager;
-
+    Button btn_skip;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,8 +37,14 @@ public class TutorialActivity extends AppCompatActivity {
         CircleIndicator3 circleIndicator = findViewById(R.id.indicator);
         circleIndicator.setViewPager(viewPager);
         circleIndicator.createIndicators(list.size(),0);
-
-
+        btn_skip = findViewById(R.id.btn_skip);
+        btn_skip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 }

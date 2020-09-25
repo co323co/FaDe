@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
+import com.example.fade.ConvertFile;
 import com.example.fade.DB.DBThread;
 import com.example.fade.LoginActivity;
 import com.example.fade.MainActivity;
@@ -127,7 +128,10 @@ public class CommServer {
         //바이트사진들 -> base64String으로 인코딩
         //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
         JSONObject enFiles = new JSONObject();
-        for(int i=0; i< byteList.size();i++){ try { enFiles.put(i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
+        for(int i=0; i< byteList.size();i++){ try {
+            if(i<10) enFiles.put("0"+i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP));
+            else enFiles.put(i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP));
+        } catch (JSONException e) { e.printStackTrace();} }
 
         HashMap<String, Object> input = new HashMap<>();
         input.put("GalleryFiles", enFiles);
@@ -145,6 +149,8 @@ public class CommServer {
                         ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
                     }
                 } catch (Exception e) {
+                    Toast.makeText(context,"이미지 분류 실패", Toast.LENGTH_SHORT ).show();
+                    ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
                     e.printStackTrace();
                 }
             }

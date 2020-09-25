@@ -2,11 +2,9 @@ package com.example.fade;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -243,24 +241,6 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 
             return ivUser;
         }
-    }
-
-
-
-    // 이미지 경로 구하는 함수
-    private String getRealPathFromURI(Uri contentURI) {
-        String filePath;
-        Cursor cursor = RegiPersonActivity2.this.getContentResolver().query(contentURI, null, null, null, null);
-        if (cursor == null) {
-            filePath = contentURI.getPath();
-        }
-        else {
-            cursor.moveToFirst();
-            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-            filePath = cursor.getString(idx);
-            cursor.close();
-        }
-        return filePath;
     }
 
 

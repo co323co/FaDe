@@ -302,10 +302,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         groupUriList = new ArrayList<>();
         String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/09/26";
+        last_update = "2020/09/26/05:25";
 
         ConvertFile convertFile  = new ConvertFile(getApplicationContext());
-
 
         String[] projection = {
 //                MediaStore.MediaColumns.DATA,
@@ -325,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int lastIndex;
 
-        dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm");
         int i = 0;
 
         ArrayList<Bitmap>bitmaps = new ArrayList<Bitmap>();

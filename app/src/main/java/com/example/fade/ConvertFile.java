@@ -242,5 +242,21 @@ public class ConvertFile {
         }
     }
 
+    // 이미지 경로 구하는 함수
+    public String getRealPathFromURI(Uri contentURI) {
+        String filePath;
+        Cursor cursor = context.getContentResolver().query(contentURI, null, null, null, null);
+        if (cursor == null) {
+            filePath = contentURI.getPath();
+        }
+        else {
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            filePath = cursor.getString(idx);
+            cursor.close();
+        }
+        return filePath;
+    }
+
 
 }

@@ -1,6 +1,7 @@
 package com.example.fade;
 
 
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -56,8 +57,8 @@ public class RegiPersonActivity1 extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 btn_choice = -1;
-                Toast.makeText(getApplicationContext(),"사진을 5장 이하로 선택해주세요.",Toast.LENGTH_SHORT).show();
-                ImagePicker.create(RegiPersonActivity1.this).limit(5).start();
+                Toast.makeText(getApplicationContext(),"사진을 5~10장 선택해주세요.",Toast.LENGTH_SHORT).show();
+                ImagePicker.create(RegiPersonActivity1.this).limit(10).folderMode ( true ).start();
             }
         });
     }
@@ -76,10 +77,12 @@ public class RegiPersonActivity1 extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (btn_choice == -1) {
             if (ImagePicker.shouldHandle(requestCode, resultCode, data)) {
+
                 // Get a list of picked images
                 List<Image> images = ImagePicker.getImages(data);
                 // or get a single image only
                 Image image = ImagePicker.getFirstImageOrNull(data);
+
                 EditText person_name = findViewById(R.id.et_profile_name_regiperson1);
 
                 Intent intent = new Intent(RegiPersonActivity1.this, RegiPersonActivity2.class);

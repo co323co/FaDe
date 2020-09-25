@@ -292,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         groupUriList = new ArrayList<>();
         String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/09/21";
+        last_update = "2020/09/26";
 
         ConvertFile convertFile  = new ConvertFile(getApplicationContext());
 
@@ -350,6 +350,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
         Log.i("getByteArrayOfRecentlyImages", i+"개의 사진의 바이트가 담긴 리스트 리턴함");
+
+//업데이트한 날짜로 마지막에 업데이트한 날짜 바꿔주기!ㄱ
+        //last_update = dateFormat.format(new Date());
         return byteList;
     }
 }

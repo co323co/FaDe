@@ -360,6 +360,29 @@ class DeleteGroup(Resource):    #json으로 전송해야할 것 : uid, gid
         print("================================\n")
         return {'uid': uid_ , 'gid' : gid}
 
+class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
+    def post(self):
+        #모델파일 없애고, csv파일 수정
+        ts = time.time()
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('uid', type=str) 
+        parser.add_argument('pid', type=str) 
+
+        args = parser.parse_args()
+    
+        uid = args['uid']
+        pid = args['pid']
+
+        shutil.rmtree(main_folder+'uid_'+ uid+face_folder+'/'+str(pid), ignore_errors=True)  #폴더 삭제
+        elapsed = time.time() - ts
+        print("uid :" + str(uid) +" , pid : "+str(pid))
+        print("서버 반환 걸린 시간: " +str(elapsed)) 
+        print("================================\n")
+        
+        return {'uid': uid , 'pid' : pid}
+
+
 
         
     
@@ -369,6 +392,7 @@ api.add_resource(RegistGroup, '/reg/group')
 api.add_resource(DetectionPicture, '/det/<uid>')
 api.add_resource(EditGroup, '/edit/group')
 api.add_resource(DeleteGroup, '/delete/group')
+api.add_resource(DeletePerson, '/delete/person')
 
 
 if __name__ == '__main__':

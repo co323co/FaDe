@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     DrawerLayout drawerLayout;
 
-    Menu mMenu;
+    public Menu mMenu;
 
     RecyclerView rv;
     GroupAdapter groupAdapter;
@@ -195,18 +196,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             commServer.updateGalleryImg(byteList, groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
                             handler.post(() -> {
                                 mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
-                                Toast.makeText(getApplicationContext(),"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
+                                mMenu.findItem(R.id.menu_galleryRefresh).setActionView(new ProgressBar(CONTEXT));
                             });
 
                         }catch (IOException e){
                             Log.i("updateGalleryImg ", e.getMessage());
                             mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
-                            handler.post(() -> Toast.makeText(getApplicationContext(),"이미지 분류 실패", Toast.LENGTH_SHORT ).show());
+                            mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
                         }
                     }
                 };
              t.start();
-
         }
         return super.onOptionsItemSelected(item);
     }
@@ -250,7 +250,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final AddGroupDialog addGroupDialog= new AddGroupDialog(this, result, new CustomDialogClickListener() {
             @Override
             public void onPositiveClick() {
+                if(result.name.length()==0)
+                {
+                    Toast.makeText(getApplicationContext(), "그룹 이름을 입력해주세요",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                //인물 0명 선택했을 경우 예외처리
+                if(result.personIDList.size()==0)
+                {
+                    Toast.makeText(getApplicationContext(), "1명 이상 선택해주세요",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Group group = new Group(result.name, result.personIDList);
+
                 DBThread.InsertTGroupThraed t1 = new DBThread.InsertTGroupThraed(group);
                 DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
                 t1.start();
@@ -270,8 +282,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //서버에 그룹모델 만들도록 하는 코드
                 new CommServer(getApplicationContext()).postRegisterGroup(LoginActivity.UserID, gid[0], result.personIDList);
-                Toast.makeText(getApplicationContext(),"그룹 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
-
             }
             @Override
             public void onNegativeClick() { }
@@ -524,6 +534,12 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                 @Override
                 public void onPositiveClick() {
                     group.setPersonIDList(result);
+                    //인물 0명 선택했을 때 예외처리
+                    if(result.size()==0)
+                    {
+                        Toast.makeText(view.getContext(), "1명 이상 선택해주세요",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     DBThread.UpdateGroupThraed t1 = new DBThread.UpdateGroupThraed(group);
                     DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
                     t1.start();

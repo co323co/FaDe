@@ -1,7 +1,6 @@
 package com.example.fade;
 
 
-import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;

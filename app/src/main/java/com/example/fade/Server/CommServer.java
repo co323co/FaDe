@@ -9,11 +9,14 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
 import com.example.fade.DB.DBThread;
 import com.example.fade.LoginActivity;
+import com.example.fade.MainActivity;
+import com.example.fade.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -130,9 +133,6 @@ public class CommServer {
         input.put("GalleryFiles", enFiles);
         Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
 
-        final boolean[] result = new boolean[1];
-        result[0]=true;
-
         //selectGalleryImage selectGalleryImage = new selectGalleryImage(context);
         connService.postDetectionPicture(LoginActivity.UserID, input).enqueue(new Callback<ResponseBody>() {
             @Override
@@ -140,21 +140,22 @@ public class CommServer {
                 try {
                     jsonresult = getJSONdata(response.body().string());
                     moveGalleryImage(jsonresult, uriArrayList);
-                    result[0] =true;
-
+                    Toast.makeText(context,"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
+                    if(MainActivity.CONTEXT!=null){
+                        ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    result[0] =false;
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.i("server", "통신실패 (postDetectionPicture) : " + t.getMessage()+"" );
-                result[0]=false;
+                Toast.makeText(context,"통신실패", Toast.LENGTH_SHORT ).show();
+                ((MainActivity)(context)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
             }
         });
-        if(result[0]==false) throw new IOException("통신실패");
     }
 
 
@@ -179,11 +180,15 @@ public class CommServer {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", "그룹 등록하기 성공 (postRegisterGroup)"); } }
+                    if (body != null) { Log.d("server", "그룹 등록하기 성공 (postRegisterGroup)"); }
+                    Toast.makeText(context,"그룹 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
+            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage());
+                Toast.makeText(context,"통신실패", Toast.LENGTH_SHORT).show();
+            }
 
         });
     }

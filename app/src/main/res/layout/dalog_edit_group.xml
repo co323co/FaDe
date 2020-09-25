@@ -6,15 +6,24 @@
     android:layout_height="wrap_content"
     android:gravity="center">
 
-    <EditText
-        android:id="@+id/et_add_groupName"
-        android:layout_margin="10dp"
-        android:hint="그룹이름"
+    <TextView
+        android:gravity="left|center"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginLeft="15dp"
+        android:padding="10dp"
+        android:textSize="20dp"
+        android:text="그룹 수정"
         android:layout_width="match_parent"
+        android:textColor="@color/sky"
+        android:fontFamily="@font/nanumbarunpen_b"
         android:layout_height="50dp"/>
 
     <ImageView
-        android:layout_margin="10dp"
+        android:id="@+id/top_line_of_dialogAddgroup"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/gray"/>
@@ -25,8 +34,8 @@
         android:orientation="horizontal">
 
         <ListView
-            android:scrollbars="vertical"
             android:scrollbarSize="2dp"
+            android:scrollbars="vertical"
             android:id="@+id/lv_addGroupPerson_left"
             android:layout_marginLeft="10dp"
             android:layout_weight="1"
@@ -40,15 +49,15 @@
             android:background="@color/gray"/>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:scrollbars="vertical"
             android:scrollbarSize="2dp"
+            android:scrollbars="vertical"
             android:id="@+id/rv_addGroupPerson_right"
             android:layout_marginRight="10dp"
             android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
-        </LinearLayout>
+    </LinearLayout>
 
     <LinearLayout
         android:gravity="right"

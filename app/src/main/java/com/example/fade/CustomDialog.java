@@ -244,6 +244,7 @@ class EditGroupDialog extends Dialog {
 
     private CustomDialogClickListener customDialogClickListener;
 
+    //LeftListView에서 선택됐는지 안선택됐는지를 체크해놓기 위한 배열
     ArrayList<Person> checkedList = new ArrayList<Person>();
     ArrayList<Integer> checkedIDList;
 
@@ -259,10 +260,7 @@ class EditGroupDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.dialog_add_group);
-        findViewById(R.id.et_add_groupName).setVisibility(View.GONE);
-        findViewById(R.id.top_line_of_dialogAddgroup).setVisibility(View.INVISIBLE);
-        //LeftListView에서 선택됐는지 안선택됐는지를 체크해놓기 위한 배열
+        setContentView(R.layout.dalog_edit_group);
 
         //셋팅
         mPositiveButton=(Button)findViewById(R.id.btn_addGroup_ok);

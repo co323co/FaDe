@@ -244,7 +244,7 @@ public class CommServer {
         });
 
     }
-    public void DeletePerson(String uid ,int gid, ArrayList<Integer> pidList){
+    public void DeletePerson(String uid , int pid){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -254,8 +254,7 @@ public class CommServer {
 
         HashMap<String, Object> input = new HashMap<>();
         input.put("uid", uid);
-        input.put("gid", gid);
-        input.put("pidList", pidList);
+        input.put("pid", pid);
 
         connService.DeletePerson(input).enqueue(new Callback<ResponseBody>() {
             @Override

@@ -260,7 +260,7 @@ class DetectionPicture(Resource):
             reg_group.append(line)
         f.close()
 
-        for image_file in os.listdir(path+'tmp'):
+        for image_file in os.listdir(path+'tmp') :
             full_img_path = os.path.join(path+'tmp', image_file)
             print("Looking for faces in {}".format(image_file))
             ts = time.time()
@@ -278,7 +278,7 @@ class DetectionPicture(Resource):
             for i in reg_group:
                 check_group[i[2]] = [i[1], i[3]]
                 del i[3]
-            
+            print(check_group)
             group = FaceDetect.findBestFitModel(check_group)
             if group == -1:
                 print(image_file+"은 적합한 그룹이 없습니다!!")

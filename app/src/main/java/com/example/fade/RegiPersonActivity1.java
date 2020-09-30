@@ -56,6 +56,11 @@ public class RegiPersonActivity1 extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 btn_choice = -1;
+                EditText person_name = findViewById(R.id.et_profile_name_regiperson1);
+                if(person_name.getText().toString().equals("")){
+                    Toast.makeText(getApplicationContext(),"이름을 입력해주세요",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Toast.makeText(getApplicationContext(),"사진을 5~10장 선택해주세요.",Toast.LENGTH_SHORT).show();
                 ImagePicker.create(RegiPersonActivity1.this).limit(10).folderMode ( true ).start();
             }
@@ -76,14 +81,11 @@ public class RegiPersonActivity1 extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (btn_choice == -1) {
             if (ImagePicker.shouldHandle(requestCode, resultCode, data)) {
-
                 // Get a list of picked images
                 List<Image> images = ImagePicker.getImages(data);
                 // or get a single image only
                 Image image = ImagePicker.getFirstImageOrNull(data);
-
                 EditText person_name = findViewById(R.id.et_profile_name_regiperson1);
-
                 Intent intent = new Intent(RegiPersonActivity1.this, RegiPersonActivity2.class);
 //                Log.d("filetest",images.size()+"");
                 intent.putParcelableArrayListExtra("images", (ArrayList<? extends Parcelable>) images);

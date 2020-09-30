@@ -25,8 +25,8 @@ public interface ConnService {
     @GET("/db/GetPerson/{uid}")
     Call<PersonData> getPersonData(@Path("uid") String uid);
 
-    @PUT("/Login/{uid}")
-    Call<ResponseBody> putRegisterUser(@Path("uid") String uid);
+    @PUT("/Login/{userEmail}")
+    Call<ResponseBody> putRegisterUser(@Path("userEmail") String userEmail);
 
     @FormUrlEncoded
     @POST("/db/upload/{uid}")

@@ -164,22 +164,20 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                    for(int i=0; i< byteList.size();i++){ try { enPicureList.put("byte_"+i, Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
 
                    //////////////////
-
                    //byte[]를 String으로 인코딩해서 보내고, 서버에서 디코딩해서 사용함
                    String profile_name = getIntent().getExtras().getString("profile_name");
                    byte[] profile_thumbnail = getIntent().getExtras().getByteArray("profile_thumbnail");
-                   String enThumbnail = Base64.encodeToString(profile_thumbnail, Base64.NO_WRAP);
+
+                   HashMap<String, Object> input = new HashMap<>();
+                   input.put("userEmail", LoginActivity.UserEmail);
+                   input.put("pname", profile_name);
+                   input.put("pictureList", enPicureList);
                    if(profile_thumbnail==null) Log.d("RegiPersonActivity2", "profile_thumbnail is null, 프로필 선택 안함");
-
-
-                   HashMap<String, Object> rp_input = new HashMap<>();
-                   rp_input.put("userEmail", LoginActivity.UserEmail);
-                   Log.d("UserEmail :  " ,LoginActivity.UserEmail);
-                   rp_input.put("pname", profile_name);
-                   rp_input.put("thumbnail", enThumbnail);
-                   rp_input.put("pictureList", enPicureList);
-
-                   ConnService.postRegisterPerson(rp_input).enqueue(new Callback<ReturnData>() {
+                   if(profile_thumbnail!=null){
+                       String enThumbnail = Base64.encodeToString(profile_thumbnail, Base64.NO_WRAP);
+                       input.put("thumbnail", enThumbnail);
+                   }
+                   ConnService.postRegisterPerson(input).enqueue(new Callback<ReturnData>() {
                        @Override
                        public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
                            if (response.isSuccessful()) {

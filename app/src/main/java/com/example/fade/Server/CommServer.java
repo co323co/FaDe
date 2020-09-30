@@ -174,7 +174,7 @@ public class CommServer {
  //        <<그룹편집>>
 //        서버에 uid, gid, (그룹의)pidList 던져주는 함수
 //         (서버 : 그룹모델 업데이트)
-    public void postEditGroup(String uid ,int gid, ArrayList<Integer> pidList, int pid){
+    public void postEditGroup(String userEmail ,int gid, ArrayList<Integer> pidList){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -183,17 +183,16 @@ public class CommServer {
         final ConnService connService = retrofit.create(ConnService.class);
 
         HashMap<String, Object> input = new HashMap<>();
-        input.put("uid", uid);
+        input.put("userEmail", userEmail);
         input.put("gid", gid);
         input.put("pidList", pidList);
-        input.put("pid", pid);
 
         connService.postEditGroup(input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", gid + "그룹 편집하기 성공 (postEditGroup)"); } }
+                    if (body != null) { Log.d("server", gid + "_그룹 편집하기 성공 (postEditGroup)"); } }
             }
 
             @Override
@@ -201,7 +200,7 @@ public class CommServer {
         });
 
     }
-    public void DeleteGroup(String uid ,int gid, int pid){
+    public void DeleteGroup(String uid ,int gid){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -210,20 +209,19 @@ public class CommServer {
         final ConnService connService = retrofit.create(ConnService.class);
 
         HashMap<String, Object> input = new HashMap<>();
-        input.put("uid", uid);
+        input.put("userEmail", uid);
         input.put("gid", gid);
-        input.put("pid", pid);
 
         connService.DeleteGroup(input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", "그룹 삭제 성공 (postEditGroup)"); } }
+                    if (body != null) { Log.d("server", "그룹 삭제 성공 (DeleteGroup)"); } }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
+            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (DeleteGroup)"+t.getMessage()); }
         });
 
     }
@@ -236,7 +234,7 @@ public class CommServer {
         final ConnService connService = retrofit.create(ConnService.class);
 
         HashMap<String, Object> input = new HashMap<>();
-        input.put("uid", uid);
+        input.put("userEmail", uid);
         input.put("pid", pid);
 
         connService.DeletePerson(input).enqueue(new Callback<ResponseBody>() {
@@ -244,11 +242,11 @@ public class CommServer {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", "사람 삭제 성공 (postEditGroup)"); } }
+                    if (body != null) { Log.d("server", "사람 삭제 성공 (DeletePerson)"); } }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
+            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (DeletePerson)"+t.getMessage()); }
         });
 
     }

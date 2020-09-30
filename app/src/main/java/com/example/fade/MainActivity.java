@@ -281,7 +281,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 try { t3.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
                 //서버에 그룹모델 만들도록 하는 코드
-                new CommServer(getApplicationContext()).postRegisterGroup(LoginActivity.UserID, gid[0], result.personIDList);
+                new CommServer(getApplicationContext()).postRegisterGroup(LoginActivity.UserEmail, result.name, result.personIDList);
             }
             @Override
             public void onNegativeClick() { }
@@ -515,7 +515,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                 try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
                 notifyDataSetChanged();
 
-                new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserID, group.getGid(), -1);
+                new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserEmail, group.getGid(), -1);
                 Toast.makeText(holder.view.getContext(),"그룹 삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
             }
         });
@@ -548,7 +548,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
                     notifyDataSetChanged();
 
 //                    //서버에 그룹모델 수정하도록 하는 코드
-                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserID, group.getGid(), result, -1);
+                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserEmail, group.getGid(), result, -1);
                     Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
                 }
                 @Override

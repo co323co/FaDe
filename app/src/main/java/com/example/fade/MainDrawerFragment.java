@@ -59,24 +59,8 @@ public class MainDrawerFragment extends Fragment {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 Intent intent = new Intent(getContext(), RegiPersonActivity1.class);
                 startActivity(intent);
-//                getActivity().finish();
-//                n++;
-//                DBThread.InsertPersonThraed t1 = new DBThread.InsertPersonThraed(person);
-//                //꼭 삽입하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
-//                DBThread.SelectPersonThraed t2 = new DBThread.SelectPersonThraed(personList);
-//                t1.start();
-//                //join은 스레드가 끝날 때까지 기다려 줌
-//                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-//                t2.start();
-//                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-//                personAdapter.notifyDataSetChanged();
-//                //포커스를 맨 아래로 맞춰줌
-//                rv.scrollToPosition(personList.size()-1);
-//                //메인엑티비티의 그룹리스트뷰도 새로고침해줌. 그룹에 사람 추가할 때, 방금 추가한 사람은 보기에 안뜰까 봐임
-//               ((MainActivity)MainActivity.CONTEXT).onResume();
             }
         });
         return view;
@@ -179,7 +163,7 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                     Thread thread = new Thread(){
                         @Override
                         public void run() {
-                            new CommServer(holder.view.getContext()).DeletePerson(LoginActivity.UserID, pid);
+                            new CommServer(holder.view.getContext()).DeletePerson(LoginActivity.UserEmail, pid);
                         }
                     };
                     thread.start();
@@ -207,7 +191,7 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                             Thread thread = new Thread(){
                                 @Override
                                 public void run() {
-                                    new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserID, group.getGid(), pid);
+                                    new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserEmail, group.getGid(), pid);
                                 }
                             };
                             thread.start();
@@ -225,7 +209,7 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                             Thread thread2 = new Thread(){
                                 @Override
                                 public void run() {
-                                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserID, group.getGid(), pidList, pid);
+                                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserEmail, group.getGid(), pidList, pid);
                                 }
                             };
                             thread2.start();

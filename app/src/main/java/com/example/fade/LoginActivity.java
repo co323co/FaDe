@@ -3,7 +3,6 @@ package com.example.fade;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -13,8 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.fade.Server.ConnService;
-import com.example.fade.Server.ReturnData;
+import com.example.fade.Server.CommServer;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -26,17 +24,11 @@ import com.google.android.gms.tasks.Task;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import java.io.IOException;
 
 public class LoginActivity extends AppCompatActivity {
 
-    public static String UserID = null;
+    public static String UserEmail = null;
     private static final String TAG = "LoginActivity";
     private GoogleSignInClient mGoogleSignInClient;
     private static final int RC_SIGN_IN = 900;
@@ -57,19 +49,17 @@ public class LoginActivity extends AppCompatActivity {
 
                  //로그인 하면 바로 버튼 2개 화면으로 넘어가기
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this); //기존에 로그인 된 사용자 객체 얻기;
+
         //기존에 로그인했었고, 재로그인이 아니면 바로넘어감
         if(account!=null){
             Log.d("server","로그인 기록 있음");
             userAccount = account;
-            UserID = userAccount.getId();
+            UserEmail = userAccount.getEmail();
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);      //null이 아닌 경우 이 사용자는 이미 구글 로그인 된 상태, null 일 경우 로그인 한 적 없음
             startActivity(intent);
             profile();
             finish();
         }
-
-//        if(getIntent().hasExtra("재로그인")) Log.d("server","재로그인");
-//        else  Log.d("server","첫로그인");
 
         setContentView(R.layout.activity_login);
         SignInButton signInButton = findViewById(R.id.sign_in_button);
@@ -107,61 +97,10 @@ public class LoginActivity extends AppCompatActivity {
             userAccount = account; //로그인된 계정 정보
 
             ///////////////////////////////////////////////////////////
-            //첫 로그인 or 재로그인시 서버에서 DB받아옴
+            //로그인시 서버에 User 등록함 (중복일경우 알아서 안들어감)
             ///////////////////////////////////////////////////////////
-            UserID = userAccount.getId();
-//            Retrofit retrofit = new Retrofit.Builder()
-//                    .baseUrl(ConnService.URL)
-//                    .addConverterFactory(GsonConverterFactory.create())
-//                    .build();
-//            ConnService connService = retrofit.create(ConnService.class);
-//
-//            connService.getDB(UserID).enqueue(new Callback<ReturnData>() {
-//                @RequiresApi(api = Build.VERSION_CODES.N)
-//                @Override
-//                public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
-//
-//                    if(response.body().getResult()==true)
-//                    {
-//                        ArrayList<String> db = response.body().getDB();
-//                        ArrayList<byte[]> dbFiles = new ArrayList<>();
-//                        for(int i =0; i<db.size(); i++) { dbFiles.add(Base64.decode(db.get(i),Base64.NO_WRAP)); }
-//                        writeToFile("App.db",dbFiles.get(0));
-//                        writeToFile("App.db-shm",dbFiles.get(1));
-//                        writeToFile("App.db-wal",dbFiles.get(2));
-//                        Log.d("server", "통신성공 (getDB) : "+UserID);
-//                    }
-//                    else if(response.body().getResult()==false)
-//                    {
-//                        Log.d("server","서버에 db파일 없음");
-//                         String path  = getDataDir()+"/databases/";
-//                         String[] pathList = {"App.db", "App.db-shm","App.db-wal"};
-//                        try{
-//                            for(int i=0; i<pathList.length;i++){
-//                                File db = new File(path+pathList[i]);
-//                                if(db.exists())
-//                                {
-//                                    db.delete();
-//                                    Log.d("server","내부db삭제");
-//                                }
-//                            }
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                            Log.d("server","원래 저장된 db파일 없음");
-//                        }
-//                    }
-//                    //로그인 후 화면 전환
-//                    Intent intent=new Intent(getApplicationContext(),MainActivity.class);
-//                    startActivity(intent);
-//                    finish();
-//                }
-//                @Override
-//                public void onFailure(Call<ReturnData> call, Throwable t) {
-//                    Log.e("server", "통신실패 (getDB) : "+t.getMessage());
-//                    //t.getMessage()로 오류 확인 가능
-//                }
-//            });
-            ////////////////////////////////////////
+            UserEmail= userAccount.getEmail();
+            new CommServer(getApplicationContext()).putRegisterUser();
             profile();  //사용자 정보 토스트로 출력
             Intent intent=new Intent(getApplicationContext(),TutorialActivity.class);
             startActivity(intent);
@@ -171,6 +110,8 @@ public class LoginActivity extends AppCompatActivity {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
             Log.e(TAG,"signInResult:failed code=" + e.getStatusCode());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
     @RequiresApi(api = Build.VERSION_CODES.N)

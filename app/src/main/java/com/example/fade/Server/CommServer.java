@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
-import com.example.fade.ConvertFile;
 import com.example.fade.DB.DBThread;
 import com.example.fade.LoginActivity;
 import com.example.fade.MainActivity;
@@ -27,7 +26,6 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -56,50 +54,23 @@ public class CommServer {
         this.context = context; this.uriArrayList_ = uriArrayList;
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void postDB() throws IOException {
+    public void putRegisterUser() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         final ConnService connService = retrofit.create(ConnService.class);
 
-        String path  = context.getDataDir()+"/databases/";
-
-        String[] pathList = {"App.db", "App.db-shm","App.db-wal"};
-
-        ArrayList<byte[]> byteList = new ArrayList<>();
-
-        for(int i=0; i<pathList.length;i++)
-        {
-            File db = new File(path+pathList[i]);
-            FileInputStream fileInputStream = new FileInputStream(db);
-            byteList.add(inputStreamToByteArray(fileInputStream));
-            fileInputStream.close();
-
-        }
-        //바이트사진들 -> base64String으로 인코딩
-        //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
-        JSONObject enDBFiles = new JSONObject();
-        for(int i=0; i< byteList.size();i++){ try { enDBFiles.put(pathList[i], Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
-
-        HashMap<String, Object> input = new HashMap<>();
-        input.put("dbFiles", enDBFiles);
-
-        connService.postDB(LoginActivity.UserID, input).enqueue(new Callback<ResponseBody>() {
+        connService.putRegisterUser(LoginActivity.UserEmail).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    Log.d("server", "통신성공 (putDB) : " + response.body().string());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Log.d("server", "통신성공 (putRegisterUser) ");
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e("server", "통신실패 (putDB) : " + t.getMessage()+"" );
+                Log.e("server", "통신실패 (putRegisterUser) : " + t.getMessage()+"" );
             }
         });
     }
@@ -138,7 +109,7 @@ public class CommServer {
         Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
 
         //selectGalleryImage selectGalleryImage = new selectGalleryImage(context);
-        connService.postDetectionPicture(LoginActivity.UserID, input).enqueue(new Callback<ResponseBody>() {
+        connService.postDetectionPicture(LoginActivity.UserEmail, input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
@@ -168,7 +139,7 @@ public class CommServer {
 //        <<그룹등록>>
 //        서버에 uid, gid, (그룹의)pidList 던져주는 함수
 //         (서버 : pid폴더들에서 사진 찾아내서 그룹단위 모델을 학습함 -> uid/group_model 폴더에 모델 저장
-    public void postRegisterGroup(String uid ,int gid, ArrayList<Integer> pidList){
+    public void postRegisterGroup(String userEmail ,String gname, ArrayList<Integer> pidList){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -176,12 +147,13 @@ public class CommServer {
                 .build();
         final ConnService connService = retrofit.create(ConnService.class);
 
-        HashMap<String, Object> rg_input = new HashMap<>();
-        rg_input.put("uid", uid);
-        rg_input.put("gid", gid);
-        rg_input.put("pidList", pidList);
+        HashMap<String, Object> input = new HashMap<>();
+        input.put("userEmail", userEmail);
+        input.put("gname", gname);
+        input.put("pidList", pidList);
 
-        connService.postRegisterGroup(rg_input).enqueue(new Callback<ResponseBody>() {
+        Log.d("pidList", pidList.toString());
+        connService.postRegisterGroup(input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {

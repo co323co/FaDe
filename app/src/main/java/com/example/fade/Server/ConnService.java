@@ -1,12 +1,9 @@
 package com.example.fade.Server;
 
-import org.json.JSONObject;
-
 import java.util.HashMap;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.http.Body;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -20,19 +17,16 @@ public interface ConnService {
     //혜림
 //    public static final String URL = "http://192.168.219.103:5000";
     //민정
-    public static final String URL = "http://192.168.35.155:5000";
+    public static final String URL = "http://192.168.0.10:5000";
     //다빈
     //public static final String URL = "http://192.168.25.41:3157";
 
 
-//    @GET("/{userId}")
-//    Call<RegiData> getFirst(@Path("userId") String id);
+    @GET("/db/GetPerson/{uid}")
+    Call<PersonData> getPersonData(@Path("uid") String uid);
 
-    @GET("/db/download/{uid}")
-    Call<ReturnData> getDB(@Path("uid") String uid);
-
-    @PUT("/db/upload/{uid}")
-    Call<ResponseBody> putDB(@Path("uid") String uid, @Body JSONObject dbFiles);
+    @PUT("/Login/{uid}")
+    Call<ResponseBody> putRegisterUser(@Path("uid") String uid);
 
     @FormUrlEncoded
     @POST("/db/upload/{uid}")

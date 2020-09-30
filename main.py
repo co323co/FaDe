@@ -100,7 +100,11 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
         args = parser.parse_args()
  
         pname = args['pname']
-        thumbnail = base64.b64decode(args['thumbnail'])
+        if(args['thumbnail']):
+            thumbnail = base64.b64decode(args['thumbnail'])
+        else:
+            thumbnail = None
+
         pictureList=[]
 
         #인코딩된 사진 리스트들을 가진 Json을 디코딩 하는 과정
@@ -384,7 +388,6 @@ class EditGroup(Resource):
         
 
         return {'uid': uid , 'pid' : pidList, 'gid' : gid}
-        
 
 class DeleteGroup(Resource):    #json으로 전송해야할 것 : uid, gid
     def post(self):
@@ -400,11 +403,9 @@ class DeleteGroup(Resource):    #json으로 전송해야할 것 : uid, gid
         uid = user.id
 
         print("(uid : "+str(uid)+", gid : "+str(gid)+") 수신함.\n")
-
         
         #db에서 group 레코드 삭제
         engine.execute('Delete From %s.group Where id = %s;'%(db['database'],gid))
-
 
         model_path = main_folder+'uid_'+str(uid) + group_folder
 
@@ -434,7 +435,6 @@ class DeleteGroup(Resource):    #json으로 전송해야할 것 : uid, gid
         print("서버 반환 걸린 시간: " +str(elapsed)) 
         print("================================\n")
         return {'uid': uid , 'gid' : gid}
-
 class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
     def post(self):
         ts = time.time()
@@ -467,7 +467,6 @@ class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
         print("================================\n")
         
         return {'uid': uid , 'pid' : pid}
-
 
 api.add_resource(RegistPerson, '/reg/person')
 api.add_resource(RegistGroup, '/reg/group')

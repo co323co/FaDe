@@ -23,7 +23,7 @@ class Group(Base):
     name = Column(Text)
     favorites = Column(Integer, nullable=False)
 
-    uid = Column(Integer, ForeignKey('User.id'))
+    uid = Column(Integer, ForeignKey('User.id',ondelete='CASCADE'))
     def __init__(self, uid, name=None, favorites = 0):
         self.uid = uid
         self.name = name
@@ -36,7 +36,7 @@ class Person(Base):
     name = Column(Text)
     thumbnail = Column(LONGBLOB)
     
-    uid = Column(Integer, ForeignKey('User.id'))
+    uid = Column(Integer, ForeignKey('User.id',ondelete='CASCADE'))
 
     def __init__(self, uid, name=None, thumbnail=None):
         self.uid = uid
@@ -45,6 +45,6 @@ class Person(Base):
 
 
 group_person = Table('group_person', Base.metadata,
-    Column('gid', Integer, ForeignKey('Group.id')),
-    Column('pid', Integer, ForeignKey('Person.id'))
+    Column('gid', Integer, ForeignKey('Group.id', ondelete='CASCADE')),
+    Column('pid', Integer, ForeignKey('Person.id',ondelete='CASCADE'))
 )

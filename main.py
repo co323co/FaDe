@@ -12,9 +12,9 @@ import json
 import base64
 import time
 import csv
-from DB.database import db_session, engine, init_db, clear_db
+from DB.database import db_session, engine, init_db, clear_db, db
 from DB.models import User, Group, Person, group_person
-import FaceDetect, FaceTrain, DeleteEdit
+from knn_modules import FaceDetect, FaceTrain
 app = Flask(__name__)
 api = Api(app)
 
@@ -33,11 +33,13 @@ def index():
     return "Flask 서버"
 
 #DB를 새로 만듦
-@app.route('/initDB')
+@app.route('/initServer')
 def createDB():
     clear_db()
     init_db()
-    return "서버의 DB를 생성했습니다"
+    if os.path.exists(main_folder):
+                shutil.rmtree(main_folder, ignore_errors=True)  #폴더 삭제
+    return "서버를 초기화했습니다"
 
 @app.route('/Login/<userEmail>', methods=['PUT'])
 def loginUser(userEmail):
@@ -97,7 +99,6 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
         parser.add_argument('pictureList', type=str)
         args = parser.parse_args()
  
-        userEmail = args['userEmail']
         pname = args['pname']
         thumbnail = base64.b64decode(args['thumbnail'])
         pictureList=[]
@@ -108,7 +109,7 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
             pictureList.append(base64.b64decode(v))
         
         #db에 인물 추가함
-        user : User = User.query.filter(User.googleEmail==userEmail).first() 
+        user : User = User.query.filter(User.googleEmail==args['userEmail']).first() 
         uid = user.id
         p = Person(uid, pname, thumbnail)
         db_session.add(p)
@@ -145,24 +146,23 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
         parser.add_argument('pidList', type=str) #안드로이드 스튜디오에서 ArrayList<Integer>로 pid 담아서 보내면 됨
         args = parser.parse_args()
         
-        userEmail = args['userEmail']
         gname = args['gname']
         #문자열로 넘어왔으니 리스트로 파싱해준다.
         pidList = args['pidList'][1:-1].replace(" ","").split(sep=",")
         
-        user : User = User.query.filter(User.googleEmail==userEmail).first() 
+        user : User = User.query.filter(User.googleEmail==args['userEmail']).first() 
         uid = user.id
 
+        #db에 그룹 추가
         g= Group(uid, gname)
         db_session.add(g)
         db_session.commit()
         
         gid = g.id
-
+        #db에 그룹이 보유한 pid관계 추가(pidList를 반영)
         for pid in pidList:
             group_person.insert().values(gid=gid, pid=pid).execute()
 
-        print("(uid : "+str(userEmail)+", pid_list :"+ str(pidList)+", gname : "+str(gname)+") 수신함.\n")
         model_path = main_folder+'uid_'+str(uid)+group_folder
         path = main_folder+'uid_'+str(uid)+face_folder
         
@@ -193,7 +193,7 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
         elapsed = time.time()-ts
         print("서버 반환 걸린 시간: " +str(elapsed)) 
         print("================================\n")
-        return {'uid': uid , 'pid' : pid_list, 'gid' : gid}#<------생성된 모델로 잘 인식하는지 테스트 해보고싶으면 밑에서 테스트해보세요!
+        return {'uid': uid , 'pid' : pidList, 'gid' : gid}#<------생성된 모델로 잘 인식하는지 테스트 해보고싶으면 밑에서 테스트해보세요!
     
 class DetectionPicture(Resource):
     
@@ -287,77 +287,180 @@ class DetectionPicture(Resource):
         return {"gid_list" : gid_list}
     
 #그룹 수정 함수 
-class EditGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름, 넣을 pid들(리스트로), uid
+class EditGroup(Resource):   
     def post(self):
         ts = time.time()
-
         parser = reqparse.RequestParser()
-
-
-        parser.add_argument('pid', type=str)
+        parser.add_argument('userEmail', type=str)
+        parser.add_argument('pidList', type=str) #안드로이드 스튜디오에서 ArrayList<Integer>로 pid 담아서 보내면 됨
+        parser.add_argument('gid', type=str) #그룹아이디 
 
         args = parser.parse_args()
+        gid = args['gid']
+        #문자열로 넘어왔으니 리스트로 파싱해준다.
+        pidList = args['pidList'][1:-1].replace(" ","").split(sep=",")
 
-        pid = args['pid']
+        user : User = User.query.filter(User.googleEmail==args['userEmail']).first() 
+        uid = user.id
 
-        if pid == -1:
-            uid, pid_list, gid = DeleteEdit.editGroup()
+        print("(uid : "+str(uid)+", pidList :"+str(pidList)+", gid : "+str(gid)+") 수신함.\n")
+
+        #####db
+        #그룹의 pid관계를 다 삭제하고 변경된 pidList들을 db에 삽입함
+        engine.execute('Delete From group_person Where gid = %s;'%(db['database'],gid))
+        for pid in pidList:
+            group_person.insert().values(gid=gid, pid=pid).execute()
+
+        model_path = main_folder+'uid_'+str(uid)+group_folder
+        path = main_folder+'uid_'+str(uid)+face_folder
+    
+         #비어져있는 pidlist를 받으면 해당 그룹 모델파일을 없애버림
+        if pidList is None: 
+            os.remove(model_path+str(uid)+'_'+str(gid)+'_'+'model.clf')
+
+            csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'r',encoding='utf-8-sig', newline='')
+            rd = csv.reader(csvfile)
+            lines = []
+            for line in rd:
+               if line[2] == str(gid):
+                  continue
+               lines.append(line)
+            
+            print(str(lines)+"삭제 후 csv 파일 정보")
+
+            csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'w+',encoding='utf-8-sig', newline='')
+
+            wr = csv.writer(csvfile)
+        
+            for line in lines:
+                wr.writerow(line)
+            csvfile.close()
+            print("csv 파일 수정 완료")
 
         else:
-            uid, pid_list, gid = DeleteEdit.editGroup()
-            shutil.rmtree(main_folder+'uid_'+ uid+face_folder+'/'+str(pid), ignore_errors=True)  #폴더 삭제
+            #모델 디렉토리가 없으면 새로 생성
+            try:
+                if not os.path.exists(model_path):
+                    os.makedirs(model_path)
+            except:
+               print('Error : Creating directory')
+            
+            model_face_num = []
+            print("Training KNN classifier...")
+            classifier = FaceTrain.train(pidList, path, model_save_path=model_path+str(uid)+'_'+str(gid)+'_'+'model.clf', n_neighbors=2)
+            model_face_num.append(str(uid)+'_'+str(gid)+'_'+'model.clf')
+            model_face_num.append(classifier)
+            model_face_num.append(gid)
+            print("================================")
+
+            print(str(classifier)+" faces training complete! (pidList : "+str(pidList)+")")
         
+            #학습모델의 학습된 얼굴 개수 csv파일로 저장 (리스트로 받아오기 가능)
+            csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'r',encoding='utf-8-sig', newline='')
+            rd = csv.reader(csvfile)
+            lines = []
+            for line in rd:
+                if line[0] == model_face_num[0]:
+                    line[1] = model_face_num[1]
+                lines.append(line)
+            
+            print(str(lines)+"수정할 그룹 정보")
+
+            csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'w+',encoding='utf-8-sig', newline='')
+
+            wr = csv.writer(csvfile)
+        
+            for line in lines:
+                wr.writerow(line)
+            csvfile.close()
+            print("csv 파일 수정 완료")       
+
 
         elapsed = time.time()-ts
-        print("uid :" + str(uid) +" pid_list : "+str(pid_list)+ " , gid : "+str(gid))
+        print("uid :" + str(uid) +" pid_list : "+str(pidList)+ " , gid : "+str(gid))
 
         print("서버 반환 걸린 시간: " +str(elapsed)) 
         print("================================\n")
         
-        return {'uid': uid , 'pid' : pid_list, 'gid' : gid}
+
+        return {'uid': uid , 'pid' : pidList, 'gid' : gid}
         
 
 class DeleteGroup(Resource):    #json으로 전송해야할 것 : uid, gid
     def post(self):
         #모델파일 없애고, csv파일 수정
         ts = time.time()
-
         parser = reqparse.RequestParser()
-        parser.add_argument('pid', type=str) 
+        parser.add_argument('userEmail', type=str)
+        parser.add_argument('gid', type=str) 
         args = parser.parse_args()
     
-        pid = args['pid']
+        gid = args['gid']
+        user : User = User.query.filter(User.googleEmail==args['userEmail']).first() 
+        uid = user.id
 
-        if pid == -1:
-            uid_, gid = DeleteEdit.deleteGroup()
+        print("(uid : "+str(uid)+", gid : "+str(gid)+") 수신함.\n")
+
+        
+        #db에서 group 레코드 삭제
+        engine.execute('Delete From %s.group Where id = %s;'%(db['database'],gid))
 
 
-        else:
-            uid_, gid = DeleteEdit.deleteGroup()
-            shutil.rmtree(main_folder+'uid_'+ uid_+face_folder+'/'+str(pid), ignore_errors=True)  #폴더 삭제
+        model_path = main_folder+'uid_'+str(uid) + group_folder
 
+        os.remove(model_path+str(uid)+'_'+str(gid)+'_'+'model.clf')
+
+        csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'r',encoding='utf-8-sig', newline='')
+        rd = csv.reader(csvfile)
+        lines = []
+        for line in rd:
+            if line[1] == str(gid):
+                continue
+            lines.append(line)
+            
+        print(str(lines)+"삭제 후 csv 파일 정보")
+
+        csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'w+',encoding='utf-8-sig', newline='')
+
+        wr = csv.writer(csvfile)
+        
+        for line in lines:
+            wr.writerow(line)
+        csvfile.close()
+        print("csv 파일 수정 완료")
 
         elapsed = time.time() - ts
-        print("uid :" + str(uid_) +" , gid : "+str(gid))
+        print("uid :" + str(uid) +" , gid : "+str(gid))
         print("서버 반환 걸린 시간: " +str(elapsed)) 
         print("================================\n")
-        return {'uid': uid_ , 'gid' : gid}
+        return {'uid': uid , 'gid' : gid}
 
 class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
     def post(self):
-        #모델파일 없애고, csv파일 수정
         ts = time.time()
 
         parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=str) 
+        parser.add_argument('userEmail', type=str) 
         parser.add_argument('pid', type=str) 
 
         args = parser.parse_args()
-    
-        uid = args['uid']
         pid = args['pid']
+        user : User = User.query.filter(User.googleEmail==args['userEmail']).first() 
+        uid = user.id
 
-        shutil.rmtree(main_folder+'uid_'+ uid+face_folder+'/'+str(pid), ignore_errors=True)  #폴더 삭제
+        #db에서 person 레코드 삭제
+        engine.execute('Delete From person Where id = %s;'%pid)
+
+        ######## person을 삭제하게 됨으로써 빈 그룹도 삭제하는 과정
+        #person을 하나도 안가지고있는 group 찾아내기 (group_person 테이블에 없는 그룹)
+        result = engine.execute('SELECT * From %s.group Where id not in (Select distinct gid From group_person);'%db['database'])
+        gidList = str(tuple([v[0] for v in result])).replace(",)",")") #튜플은 원소가 1개인경우 (1,) 이런식으로 표현됨. 그래서 replace 한 것임
+        if gidList != '()': #비어있는 그룹이 하나이상 존재한다면 delete한다
+            engine.execute('Delete From %s.group Where id in %s;'%(db['database'], gidList))
+
+        #폴더 삭제
+        shutil.rmtree(main_folder+'uid_'+ str(uid) +face_folder+'/'+str(pid), ignore_errors=True)  
+
         elapsed = time.time() - ts
         print("uid :" + str(uid) +" , pid : "+str(pid))
         print("서버 반환 걸린 시간: " +str(elapsed)) 
@@ -365,10 +468,6 @@ class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
         
         return {'uid': uid , 'pid' : pid}
 
-
-
-        
-    
 
 api.add_resource(RegistPerson, '/reg/person')
 api.add_resource(RegistGroup, '/reg/group')

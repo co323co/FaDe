@@ -12,89 +12,51 @@ import json
 import base64
 import time
 import csv
-
-import FaceTrain
-import FaceDetect
-import DeleteEdit
-
+from DB.database import db_session, engine, init_db, clear_db
+from DB.models import User, Group, Person, group_person
+import FaceDetect, FaceTrain, DeleteEdit
 app = Flask(__name__)
 api = Api(app)
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 main_folder = './DATA/'  #최상위 폴더 이름 지정 가능
 group_folder = '/group_model/'   #모델 저장되는 폴더 이름 지정 가능
 face_folder = '/person_picture/'   #pid별 사진 저장되는 폴더 이름 지정 가능
 
+@app.teardown_appcontext
+def shutdown_session(exception = None):
+    db_session.remove()
 
 @app.route('/')
 def index():
     return "Flask 서버"
-    
-@app.route('/<username>')
-def show_user(username):
-    #print(username)
-    print("get")
-    return {'uid': username , 'pid' : 77}
 
-@app.route('/db/download/<uid>')
-def getDB(uid):
-    print("getDB")
-    try:
-        if not os.path.exists('./DATA'):
-            os.makedirs('./DATA')
-        if not os.path.exists('./DATA/uid_'+ uid) :
-            os.makedirs('./DATA/uid_'+ uid)
-        if not os.path.exists('./DATA/uid_'+ uid+'/databases') :
-            os.makedirs('./DATA/uid_'+ uid+'/databases')
-    except:
-        print('Error : Creating directory')
-        
-    #db파일들이 있는 폴더
-    path = './DATA/uid_'+uid+'/databases/'
-    #db파일들 경로리스트
-    pathList=['App.db','App.db-shm','App.db-wal']
-    dbFiles=[]
-    #경로에서 읽어옵니다
-    for i in range(len(pathList)):
-        try:
-            f=open(path + pathList[i],"rb")
-            dbFiles.append(base64.b64encode(f.read()).decode('utf8'))
-            f.close()
-        except:
-            return {'result':False}
+#DB를 새로 만듦
+@app.route('/initDB')
+def createDB():
+    clear_db()
+    init_db()
+    return "서버의 DB를 생성했습니다"
 
-    #JSON으로 바꿔줌 {파일명 : 바이트, ...} 형태
-    return { 'db0':dbFiles[0], 'db1':dbFiles[1], 'db2':dbFiles[2], 'result':True }
+@app.route('/Login/<userEmail>', methods=['PUT'])
+def loginUser(userEmail):
 
-@app.route('/db/upload/<uid>',methods = ['POST'])
-def postDB(uid):
-    try:
-        if not os.path.exists('./DATA'):
-            os.makedirs('./DATA')
-        if not os.path.exists('./DATA/uid_'+ uid) :
-            os.makedirs('./DATA/uid_'+ uid)
-        if not os.path.exists('./DATA/uid_'+ uid+'/databases') :
-            os.makedirs('./DATA/uid_'+ uid+'/databases')
-    except:
-        print('Error : Creating directory')
-        
-    try:
-        parser = reqparse.RequestParser()
-        parser.add_argument('dbFiles', type=str)
-        args = parser.parse_args()
-        dbFiles_en=args['dbFiles']
-        x = json.loads(dbFiles_en)
-        path = './DATA/uid_'+uid+'/databases/'
-        for k, v in x.items():
-            f=open(path+k,"wb")
-            f.write(base64.b64decode(v))
-            f.close()
-        print("postDB")
-        return {'result':True}
-        
-    except Exception as e:
-        print(e)
-        return {'result':False}
+    #ignore을 쓰지 않고 굳이 번거롭게 select해서 if문으로 구분하는 이유
+    # 1. return 값을 구분하기 쉬움
+    # 2. 최근 mysql부터 insert 실패시에도 auto_increment가 작동하여 기본키값이 올라감, 이를 편하게 방지하기 위해서
+
+    #기존에 있는 유저인지 확인하기 위해 select하는 코드
+    u = User.query.filter(User.googleEmail==userEmail).first()
+    if u:
+        return "기존에 등록 된 유저입니다. ID : %s"%userEmail
+    else:
+        engine.execute('Insert into user(googleEmail) values("%s");'%userEmail)
+        return "새로운 User를 등록했습니다. ID : %s"%userEmail
+
+@app.route('/db/GetPerson/<uid>')
+def getPerson(uid):
+    pass
     
 @app.route('/gallery/upload/<uid>',methods = ['POST'])
 def postPIC(uid):
@@ -125,26 +87,34 @@ def postPIC(uid):
         return {'result':False}
 
 class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없으므로 detection으로 학습기능 빼냄(즉, 사진 폴더별로 저장만)
-    def post(self):                        #json으로 전송해야할 것 : uid, pid, 사진 리스트
+    def post(self):                        #json으로 전송해야할 것 : userEmail, pname, 인물썸네일, 사진 리스트
         ts = time.time()
         
         parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=str)
-        parser.add_argument('pid', type=str)
+        parser.add_argument('userEmail', type=str)
+        parser.add_argument('pname', type=str)
+        parser.add_argument('thumbnail', type=str)
         parser.add_argument('pictureList', type=str)
         args = parser.parse_args()
  
-        uid = args['uid']
-        pid = args['pid']
-        pictureList_en = args['pictureList']
+        userEmail = args['userEmail']
+        pname = args['pname']
+        thumbnail = base64.b64decode(args['thumbnail'])
         pictureList=[]
 
         #인코딩된 사진 리스트들을 가진 Json을 디코딩 하는 과정
-        x = json.loads(pictureList_en)
+        x = json.loads(args['pictureList'])
         for v in x.values():
-            print(len(v))
             pictureList.append(base64.b64decode(v))
         
+        #db에 인물 추가함
+        user : User = User.query.filter(User.googleEmail==userEmail).first() 
+        uid = user.id
+        p = Person(uid, pname, thumbnail)
+        db_session.add(p)
+        db_session.commit()
+        pid = p.id
+
         #만약 유저 디렉터리가 없으면 만든다
         path = main_folder+ 'uid_'+str(uid)+face_folder+str(pid)
         try:
@@ -154,7 +124,7 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
             print('Error : Creating directory')
         
         for i in range(len(pictureList)):
-            f=open(path +'/'+ uid + "_" + str(pid) + "_" + str(i) +".jpeg","wb")
+            f=open(path +'/'+ str(uid) + "_" + str(pid) + "_" + str(i) +".jpeg","wb")
             f.write(pictureList[i])
             f.close()
 
@@ -170,18 +140,31 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
         ts = time.time()
 
         parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=str)
-        parser.add_argument('pidList', type=str) #안드로이드 스튜디오에서 ArrayList<String>로 pid 담아서 보내면 됨니다
-        parser.add_argument('gid', type=str) #그룹이름 
+        parser.add_argument('userEmail', type=str)
+        parser.add_argument('gname', type=str) #그룹이름 
+        parser.add_argument('pidList', type=str) #안드로이드 스튜디오에서 ArrayList<Integer>로 pid 담아서 보내면 됨
         args = parser.parse_args()
         
-        uid = args['uid']
-        pid_list = args['pidList']
-        gid = args['gid']
+        userEmail = args['userEmail']
+        gname = args['gname']
+        #문자열로 넘어왔으니 리스트로 파싱해준다.
+        pidList = args['pidList'][1:-1].replace(" ","").split(sep=",")
         
-        print("(uid : "+str(uid)+", pid_list :"+str(pid_list)+", gid : "+str(gid)+") 수신함.\n")
-        model_path = main_folder+'uid_'+uid+group_folder
-        path = main_folder+'uid_'+uid+face_folder
+        user : User = User.query.filter(User.googleEmail==userEmail).first() 
+        uid = user.id
+
+        g= Group(uid, gname)
+        db_session.add(g)
+        db_session.commit()
+        
+        gid = g.id
+
+        for pid in pidList:
+            group_person.insert().values(gid=gid, pid=pid).execute()
+
+        print("(uid : "+str(userEmail)+", pid_list :"+ str(pidList)+", gname : "+str(gname)+") 수신함.\n")
+        model_path = main_folder+'uid_'+str(uid)+group_folder
+        path = main_folder+'uid_'+str(uid)+face_folder
         
         #모델 디렉토리가 없으면 새로 생성
         try:
@@ -192,13 +175,13 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
             
         model_face_num = []
         print("Training KNN classifier...")
-        classifier = FaceTrain.train(pid_list, path, model_save_path=model_path+str(uid)+'_'+str(gid)+'_'+'model.clf', n_neighbors=2)
-        model_face_num.append(str(uid)+'_'+str(gid)+'_'+'model.clf')
+        classifier = FaceTrain.train(pidList, path, model_save_path=model_path+str(uid)+'_' + str(gid) +'_'+'model.clf', n_neighbors=2)
+        model_face_num.append(str(uid)+'_'+ str(gid)+'_'+'model.clf')
         model_face_num.append(classifier)
-        model_face_num.append(gid)
+        model_face_num.append(gname)
         print("================================")
 
-        print(str(classifier)+" faces training complete! (pid_list : "+str(pid_list)+")")
+        print(str(classifier)+" faces training complete! (pid_list : "+str(pidList)+")")
         
         #학습모델의 학습된 얼굴 개수 csv파일로 저장 (리스트로 받아오기 가능)
         csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'a',encoding='utf-8-sig', newline='')

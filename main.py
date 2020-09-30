@@ -32,7 +32,7 @@ def shutdown_session(exception = None):
 def index():
     return "Flask 서버"
 
-#DB를 새로 만듦
+#서버 초기화 (DB새로만들기, DATA폴더 삭제하기)
 @app.route('/initServer')
 def createDB():
     clear_db()
@@ -290,7 +290,6 @@ class DetectionPicture(Resource):
         print(gid_list)
         return {"gid_list" : gid_list}
     
-#그룹 수정 함수 
 class EditGroup(Resource):   
     def post(self):
         ts = time.time()
@@ -388,7 +387,6 @@ class EditGroup(Resource):
         
 
         return {'uid': uid , 'pid' : pidList, 'gid' : gid}
-
 class DeleteGroup(Resource):    #json으로 전송해야할 것 : uid, gid
     def post(self):
         #모델파일 없애고, csv파일 수정

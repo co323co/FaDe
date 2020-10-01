@@ -41,7 +41,7 @@ def createDB():
                 shutil.rmtree(main_folder, ignore_errors=True)  #폴더 삭제
     return "서버를 초기화했습니다"
 
-@app.route('/Login/<userEmail>', methods=['PUT'])
+@app.route('/Login/<userEmail>', methods=['PUT', 'GET'])
 def loginUser(userEmail):
 
     #ignore을 쓰지 않고 굳이 번거롭게 select해서 if문으로 구분하는 이유

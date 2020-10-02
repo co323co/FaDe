@@ -54,6 +54,11 @@ public class LoginActivity extends AppCompatActivity {
             Log.d("server","로그인 기록 있음");
             userAccount = account;
             UserEmail = userAccount.getEmail();
+            Thread t = new Thread(){
+                @Override
+                public void run() {
+                    new CommServer(getApplicationContext()).putRegisterUser();
+                }}; t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);      //null이 아닌 경우 이 사용자는 이미 구글 로그인 된 상태, null 일 경우 로그인 한 적 없음
             startActivity(intent);
             profile();

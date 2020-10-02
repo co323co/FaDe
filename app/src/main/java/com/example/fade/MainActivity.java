@@ -396,7 +396,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      GroupAdapter(ArrayList<GroupData> groupList){
         this.groupList=groupList;
         //즐겨찾기 추가된 그룹들(favorites가 1이상)은 favorites 리스트에 담아서 관리함
-        for(GroupData g : groupList) { if(g.getFavorites()>0) favorites.add(g); }
+        for(GroupData group : this.groupList) {
+            if(group.getFavorites()>0) favorites.add(group);
+            if(favorites.size()==3) break; }
     }
 
     @NonNull
@@ -410,10 +412,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onBindViewHolder(@NonNull GVHolder holder, final int position) {
 
         GroupData group = groupList.get(position);
-
         ImageButton ibtn_favorites = holder.view.findViewById(R.id.ibtn_Favorites);
         ImageView iv_star = holder.view.findViewById(R.id.iv_groupList_star);
-        if(groupList.get(position).getFavorites()==0) {
+
+        if(group.getFavorites()==0) {
             ibtn_favorites.setColorFilter(Color.parseColor("#7AB1C3"));
             iv_star.setVisibility(View.GONE);
         }
@@ -423,16 +425,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         ibtn_favorites.setOnClickListener(view -> {
+            Log.d("favorites test", group.getName());
             if(group.getFavorites()==0) {
+                Log.d("favorites test",  "if f==0 / size : " + favorites.size());
                 if(favorites.size()>=3){
                     Toast.makeText(view.getContext(), "즐겨찾기는 3개까지 가능합니다",Toast.LENGTH_SHORT).show();
                     return;
                 }
                 group.setFavorites(favorites.size()+1);
                 favorites.add(group);
+                Log.d("favorites test",  "size : " + favorites.size());
             }
             else {
-                favorites.remove(group);
+                Log.d("favorites test",  "size : " + favorites.size());
+                Boolean b = favorites.remove(group);
+                Log.d("favorites test",  "size : " + favorites.size());
+                Log.d("favorites test",  "isSucess : " + b.toString());
+
                 group.setFavorites(0);
                 Collections.sort(favorites, (g1, g2) -> {
                     if(g1.getFavorites()<g2.getFavorites())
@@ -443,24 +452,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
                 for(int i=0; i<favorites.size(); i++) { favorites.get(i).setFavorites(i+1);}
 
-                Thread t = new Thread(){ @Override public void run() { commServer.postEditGroup(group.getId(), null,null,group.getFavorites()); }};
-                t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-
+                Thread t = new Thread(){
+                    @Override public void run() { for(GroupData g : favorites){ commServer.postEditGroup(g.getId(), null, null, g.getFavorites()); } }
+                };t.start(); //try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
             }
             Handler handler = new Handler();
-            Thread t = new Thread(){
-                @Override
-                public void run() {
-
-                    for(GroupData g : favorites){ commServer.postEditGroup(g.getId(), null, null, group.getFavorites()); }
-
-                    groupList.clear();
-                    groupList.addAll(commServer.getAllGroups());
-
-                    handler.post(() -> { notifyDataSetChanged(); });
-                }
-            };t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-
+            Thread t = new Thread(){ @Override public void run() {
+                commServer.postEditGroup(group.getId(), null,null,group.getFavorites());
+                groupList.clear();
+                groupList.addAll(commServer.getAllGroups());
+                handler.post(() -> { notifyDataSetChanged(); });
+            }};
+            t.start(); //try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
             // ((MainActivity)MainActivity.CONTEXT).onResume();
         });
 
@@ -498,7 +501,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ibtn_check.setOnClickListener(view -> {
 
             group.setName(et_name.getText().toString());
-            commServer.postEditGroup(group.getId(), et_name.getText().toString(), null, null);
+            new Thread(){
+                @Override
+                public void run() {
+                    commServer.postEditGroup(group.getId(), et_name.getText().toString(), null, null);
+                }
+            }.start();
             et_name.setEnabled(false);
             ibtn_check.setVisibility(View.GONE);
             ibtn_edit.setVisibility(View.VISIBLE);

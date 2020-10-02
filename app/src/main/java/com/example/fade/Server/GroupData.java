@@ -21,4 +21,11 @@ public class GroupData {
     public void setName(String name) {this.name=name;}
     public void setFavorites(int favorites) {this.favorites=favorites;}
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if(this.id == ((GroupData)obj).id){ return true; }
+        else{ return false; }
+    }
+
 }

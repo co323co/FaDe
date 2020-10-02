@@ -35,16 +35,8 @@ def index():
 #서버 초기화 (DB, 테이블 새로만들기, DATA폴더 삭제하기)
 @app.route('/initServer')
 def initServer():
-    # DB가 있으면 1을 반환, 없으면 None을 반환하는 SQL문
-    result = engine.execute("SELECT 1 FROM Information_schema.SCHEMATA WHERE SCHEMA_NAME = '%s';"%db['database'])
-    #None인 경우 DB가 존재하지 않는단 의미
-    if(not result.first()): #DB가 없으면 만들어 준다
-        engine.execute("create database %s;"%db['database'])
-    else: #있는 경우 테이블 싹 지워줌
-        clear_db()
-
+    clear_db()
     init_db() #테이블 다시 새로만듦
-
     #서버에 DATA 디렉토리 삭제
     if os.path.exists(main_folder):
                 shutil.rmtree(main_folder, ignore_errors=True) 
@@ -215,7 +207,7 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
 class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름, 넣을 pid들(리스트로), uid
     def post(self):
         ts = time.time()
-        print("여기까지 ok2")
+
         parser = reqparse.RequestParser()
         parser.add_argument('userEmail', type=str)
         parser.add_argument('gname', type=str) #그룹이름 

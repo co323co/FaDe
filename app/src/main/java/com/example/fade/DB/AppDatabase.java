@@ -7,20 +7,17 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-import com.example.fade.DB.DAO.GroupDAO;
 import com.example.fade.DB.DAO.PersonDAO;
-import com.example.fade.DB.entity.Group;
 import com.example.fade.DB.entity.Person;
 
 
 //추상클래스
-@Database(entities = {Person.class, Group.class}, version = 1)
+@Database(entities = {Person.class}, version = 1)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
 
     //호출하면 DAO를 반환함
     public abstract PersonDAO personDAO();
-    public abstract GroupDAO groupDAO();
 
     //싱글턴화
     private static AppDatabase INSTANCE;

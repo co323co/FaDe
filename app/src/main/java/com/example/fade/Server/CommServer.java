@@ -39,6 +39,9 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/////////////////////네트워크 관련 함수들입니다. MainThread에서 실행하면 오류가 납니다.
+////////////////////스래드로 사용해주세요
+
 public class CommServer {
     public Context context;
     ArrayList<Uri> uriArrayList_;
@@ -51,7 +54,6 @@ public class CommServer {
         this.context = context; this.uriArrayList_ = uriArrayList;
     }
 
-    //스래드로 사용해주세요
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void putRegisterUser() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -110,23 +112,15 @@ public class CommServer {
 
         Call<List<PersonData>> call = connService.getAllPersons(LoginActivity.UserEmail);
 
-        Thread t = new Thread(){
-            @Override
-            public void run() {
-                try {
-                    List<PersonData> result = call.execute().body();
-                    personList.addAll(new ArrayList<>(result));
-                    Log.d("server", "통신성공(getAllPersons) personList size : " +  personList.size());
+        try {
+            List<PersonData> result = call.execute().body();
+            personList.addAll(new ArrayList<>(result));
+            Log.d("server", "통신성공(getAllPersons) personList size : " +  personList.size());
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e("server", "통신실패(getAllPersons) " +  e.getMessage());
-                }
-            }
-        };
-        t.start();
-        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패(getAllPersons) " +  e.getMessage());
+        }
         return personList;
     }
 
@@ -141,23 +135,15 @@ public class CommServer {
         final ConnService connService = retrofit.create(ConnService.class);
 
         Call<List<Integer>> call = connService.getPidListByGid(gid);
+        try {
+            List<Integer> result = call.execute().body();
+            pidList.addAll(new ArrayList<>(result));
+            Log.d("server", "통신성공(getPidListByGid) pidList size : " +  pidList.size());
 
-        Thread t = new Thread(){
-            @Override
-            public void run() {
-                try {
-                    List<Integer> result = call.execute().body();
-                    pidList.addAll(new ArrayList<>(result));
-                    Log.d("server", "통신성공(getPidListByGid) pidList size : " +  pidList.size());
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e("server", "통신실패(getPidListByGid) " +  e.getMessage());
-                }
-            }
-        };
-        t.start();
-        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패(getPidListByGid) " +  e.getMessage());
+        }
 
         return pidList;
     }
@@ -174,23 +160,15 @@ public class CommServer {
 
         Call<List<PersonData>> call = connService.getPersonsByGid(gid);
 
-        Thread t = new Thread(){
-            @Override
-            public void run() {
-                try {
-                    List<PersonData> result = call.execute().body();
-                    personList.addAll(new ArrayList<>(result));
-                    Log.d("server", "통신성공(getPersonsByGid) personList size : " +  personList.size());
+        try {
+            List<PersonData> result = call.execute().body();
+            personList.addAll(new ArrayList<>(result));
+            Log.d("server", "통신성공(getPersonsByGid) personList size : " +  personList.size());
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e("server", "통신실패(getPersonsByGid) " +  e.getMessage());
-                }
-            }
-        };
-        t.start();
-        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패(getPersonsByGid) " +  e.getMessage());
+        }
         return personList;
     }
 
@@ -226,7 +204,6 @@ public class CommServer {
         return groupList;
     }
 
-    //스래드로 사용해주삼
     public void registerPerson(String userEmail ,String pname, byte[] thumbnail, ArrayList<byte[]> pictureList){
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -252,21 +229,16 @@ public class CommServer {
             //byte[]를 String으로 인코딩해서 보내냄. 서버는 String 형태로 보관해야 깨지지 않음
             input.put("pictureList", enPicureList);
         }
-        connService.postRegisterPerson(input).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", "인물 등록하기 성공 (postRegisterPerson)"); }
-                    Toast.makeText(context,"인물 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
-                }
-            }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterPerson)"+t.getMessage());
-                Toast.makeText(context,"통신실패", Toast.LENGTH_SHORT).show();
-            }
-        });
+        Call<ResponseBody> call = connService.postRegisterPerson(input);
+        try {
+            call.execute();
+            Log.d("server", "인물 등록하기 성공 (postRegisterPerson)");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패 (postRegisterPerson)"+e.getMessage());
+        }
+
     }
 
     public void registerGroup(String userEmail ,String gname, ArrayList<Integer> pidList){
@@ -311,18 +283,14 @@ public class CommServer {
         if(pidList != null) input.put("pidList", pidList);
         if(favorites != null) input.put("favorites", favorites.intValue());
 
-        connService.postEditGroup(input).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", gid + "_그룹 편집하기 성공 (postEditGroup)"); } }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage()); }
-        });
-
+        Call<ResponseBody> call = connService.postEditGroup(input);
+        try {
+            call.execute();
+            Log.d("server", gid + "_그룹 편집하기 성공 (postEditGroup)");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패 (postEditGroup)"+e.getMessage());
+        }
     }
 
     public void deleteGroup(String uid ,int gid){
@@ -338,10 +306,17 @@ public class CommServer {
         input.put("gid", gid);
 
         Call<ResponseBody> call = connService.postDeleteGroup(input);
-        try { call.execute(); } catch (IOException e) { e.printStackTrace(); }
+        try {
+            call.execute();
+            Log.d("server", "그룹 삭제 성공 (deleteGroup)");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패 (deleteGroup)"+e.getMessage());
+        }
+
     }
 
-    public void DeletePerson(String userEmail , int pid){
+    public void deletePerson(String userEmail , int pid){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -353,18 +328,14 @@ public class CommServer {
         input.put("userEmail", userEmail);
         input.put("pid", pid);
 
-        connService.DeletePerson(input).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", "사람 삭제 성공 (DeletePerson)"); } }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (DeletePerson)"+t.getMessage()); }
-        });
-
+        Call<ResponseBody> call = connService.postDeletePerson(input);
+        try {
+            call.execute();
+            Log.d("server", "사람 삭제 성공 (deletePerson)");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패 (deletePerson)"+e.getMessage());
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)

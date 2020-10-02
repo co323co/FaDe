@@ -70,7 +70,7 @@ public interface ConnService {
 
     @FormUrlEncoded
     @POST("/delete/person")
-    Call<ResponseBody> DeletePerson(@FieldMap HashMap<String, Object> param);
+    Call<ResponseBody> postDeletePerson(@FieldMap HashMap<String, Object> param);
 
 }
 

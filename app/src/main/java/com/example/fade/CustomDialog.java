@@ -20,8 +20,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.fade.DB.DBThread;
-import com.example.fade.DB.entity.Person;
 import com.example.fade.Server.CommServer;
 import com.example.fade.Server.PersonData;
 
@@ -96,7 +94,13 @@ class AddGroupDialog extends Dialog {
         final int SELECTED_COLOR = Color.parseColor("#C3E8E4E4");
         final int DEFAULT_COLOR = Color.WHITE;
 
-        final ArrayList<PersonData> personList=commServer.getAllPersons();
+        ArrayList<PersonData> personList = new ArrayList<>();
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                personList.addAll(commServer.getAllPersons());
+            }
+        }; t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
         final boolean isChecked[] = new boolean[personList.size()];
 
@@ -239,8 +243,10 @@ class EditGroupDialog extends Dialog {
 
     private CustomDialogClickListener customDialogClickListener;
 
+    CommServer commServer;
+
     //LeftListView에서 선택됐는지 안선택됐는지를 체크해놓기 위한 배열
-    ArrayList<Person> checkedList = new ArrayList<Person>();
+    ArrayList<PersonData> checkedList = new ArrayList<>();
     ArrayList<Integer> checkedIDList;
 
     //생성자 생성
@@ -250,6 +256,7 @@ class EditGroupDialog extends Dialog {
         this.customDialogClickListener=customDialogClickListener;
         this.result=result;
         this.checkedIDList=pidList;
+        commServer = new CommServer(context);
     }
 
     @Override
@@ -263,21 +270,14 @@ class EditGroupDialog extends Dialog {
 
         //호출하는 곳에서 인터페이스 설계해줌으로써 사용
         //클릭 리스너 셋팅 (클릭버튼이 동작하도록 만들어줌.)
-        mPositiveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                for(int i=0; i<checkedList.size(); i++) result.add(checkedList.get(i).getPid());
-
-                customDialogClickListener.onPositiveClick();
-                dismiss();
-            }
+        mPositiveButton.setOnClickListener(view -> {
+            for(int i=0; i<checkedList.size(); i++) result.add(checkedList.get(i).getId());
+            customDialogClickListener.onPositiveClick();
+            dismiss();
         });
-        mNegativeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                customDialogClickListener.onNegativeClick();
-                dismiss();
-            }
+        mNegativeButton.setOnClickListener(view -> {
+            customDialogClickListener.onNegativeClick();
+            dismiss();
         });
 
         final RecyclerView rv_right = findViewById(R.id.rv_addGroupPerson_right);
@@ -285,7 +285,6 @@ class EditGroupDialog extends Dialog {
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         rv_right.setLayoutManager(linearLayoutManager);
-
 
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
         final RightAdapter rightAdapter = new RightAdapter(checkedList);
@@ -295,17 +294,20 @@ class EditGroupDialog extends Dialog {
         final int SELECTED_COLOR = Color.parseColor("#C3E8E4E4");
         final int DEFAULT_COLOR = Color.WHITE;
 
-        final ArrayList<Person> personList=new ArrayList<Person>();
+        ArrayList<PersonData> personList  = new ArrayList<>();
 
-        DBThread.SelectPersonThraed t  = new DBThread.SelectPersonThraed(personList);
-        t.start();
-        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                personList.addAll(commServer.getAllPersons());
+            }
+        }; t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
         final boolean isChecked[] = new boolean[personList.size()];
 
         //현재 그룹 구성원들은 체크함. pidList받아와서 비교하여 존재하면 check함
         for(int i =0; i<personList.size(); i++) {
-            if(checkedIDList.contains(personList.get(i).getPid())) {
+            if(checkedIDList.contains(personList.get(i).getId())) {
                 isChecked[i] = true;
                 checkedList.add(personList.get(i));
             }
@@ -341,12 +343,12 @@ class EditGroupDialog extends Dialog {
 
         LayoutInflater mLayoutInflater = null;
 
-        ArrayList<Person> personList;
+        ArrayList<PersonData> personList;
         boolean isChecked[];
 
         int SELECTED_COLOR = Color.parseColor("#C3E8E4E4");
 
-        LeftListAdapter(ArrayList<Person> personList, boolean isChecked[]){
+        LeftListAdapter(ArrayList<PersonData> personList, boolean isChecked[]){
             mLayoutInflater = LayoutInflater.from((context));
             this.personList=personList;
             this.isChecked = isChecked;
@@ -376,8 +378,8 @@ class EditGroupDialog extends Dialog {
             ConvertFile convertFile = new ConvertFile(context);
 
             //프로필 사진 없으면 기본 이미지 띄움
-            if(personList.get(i).getProfile_picture() != null){
-                Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(i).getProfile_picture());
+            if(personList.get(i).getThumbnail() != null){
+                Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(i).getThumbnail());
                 profile.setImageBitmap(bitmap);
             }
             else
@@ -391,7 +393,7 @@ class EditGroupDialog extends Dialog {
 
     class RightAdapter extends RecyclerView.Adapter<RightAdapter.RVHolder>{
 
-        ArrayList<Person> checkedList;
+        ArrayList<PersonData> checkedList;
 
         public class RVHolder extends RecyclerView.ViewHolder {
             View view;
@@ -401,7 +403,7 @@ class EditGroupDialog extends Dialog {
             }
         }
         //어뎁터 생성자
-        RightAdapter(ArrayList<Person> checkedList) {
+        RightAdapter(ArrayList<PersonData> checkedList) {
             this.checkedList=checkedList;
         }
         @NonNull
@@ -422,8 +424,8 @@ class EditGroupDialog extends Dialog {
             ConvertFile convertFile = new ConvertFile(context);
 
             //프로필 사진 없으면 기본 이미지 띄움
-            if(checkedList.get(position).getProfile_picture() != null){
-                Bitmap bitmap = convertFile.byteArrayToBitmap(checkedList.get(position).getProfile_picture());
+            if(checkedList.get(position).getThumbnail() != null){
+                Bitmap bitmap = convertFile.byteArrayToBitmap(checkedList.get(position).getThumbnail());
                 iv_profile.setImageBitmap(bitmap);
             }
             else

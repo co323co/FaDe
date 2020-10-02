@@ -443,12 +443,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
                 for(int i=0; i<favorites.size(); i++) { favorites.get(i).setFavorites(i+1);}
 
-                commServer.postEditGroup(group.getId(), null,null,group.getFavorites());
+                Thread t = new Thread(){ @Override public void run() { commServer.postEditGroup(group.getId(), null,null,group.getFavorites()); }};
+                t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
             }
-            for(GroupData g : favorites){
-                commServer.postEditGroup(g.getId(), null, null, group.getFavorites());
-            }
-            ((MainActivity)MainActivity.CONTEXT).onResume();
+            Handler handler = new Handler();
+            Thread t = new Thread(){
+                @Override
+                public void run() {
+
+                    for(GroupData g : favorites){ commServer.postEditGroup(g.getId(), null, null, group.getFavorites()); }
+
+                    groupList.clear();
+                    groupList.addAll(commServer.getAllGroups());
+
+                    handler.post(() -> { notifyDataSetChanged(); });
+                }
+            };t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+            // ((MainActivity)MainActivity.CONTEXT).onResume();
         });
 
         final EditText et_name = holder.view.findViewById(R.id.et_groupList_name);
@@ -517,8 +530,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             //다이얼로그에서 받아올 값을 생성자로 넘겨줌(사용자가 편집한 pidList)
             ArrayList<Integer> result = new ArrayList<>();
+            ArrayList<Integer> pidList = new ArrayList<>();
+            Thread t = new Thread(){
+                @Override
+                public void run() {
+                    pidList.addAll(commServer.getPidListByGid(group.getId()));
+                }
+            }; t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-            ArrayList<Integer> pidList = commServer.getPidListByGid(group.getId());
             //현재 pid리스트와, 바뀐 pidList를 저장할 result를 인자로 넘김
             final EditGroupDialog editGroupDialog= new EditGroupDialog(view.getContext(), pidList, result, new CustomDialogClickListener() {
                 @Override
@@ -529,11 +548,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Toast.makeText(view.getContext(), "1명 이상 선택해주세요",Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    commServer.postEditGroup(group.getId(), null, result, null);
-                    groupList = commServer.getAllGroups();
-                    notifyDataSetChanged();
-
-                    Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
+                    Handler handler = new Handler();
+                    new Thread(){
+                        @Override
+                        public void run() {
+                            commServer.postEditGroup(group.getId(), null, result, null);
+                            groupList = commServer.getAllGroups();
+                            handler.post(() -> notifyDataSetChanged());
+                            Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
+                        }
+                    }.start();
                 }
                 @Override
                 public void onNegativeClick() { }
@@ -552,7 +576,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //프로필리싸이클러뷰 생성 과정
         /////////////////////////////////
         ProfileAdapter profileAdapter;
-        ArrayList<PersonData> profileList= commServer.getPersonsByGid(group.getId());
+        ArrayList<PersonData> profileList=new ArrayList<>();
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                profileList.addAll(commServer.getPersonsByGid(group.getId()));
+            }
+        }; t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
         //리싸이클러뷰 만들고 설정
         final RecyclerView rv = holder.view.findViewById(R.id.rv_group_profile);

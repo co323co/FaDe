@@ -2,7 +2,6 @@ package com.example.fade.DB.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity
@@ -13,13 +12,6 @@ public class Person {
     @ColumnInfo
     private String name;
     private byte[] profile_picture;
-
-    @Ignore
-    public Person() { }
-
-//    public Person(String name) {
-//        this.name = name;
-//    }
 
     public Person(String name, byte[] profile_picture) {
         this.name = name;

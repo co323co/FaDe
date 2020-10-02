@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fade.DB.DBThread;
-import com.example.fade.DB.entity.Group;
 import com.example.fade.DB.entity.Person;
 import com.example.fade.Server.CommServer;
 
@@ -34,7 +34,6 @@ public class MainDrawerFragment extends Fragment {
     final int CODE_REGI_PERSON = 0;
     PersonAdapter personAdapter;
     ArrayList<Person> personList=new ArrayList<Person>();
-    ArrayList<Group> groupList = new ArrayList<Group>();
     RecyclerView rv;
     int n=0;
     @Nullable
@@ -147,19 +146,22 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
             @Override
             public void onClick(View view) {
-                CommServer commServer = new CommServer(context);
 
-                //서버에서 person 지워줌
-                new CommServer(holder.view.getContext()).DeletePerson(LoginActivity.UserEmail, personList.get(position).getPid());
-
-                //인물리스트가 바뀌었으니  그룹리스트뷰도 새로고침 해준다.
-                ((MainActivity)MainActivity.CONTEXT).onResume();
-
-                Toast.makeText(holder.view.getContext(),"사람삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
-
+                Handler handler = new Handler();
+                Thread t = new Thread(){
+                    @Override
+                    public void run() {
+                        //서버에서 person 지워줌
+                        new CommServer(holder.view.getContext()).deletePerson(LoginActivity.UserEmail, personList.get(position).getPid());
+                        handler.post(() -> {
+                            //인물리스트가 바뀌었으니  그룹리스트뷰도 새로고침 해준다.
+                            ((MainActivity)MainActivity.CONTEXT).onResume();
+                            Toast.makeText(holder.view.getContext(),"사람삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }; t.start();
             }
         });
-
     }
 
     @Override

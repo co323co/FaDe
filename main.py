@@ -108,7 +108,10 @@ def getPersonsByGid(gid):
     rows = result.fetchall()
     dicList = []
     for v in rows:
-        dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : base64.b64encode(v[2])})
+        if v[2] is None:
+            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : v[2]})
+        else:    
+            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : base64.b64encode(v[2])})
     return json.dumps(dicList)
 
 @app.route('/db/GetPidListByGid/<gid>')
@@ -179,6 +182,7 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
         x = json.loads(args['pictureList'])
         for v in x.values():
             pictureList.append(base64.b64decode(v))
+            print(len((base64.b64decode(v))))
         
         #db에 인물 추가함
         user : User = User.query.filter(User.googleEmail==args['userEmail']).first() 
@@ -211,7 +215,7 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
 class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름, 넣을 pid들(리스트로), uid
     def post(self):
         ts = time.time()
-
+        print("여기까지 ok2")
         parser = reqparse.RequestParser()
         parser.add_argument('userEmail', type=str)
         parser.add_argument('gname', type=str) #그룹이름 
@@ -225,10 +229,12 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
         user : User = User.query.filter(User.googleEmail==args['userEmail']).first() 
         uid = user.id
 
+        print("여기까지 ok1")
         #db에 그룹 추가
         g= Group(uid, gname)
         db_session.add(g)
         db_session.commit()
+        print("여기까지 ok2")
         
         gid = g.id
         #db에 그룹이 보유한 pid관계 추가(pidList를 반영)

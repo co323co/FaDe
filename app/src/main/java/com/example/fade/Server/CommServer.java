@@ -13,14 +13,12 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
-import com.example.fade.DB.DBThread;
 import com.example.fade.LoginActivity;
 import com.example.fade.MainActivity;
 import com.example.fade.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -30,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -42,17 +41,16 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class CommServer {
     public Context context;
-    ArrayList<String> jsonresult = new ArrayList<>();
     ArrayList<Uri> uriArrayList_;
     public  CommServer(Context context)
     {
         this.context=context;
     }
 
-    public CommServer(Context context, ArrayList<Uri> uriArrayList)
-    {
+    public CommServer(Context context, ArrayList<Uri> uriArrayList) {
         this.context = context; this.uriArrayList_ = uriArrayList;
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void putRegisterUser() throws IOException {
@@ -75,72 +73,211 @@ public class CommServer {
         });
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public void updateGalleryImg(ArrayList<byte[]> imgByteList, ArrayList<Uri> uriArrayList) throws IOException {
+    public ArrayList<GroupData> getAllGroups(){
 
-            Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(2, TimeUnit.MINUTES)
-                .writeTimeout(15, TimeUnit.SECONDS)
-                .build();
+        final ArrayList<GroupData> groupList = new ArrayList<>();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
         final ConnService connService = retrofit.create(ConnService.class);
 
-        ArrayList<byte[]> byteList = imgByteList;
+        Call<List<GroupData>> call = connService.getAllGroups(LoginActivity.UserEmail);
 
-        //바이트사진들 -> base64String으로 인코딩
-        //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
-        JSONObject enFiles = new JSONObject();
-        for(int i=0; i< byteList.size();i++){ try {
-            if(i<10) enFiles.put("0"+i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP));
-            else enFiles.put(i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP));
-        } catch (JSONException e) { e.printStackTrace();} }
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                try {
+                    List<GroupData> result = call.execute().body();
+                    groupList.addAll(new ArrayList<>(result));
+                    Log.e("server", "통신성공(getAllGroups) groupList size : " +  groupList.size());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("server", "통신실패(getAllGroups) " +  e.getMessage());
+                }
+            }
+        };
+        t.start();
+        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        return groupList;
+    }
+
+    public ArrayList<PersonData> getAllPersons(){
+
+        final ArrayList<PersonData> personList = new ArrayList<>();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        Call<List<PersonData>> call = connService.getAllPersons(LoginActivity.UserEmail);
+
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                try {
+                    List<PersonData> result = call.execute().body();
+                    personList.addAll(new ArrayList<>(result));
+                    Log.e("server", "통신성공(getAllPersons) personList size : " +  personList.size());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("server", "통신실패(getAllPersons) " +  e.getMessage());
+                }
+            }
+        };
+        t.start();
+        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        return personList;
+    }
+
+    public ArrayList<Integer> getPidListByGid(int gid){
+
+        final ArrayList<Integer> pidList = new ArrayList<>();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        Call<List<Integer>> call = connService.getPidListByGid(gid);
+
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                try {
+                    List<Integer> result = call.execute().body();
+                    pidList.addAll(new ArrayList<>(result));
+                    Log.e("server", "통신성공(getPidListByGid) pidList size : " +  pidList.size());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("server", "통신실패(getPidListByGid) " +  e.getMessage());
+                }
+            }
+        };
+        t.start();
+        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        return pidList;
+    }
+
+    public ArrayList<PersonData> getPersonsByGid(int gid){
+
+        final ArrayList<PersonData> personList = new ArrayList<>();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        Call<List<PersonData>> call = connService.getPersonsByGid(gid);
+
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                try {
+                    List<PersonData> result = call.execute().body();
+                    personList.addAll(new ArrayList<>(result));
+                    Log.e("server", "통신성공(getPersonsByGid) personList size : " +  personList.size());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("server", "통신실패(getPersonsByGid) " +  e.getMessage());
+                }
+            }
+        };
+        t.start();
+        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        return personList;
+    }
+
+    public ArrayList<GroupData> getGroupsByPid(int pid){
+
+        final ArrayList<GroupData> groupList = new ArrayList<>();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        Call<List<GroupData>> call = connService.getGroupsByPid(pid);
+
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                try {
+                    List<GroupData> result = call.execute().body();
+                    groupList.addAll(new ArrayList<>(result));
+                    Log.e("server", "통신성공(getGroupsByPid) personList size : " +  groupList.size());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("server", "통신실패(getGroupsByPid) " +  e.getMessage());
+                }
+            }
+        };
+        t.start();
+        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        return groupList;
+    }
+
+    public void postRegisterPerson(String userEmail ,String pname, byte[] thumbnail, ArrayList<byte[]> pictureList){
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
 
         HashMap<String, Object> input = new HashMap<>();
-        input.put("GalleryFiles", enFiles);
-        Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
+        input.put("userEmail", userEmail);
+        input.put("pname", pname);
+        if(thumbnail!=null){
+            String enThumbnail = Base64.encodeToString(thumbnail, Base64.NO_WRAP);
+            input.put("thumbnail", enThumbnail);
+        }
+        if(pictureList!=null){
+            //바이트사진들 -> base64String으로 인코딩
+            //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
+            JSONObject enPicureList = new JSONObject();
+            for(int i=0; i< pictureList.size();i++){ try { enPicureList.put("byte_"+i, Base64.encodeToString(pictureList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
 
-        //selectGalleryImage selectGalleryImage = new selectGalleryImage(context);
-        connService.postDetectionPicture(LoginActivity.UserEmail, input).enqueue(new Callback<ResponseBody>() {
+            //byte[]를 String으로 인코딩해서 보내냄. 서버는 String 형태로 보관해야 깨지지 않음
+            input.put("pictureList", enPicureList);
+        }
+        connService.postRegisterPerson(input).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    jsonresult = getJSONdata(response.body().string());
-                    moveGalleryImage(jsonresult, uriArrayList);
-                    Toast.makeText(context,"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
-                    if(MainActivity.CONTEXT!=null){
-                        ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
-                    }
-                } catch (Exception e) {
-                    Toast.makeText(context,"이미지 분류 실패", Toast.LENGTH_SHORT ).show();
-                    ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
-                    e.printStackTrace();
+                if (response.isSuccessful()) {
+                    ResponseBody body = response.body();
+                    if (body != null) { Log.d("server", "인물 등록하기 성공 (postRegisterPerson)"); }
+                    Toast.makeText(context,"인물 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.i("server", "통신실패 (postDetectionPicture) : " + t.getMessage()+"" );
-                Toast.makeText(context,"통신실패", Toast.LENGTH_SHORT ).show();
-                ((MainActivity)(context)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
+            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterPerson)"+t.getMessage());
+                Toast.makeText(context,"통신실패", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-
+    public void postRegisterGroup(String userEmail ,String gname, ArrayList<Integer> pidList){
 //        <<그룹등록>>
 //        서버에 uid, gid, (그룹의)pidList 던져주는 함수
 //         (서버 : pid폴더들에서 사진 찾아내서 그룹단위 모델을 학습함 -> uid/group_model 폴더에 모델 저장
-    public void postRegisterGroup(String userEmail ,String gname, ArrayList<Integer> pidList){
-
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -171,10 +308,8 @@ public class CommServer {
         });
     }
 
- //        <<그룹편집>>
-//        서버에 uid, gid, (그룹의)pidList 던져주는 함수
-//         (서버 : 그룹모델 업데이트)
-    public void postEditGroup(String userEmail ,int gid, ArrayList<Integer> pidList){
+    //(수정할 그룹의 gid는 넣어줘야함) 수정할 값만 넣어주고, 유지할 값들은 인자로 null을 넣으면 됨
+    public void postEditGroup(int gid, String gname, ArrayList<Integer> pidList, Integer favorites){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -183,9 +318,12 @@ public class CommServer {
         final ConnService connService = retrofit.create(ConnService.class);
 
         HashMap<String, Object> input = new HashMap<>();
-        input.put("userEmail", userEmail);
+
         input.put("gid", gid);
-        input.put("pidList", pidList);
+
+        if(gname != null) input.put("gname", gname);
+        if(pidList != null) input.put("pidList", pidList);
+        if(favorites != null) input.put("favorites", favorites.intValue());
 
         connService.postEditGroup(input).enqueue(new Callback<ResponseBody>() {
             @Override
@@ -200,6 +338,7 @@ public class CommServer {
         });
 
     }
+
     public void DeleteGroup(String uid ,int gid){
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -225,7 +364,8 @@ public class CommServer {
         });
 
     }
-    public void DeletePerson(String uid , int pid){
+
+    public void DeletePerson(String userEmail , int pid){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -234,7 +374,7 @@ public class CommServer {
         final ConnService connService = retrofit.create(ConnService.class);
 
         HashMap<String, Object> input = new HashMap<>();
-        input.put("userEmail", uid);
+        input.put("userEmail", userEmail);
         input.put("pid", pid);
 
         connService.DeletePerson(input).enqueue(new Callback<ResponseBody>() {
@@ -251,6 +391,66 @@ public class CommServer {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void updateGalleryImg(ArrayList<byte[]> imgByteList, ArrayList<Uri> uriArrayList) throws IOException {
+
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(2, TimeUnit.MINUTES)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .build();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(okHttpClient)
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+
+        ArrayList<byte[]> byteList = imgByteList;
+        ArrayList<String> gnameList = new ArrayList<>();
+
+        //바이트사진들 -> base64String으로 인코딩
+        //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
+        JSONObject enFiles = new JSONObject();
+        for(int i=0; i< byteList.size();i++){ try {
+            if(i<10) enFiles.put("0"+i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP));
+            else enFiles.put(i+".jpg", Base64.encodeToString(byteList.get(i), Base64.NO_WRAP));
+        } catch (JSONException e) { e.printStackTrace();} }
+
+        HashMap<String, Object> input = new HashMap<>();
+        input.put("GalleryFiles", enFiles);
+        Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
+
+        //selectGalleryImage selectGalleryImage = new selectGalleryImage(context);
+        connService.postDetectionPicture(LoginActivity.UserEmail, input).enqueue(new Callback<List<String>>() {
+            @Override
+            public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+                try {
+                    gnameList.addAll(new ArrayList<>(response.body()));
+                    moveGalleryImage(gnameList, uriArrayList);
+                    Toast.makeText(context,"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
+                    if(MainActivity.CONTEXT!=null){
+                        ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(context,"이미지 분류 실패", Toast.LENGTH_SHORT ).show();
+                    ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<String>> call, Throwable t) {
+                Log.i("server", "통신실패 (postDetectionPicture) : " + t.getMessage()+"" );
+                Toast.makeText(context,"통신실패", Toast.LENGTH_SHORT ).show();
+                ((MainActivity)(context)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
+            }
+        });
+    }
     //inputStram을 byte[]로 바꿔준다
     byte[] inputStreamToByteArray(InputStream is) {
 
@@ -272,40 +472,6 @@ public class CommServer {
         }
 
         return resBytes;
-    }
-
-//서버에서 받은 gid를 가지고 gname 리스트를 만드는 함수(그룹에 해당되지 않는 사진은 None으로 반환)
-    public ArrayList<String> getJSONdata(String data){
-
-        ArrayList<Integer> result = new ArrayList<>();
-        ArrayList<String> gnameResult = new ArrayList<>();
-        try {
-                JSONObject jsonObject = new JSONObject(data);
-                JSONArray jsonArray = jsonObject.getJSONArray("gid_list");
-                if (jsonArray != null) {
-                    for (int i=0;i<jsonArray.length();i++){
-                        result.add(jsonArray.getInt(i));
-                        if(result.get(i) == -1){
-                            gnameResult.add("None");
-                        }
-                        else{
-                            DBThread.SelectGnameThraed t1 = new DBThread.SelectGnameThraed(result.get(i), gnameResult);
-
-                            t1.start();
-                            try {
-                                t1.join();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-                Log.i("server", "통신성공 (postDetectionPicture -> getJSONdata) : " + result+"    "+gnameResult);
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }return gnameResult;
     }
 
     //gname리스트와 받아온 uri 리스트를 통해 gname에 해당하는 폴더로 경로 이동(None일 경우 폴더 변경x pass)

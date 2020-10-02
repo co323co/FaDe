@@ -39,10 +39,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.fade.DB.DBThread;
 import com.example.fade.DB.entity.Group;
-import com.example.fade.DB.entity.Person;
 import com.example.fade.Server.CommServer;
+import com.example.fade.Server.GroupData;
+import com.example.fade.Server.PersonData;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     RecyclerView rv;
     GroupAdapter groupAdapter;
-    ArrayList<Group> groupList=new ArrayList<Group>();
+    ArrayList<GroupData> groupList=new ArrayList<>();
     ArrayList<Uri> groupUriList;
     SharedPreferences sharedPrefs;
 
@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
 
         CONTEXT=this;
+
 
         Log.d("server","onCreate");
         //서랍에 연결해주면, 원래 배경은 어차피 서랍에서 백(activity_main.xml)으로 인클루드 해줌
@@ -217,8 +218,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //그룹리스트 새로고침
 
         groupList.clear();
-        DBThread.SelectGroupAsFavoritesThraed t = new DBThread.SelectGroupAsFavoritesThraed(groupList);
-        t.start();try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+        groupList.addAll(new CommServer(getApplicationContext()).getAllGroups());
 
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
         rv.removeAllViewsInLayout();
@@ -261,27 +261,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(getApplicationContext(), "1명 이상 선택해주세요",Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Group group = new Group(result.name, result.personIDList);
-
-                DBThread.InsertTGroupThraed t1 = new DBThread.InsertTGroupThraed(group);
-                DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
-                t1.start();
-                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                t2.start();
-                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                groupAdapter.notifyDataSetChanged();
-                rv.scrollToPosition(groupList.size()-1);
-
                 Toast.makeText(getApplicationContext(),"그룹 등록 중입니다", Toast.LENGTH_SHORT).show();
 
-                //방금 만든 Group의 GID 얻는 부분
-                int[] gid = new int[1];
-                DBThread.SelectRecentlyGIDThread t3 = new DBThread.SelectRecentlyGIDThread(gid);
-                t3.start();
-                try { t3.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                Group group = new Group(result.name, result.personIDList);
 
-                //서버에 그룹모델 만들도록 하는 코드
-                new CommServer(getApplicationContext()).postRegisterGroup(LoginActivity.UserEmail, result.name, result.personIDList);
+                CommServer commServer = new CommServer(getApplicationContext());
+                commServer.postRegisterGroup(LoginActivity.UserEmail, result.name, result.personIDList);
+                groupList= commServer.getAllGroups();
+                groupAdapter.notifyDataSetChanged();
+                rv.scrollToPosition(groupList.size()-1);
             }
             @Override
             public void onNegativeClick() { }
@@ -368,9 +356,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
-    ArrayList<Group> groupList;
-    ArrayList<Group> favorites=new ArrayList<>();
-
+    ArrayList<GroupData> groupList;
+    ArrayList<GroupData> favorites=new ArrayList<>();
+    CommServer commServer;
     class GVHolder extends RecyclerView.ViewHolder{
         public View view;
         boolean isExpanded = false;
@@ -378,24 +366,22 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         public GVHolder(@NonNull final View itemView) {
             super(itemView);
             view=itemView;
+            commServer=new CommServer(itemView.getContext());
             Button btn_view = (Button)view.findViewById(R.id.btn_groupView);
             //아이템뷰의 클릭이벤트
-            btn_view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if  (isExpanded==false) isExpanded=true;
-                    else isExpanded=false;
-                    toggleLayout(isExpanded,itemView,(LinearLayout)itemView.findViewById(R.id.layoutExpand));
-                }
+            btn_view.setOnClickListener((View.OnClickListener) view -> {
+                if  (isExpanded==false) isExpanded=true;
+                else isExpanded=false;
+                toggleLayout(isExpanded,itemView,(LinearLayout)itemView.findViewById(R.id.layoutExpand));
             });
         }
 
     }
 
-    GroupAdapter(ArrayList<Group> groupList){
+    GroupAdapter(ArrayList<GroupData> groupList){
         this.groupList=groupList;
         //즐겨찾기 추가된 그룹들(favorites가 1이상)은 favorites 리스트에 담아서 관리함
-        for(Group g : groupList) { if(g.getFavorites()>0) favorites.add(g); }
+        for(GroupData g : groupList) { if(g.getFavorites()>0) favorites.add(g); }
     }
 
     @NonNull
@@ -408,6 +394,8 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
     @Override
     public void onBindViewHolder(@NonNull GVHolder holder, final int position) {
 
+        GroupData group = groupList.get(position);
+
         ImageButton ibtn_favorites = holder.view.findViewById(R.id.ibtn_Favorites);
         ImageView iv_star = holder.view.findViewById(R.id.iv_groupList_star);
         if(groupList.get(position).getFavorites()==0) {
@@ -419,39 +407,33 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
             iv_star.setVisibility(View.VISIBLE);
         }
 
-        ibtn_favorites.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(groupList.get(position).getFavorites()==0) {
-                    if(favorites.size()>=3){
-                        Toast.makeText(view.getContext(), "즐겨찾기는 3개까지 가능합니다",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    Group group = groupList.get(position);
-                    group.setFavorites(favorites.size()+1);
-                    favorites.add(group);
+        ibtn_favorites.setOnClickListener(view -> {
+            if(group.getFavorites()==0) {
+                if(favorites.size()>=3){
+                    Toast.makeText(view.getContext(), "즐겨찾기는 3개까지 가능합니다",Toast.LENGTH_SHORT).show();
+                    return;
                 }
-                else {
-                    favorites.remove(groupList.get(position));
-                    groupList.get(position).setFavorites(0);
-                    Collections.sort(favorites, (g1, g2) -> {
-                        if(g1.getFavorites()<g2.getFavorites())
-                            return 1;
-                        else if(g1.getFavorites()>g2.getFavorites())
-                            return  -1;
-                        return 0;
-                    });
-                    for(int i=0; i<favorites.size(); i++) { favorites.get(i).setFavorites(i+1);}
-
-                    DBThread.UpdateGroupThraed t = new DBThread.UpdateGroupThraed(groupList.get(position));
-                    t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                }
-                for(Group g : favorites){
-                    DBThread.UpdateGroupThraed t = new DBThread.UpdateGroupThraed(g);
-                    t.start();try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                }
-                ((MainActivity)MainActivity.CONTEXT).onResume();
+                group.setFavorites(favorites.size()+1);
+                favorites.add(group);
             }
+            else {
+                favorites.remove(group);
+                group.setFavorites(0);
+                Collections.sort(favorites, (g1, g2) -> {
+                    if(g1.getFavorites()<g2.getFavorites())
+                        return 1;
+                    else if(g1.getFavorites()>g2.getFavorites())
+                        return  -1;
+                    return 0;
+                });
+                for(int i=0; i<favorites.size(); i++) { favorites.get(i).setFavorites(i+1);}
+
+                commServer.postEditGroup(group.getId(), null,null,group.getFavorites());
+            }
+            for(GroupData g : favorites){
+                commServer.postEditGroup(g.getId(), null, null, group.getFavorites());
+            }
+            ((MainActivity)MainActivity.CONTEXT).onResume();
         });
 
         final EditText et_name = holder.view.findViewById(R.id.et_groupList_name);
@@ -459,10 +441,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         final ImageButton ibtn_check = holder.view.findViewById(R.id.ibtn_editCheck);
         final ImageButton ibtn_gallery = holder.view.findViewById(R.id.ibtn_openGroupGallery);
 
-        //연필 버튼 눌렀을 때 그룹이름을 수정하게 해주는 부분
         et_name.setText(groupList.get(position).getName());
-
-
 
         //갤러리 버튼 누르면 intent로 갤러리 화면으로 들어가짐
         ibtn_gallery.setOnClickListener(view -> {
@@ -472,7 +451,6 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
             intent.setAction(Intent.ACTION_VIEW);
             intent.setDataAndType(uri,"image/*");
             view.getContext().startActivity(intent);
-
         });
 
         //연필버튼을 누르면 연필버튼을 없애고 체크버튼을 나타냄. 그리고 이름을 수정 가능하게 함
@@ -491,10 +469,8 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         //체크버튼을 누르면 이름 수정이 완료되고 DB에 반영됨. 체크버튼이 사라지고 다시 연필버튼이 나타남
         ibtn_check.setOnClickListener(view -> {
 
-            Group group = groupList.get(position);
             group.setName(et_name.getText().toString());
-            new DBThread.UpdateGroupThraed(group).start();
-
+            commServer.postEditGroup(group.getId(), et_name.getText().toString(), null, null);
             et_name.setEnabled(false);
             ibtn_check.setVisibility(View.GONE);
             ibtn_edit.setVisibility(View.VISIBLE);
@@ -503,20 +479,13 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         //그룹X버튼을 눌렀을 때 동작 (그룹을 삭제함)
         ImageButton ibtn_subGroup = holder.view.findViewById(R.id.ibtn_subGroup);
         ibtn_subGroup.setOnClickListener(new View.OnClickListener() {
-            Group group = groupList.get(position);
+            GroupData group = groupList.get(position);
             @Override
             public void onClick(View view) {
-                DBThread.DeleteGroupThraed t1 = new DBThread.DeleteGroupThraed(groupList.get((position)));
-                //꼭 삭제하고 리스트뷰 갱신을 위해 groupList를 바뀐 DB로 재갱신 해줘야함!
-                DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
-                t1.start();
-                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                t2.start();
-                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                notifyDataSetChanged();
-
-                new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserEmail, group.getGid());
+                commServer.DeleteGroup(LoginActivity.UserEmail, group.getId());
                 Toast.makeText(holder.view.getContext(),"그룹 삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
+                groupList = commServer.getAllGroups();
+                notifyDataSetChanged();
             }
         });
 
@@ -526,29 +495,21 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
             //다이얼로그에서 받아올 값을 생성자로 넘겨줌(사용자가 편집한 pidList)
             ArrayList<Integer> result = new ArrayList<>();
 
-            Group group = groupList.get(position);
-            ArrayList<Integer> pidList = groupList.get(position).getPersonIDList();
+            ArrayList<Integer> pidList = commServer.getPidListByGid(group.getId());
             //현재 pid리스트와, 바뀐 pidList를 저장할 result를 인자로 넘김
             final EditGroupDialog editGroupDialog= new EditGroupDialog(view.getContext(), pidList, result, new CustomDialogClickListener() {
                 @Override
                 public void onPositiveClick() {
-                    group.setPersonIDList(result);
                     //인물 0명 선택했을 때 예외처리
                     if(result.size()==0)
                     {
                         Toast.makeText(view.getContext(), "1명 이상 선택해주세요",Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    DBThread.UpdateGroupThraed t1 = new DBThread.UpdateGroupThraed(group);
-                    DBThread.SelectGroupThraed t2 = new DBThread.SelectGroupThraed(groupList);
-                    t1.start();
-                    try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                    t2.start();
-                    try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                    commServer.postEditGroup(group.getId(), null, result, null);
+                    groupList = commServer.getAllGroups();
                     notifyDataSetChanged();
 
-//                    //서버에 그룹모델 수정하도록 하는 코드
-                    new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserEmail, group.getGid(), result);
                     Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
                 }
                 @Override
@@ -568,19 +529,13 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
         //프로필리싸이클러뷰 생성 과정
         /////////////////////////////////
         ProfileAdapter profileAdapter;
-        ArrayList<Person> profileList=new ArrayList<Person>();
+        ArrayList<PersonData> profileList= commServer.getPersonsByGid(group.getId());
 
         //리싸이클러뷰 만들고 설정
         final RecyclerView rv = holder.view.findViewById(R.id.rv_group_profile);
         //수평으로 되게
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(holder.view.getContext(),LinearLayoutManager.HORIZONTAL,false);
         rv.setLayoutManager(linearLayoutManager);
-        //rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
-
-        //현재 그룹이 가지고 있는 person리스트를 gid로 가져오기
-        DBThread.SelectPListByGidThread t1 = new DBThread.SelectPListByGidThread(groupList.get(position).getGid(), profileList);
-        t1.start();
-        try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
         profileAdapter = new ProfileAdapter(profileList);
@@ -605,7 +560,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
 class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
 
-    ArrayList<Person> itemList;
+    ArrayList<PersonData> itemList;
     Context context;
 
     public ProfileAdapter(Context context){
@@ -620,7 +575,7 @@ class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
         }
     }
 
-    ProfileAdapter(ArrayList<Person> itemList){
+    ProfileAdapter(ArrayList<PersonData> itemList){
         this.itemList=itemList;
     }
 
@@ -644,8 +599,9 @@ class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.PVHolder>{
         ConvertFile convertFile = new ConvertFile(context);
 
         //프로필 사진 없으면 기본 이미지 띄움
-        if(itemList.get(position).getProfile_picture() != null){
-            Bitmap bitmap = convertFile.byteArrayToBitmap(itemList.get(position).getProfile_picture());
+        if(itemList.get(position).getThumbnail() != null){
+            //Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)
+            Bitmap bitmap = convertFile.byteArrayToBitmap(itemList.get(position).getThumbnail());
             iv_profile.setImageBitmap(bitmap);
         }
         else

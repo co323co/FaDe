@@ -142,85 +142,17 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
         else
         { iv_profile.setImageResource(R.drawable.ic_profile); }
 
-
-
         Button btn_subPerson = holder.view.findViewById(R.id.btn_subPerson);
         btn_subPerson.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-
-                /////////////////만약 삭제될 pid를 가지고있는 그룹이 있다면 그룹 내에서 pid를 지워주는 코드
-                int pid = personList.get(position).getPid();
-                //삭제될 pid를 가지고 있는 그룹들을 찾아냄
-                ArrayList<Integer> gidList = new ArrayList<Integer>();
-                DBThread.SelectGidListByPid t = new DBThread.SelectGidListByPid(pid, gidList);
-                t.start();
-                try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                Log.e("gid리스트 사이즈", gidList.size()+"");
-
-                //삭제될 pid를 갖고있는 그룹을 순회하면서 pid를 제거해준다.
-                for(int gid : gidList){
-                    Group group = new Group();
-                    DBThread.SelectGroupByGidThraed th= new DBThread.SelectGroupByGidThraed(gid,group);
-                    th.start();
-                    try { th.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                    ArrayList<Integer> pidList = group.getPersonIDList();
-                    pidList.remove(new Integer(pid));
-                    group.setPersonIDList(pidList);
-                    //그룹 인원이 0이되면 그룹을 아예 지운다
-                    if(pidList.size()==0){
-                        Log.e("pidList.size() is 0", pidList.size()+"");
-                        DBThread.DeleteGroupThraed th2 = new DBThread.DeleteGroupThraed(group);
-                        th2.start();
-                        try { th2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                        Thread thread = new Thread(){
-                            @Override
-                            public void run() {
-                                new CommServer(holder.view.getContext()).DeleteGroup(LoginActivity.UserEmail, group.getGid());
-                            }
-                        };
-                        thread.start();
-                        try { thread.join();
-                            Toast.makeText(holder.view.getContext(),"그룹 삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
-                        } catch (InterruptedException e) { e.printStackTrace(); }
-
-                    }
-                    //그룹 인원을 변경한 후 서버에 적용한다
-                    else{
-                        Log.e("pidList.size() is", pidList.size()+"");
-                        DBThread.UpdateGroupThraed th2 = new DBThread.UpdateGroupThraed(group);
-                        th2.start();
-                        try { th2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                        Thread thread2 = new Thread(){
-                            @Override
-                            public void run() {
-                                new CommServer(holder.view.getContext()).postEditGroup(LoginActivity.UserEmail, group.getGid(), pidList);
-                            }
-                        };
-                        thread2.start();
-                        try { thread2.join();
-                            Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
-                        } catch (InterruptedException e) { e.printStackTrace(); }
-                    }
-                }
-                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                CommServer commServer = new CommServer(context);
 
                 //서버에서 person 지워줌
-                new CommServer(holder.view.getContext()).DeletePerson(LoginActivity.UserEmail, pid);
-
-                //현재 삭제버튼 눌린 person데이터를 지움
-                DBThread.DeletePersonThraed t1 = new DBThread.DeletePersonThraed(personList.get(position));
-                //꼭 삭제하고 리스트뷰 갱신을 위해 personList를 바뀐 DB로 재갱신 해줘야함!
-                DBThread.SelectPersonThraed t2 = new DBThread.SelectPersonThraed(personList);
-                t1.start();
-                try { t1.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                t2.start();
-                try { t2.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-                notifyDataSetChanged();
+                new CommServer(holder.view.getContext()).DeletePerson(LoginActivity.UserEmail, personList.get(position).getPid());
 
                 //인물리스트가 바뀌었으니  그룹리스트뷰도 새로고침 해준다.
-                //TODO:: 인물 폴더 삭제 , 그룹 CASCADE, 그룹 인원0면 아예삭제 코드 서버에서도 구현해서 연결해주기
                 ((MainActivity)MainActivity.CONTEXT).onResume();
 
                 Toast.makeText(holder.view.getContext(),"사람삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();

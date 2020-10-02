@@ -1,6 +1,7 @@
 package com.example.fade.Server;
 
 import java.util.HashMap;
+import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -21,12 +22,23 @@ public interface ConnService {
     //다빈
     //public static final String URL = "http://192.168.25.41:3157";
 
-
-    @GET("/db/GetPerson/{uid}")
-    Call<PersonData> getPersonData(@Path("uid") String uid);
-
     @PUT("/Login/{userEmail}")
     Call<ResponseBody> putRegisterUser(@Path("userEmail") String userEmail);
+
+    @GET("/db/GetAllGroups/{userEmail}")
+    Call<List<GroupData>> getAllGroups(@Path("userEmail") String userEmail);
+
+    @GET("/db/GetAllPersons/{userEmail}")
+    Call<List<PersonData>> getAllPersons(@Path("userEmail") String userEmail);
+
+    @GET("/db/GetPidListByGid/{gid}")
+    Call<List<Integer>> getPidListByGid(@Path("gid") int gid);
+
+    @GET("/db/GetPersonsByGid/{gid}")
+    Call<List<PersonData>> getPersonsByGid(@Path("gid") int gid);
+
+    @GET("/db/GetGroupsByPid/{pid}")
+    Call<List<GroupData>> getGroupsByPid(@Path("pid") int pid);
 
     @FormUrlEncoded
     @POST("/db/upload/{uid}")
@@ -38,15 +50,15 @@ public interface ConnService {
 
     @FormUrlEncoded
     @POST("/reg/person")
-    Call<ReturnData> postRegisterPerson(@FieldMap HashMap<String, Object> param);
+    Call<ResponseBody> postRegisterPerson(@FieldMap HashMap<String, Object> param);
 
     @FormUrlEncoded
     @POST("/reg/group")
     Call<ResponseBody> postRegisterGroup(@FieldMap HashMap<String, Object> param);
 
     @FormUrlEncoded
-    @POST("/det/{uid}")
-    Call<ResponseBody> postDetectionPicture(@Path("uid") String uid, @FieldMap HashMap<String, Object> param);
+    @POST("/det/{userEmail}")
+    Call<List<String>> postDetectionPicture(@Path("userEmail") String userEmail, @FieldMap HashMap<String, Object> param);
 
     @FormUrlEncoded
     @POST("/edit/group")

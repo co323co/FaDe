@@ -30,52 +30,6 @@ public class DBThread {
 
 
     //그룹Table 관리 스래드
-    public static class SelectGroupThraed extends Thread {
-        ArrayList<Group> groupList;
-        public SelectGroupThraed(ArrayList<Group> groupList) {
-            this.groupList = groupList;
-        }
-        @Override
-        public void run(){
-            this.groupList.clear();
-            this.groupList.addAll(groupDAO.getAll());
-        }
-    }
-
-    public static class SelectGroupAsFavoritesThraed extends Thread {
-        ArrayList<Group> groupList;
-        public SelectGroupAsFavoritesThraed(ArrayList<Group> groupList) {
-            this.groupList = groupList;
-        }
-        @Override
-        public void run(){
-            this.groupList.clear();
-            this.groupList.addAll(groupDAO.getGroupAsFavorites());
-        }
-    }
-
-    public static class SelectGroupByGidThraed extends Thread {
-        int gid;
-        Group group;
-        public SelectGroupByGidThraed(int gid, Group group) {
-            this.gid=gid;
-            this.group = group;
-        }
-        @Override
-        public void run(){
-             groupDAO.getGroupByGid(gid).copy(group);
-        }
-    }
-
-    //retrun이 없는 스래드 특성상 인자로 int값을 call by ref 하기 위한 배열임. 첫번째 값인 0만 사용해야 함
-    public static class SelectRecentlyGIDThread extends Thread {
-        int[] gid;
-        public SelectRecentlyGIDThread(int[] gid) {this.gid=gid;}
-        @Override
-        public void run() {
-            this.gid[0]=groupDAO.getRecentlyGID();
-        }
-    }
 
     public static class SelectGnameThraed extends Thread {
         int gidList;

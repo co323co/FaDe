@@ -22,6 +22,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fade.DB.DBThread;
 import com.example.fade.DB.entity.Person;
+import com.example.fade.Server.CommServer;
+import com.example.fade.Server.PersonData;
 
 import java.util.ArrayList;
 
@@ -54,24 +56,23 @@ class AddGroupDialog extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_add_group);
 
+        CommServer commServer = new CommServer(context);
+
         //LeftListView에서 선택됐는지 안선택됐는지를 체크해놓기 위한 배열
-        final ArrayList<Person> checkedList = new ArrayList<Person>();
+        final ArrayList<PersonData> checkedList = new ArrayList<>();
 
         //셋팅
-        mPositiveButton=(Button)findViewById(R.id.btn_addGroup_ok);
-        mNegativeButton=(Button)findViewById(R.id.btn_addGroup_no);
+        mPositiveButton= findViewById(R.id.btn_addGroup_ok);
+        mNegativeButton= findViewById(R.id.btn_addGroup_no);
 
         //호출하는 곳에서 인터페이스 설계해줌으로써 사용
         //클릭 리스너 셋팅 (클릭버튼이 동작하도록 만들어줌.)
-        mPositiveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                result.name = ((EditText)findViewById(R.id.et_add_groupName)).getText().toString();
-                for(int i=0; i<checkedList.size(); i++) result.personIDList.add(checkedList.get(i).getPid());
+        mPositiveButton.setOnClickListener(view -> {
+            result.name = ((EditText)findViewById(R.id.et_add_groupName)).getText().toString();
+            for(int i=0; i<checkedList.size(); i++) result.personIDList.add(checkedList.get(i).getId());
 
-                customDialogClickListener.onPositiveClick();
-                dismiss();
-            }
+            customDialogClickListener.onPositiveClick();
+            dismiss();
         });
         mNegativeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,10 +85,8 @@ class AddGroupDialog extends Dialog {
         final RecyclerView rv_right = findViewById(R.id.rv_addGroupPerson_right);
         ListView lv_left = findViewById(R.id.lv_addGroupPerson_left);
 
-        LinearLayoutManager linearLayoutManager1 = new LinearLayoutManager(getContext());
-        LinearLayoutManager linearLayoutManager2 = new LinearLayoutManager(getContext());
-        rv_right.setLayoutManager(linearLayoutManager2);
-
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        rv_right.setLayoutManager(linearLayoutManager);
 
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
         final RightAdapter rightAdapter = new RightAdapter(checkedList);
@@ -97,11 +96,7 @@ class AddGroupDialog extends Dialog {
         final int SELECTED_COLOR = Color.parseColor("#C3E8E4E4");
         final int DEFAULT_COLOR = Color.WHITE;
 
-        final ArrayList<Person> personList=new ArrayList<Person>();
-
-        DBThread.SelectPersonThraed t  = new DBThread.SelectPersonThraed(personList);
-        t.start();
-        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+        final ArrayList<PersonData> personList=commServer.getAllPersons();
 
         final boolean isChecked[] = new boolean[personList.size()];
 
@@ -135,12 +130,12 @@ class AddGroupDialog extends Dialog {
 
         LayoutInflater mLayoutInflater = null;
 
-        ArrayList<Person> personList;
+        ArrayList<PersonData> personList;
         boolean isChecked[];
 
         int SELECTED_COLOR = Color.parseColor("#C3E8E4E4");
 
-        LeftListAdapter(ArrayList<Person> personList, boolean isChecked[]){
+        LeftListAdapter(ArrayList<PersonData> personList, boolean isChecked[]){
             mLayoutInflater = LayoutInflater.from((context));
             this.personList=personList;
             this.isChecked = isChecked;
@@ -170,8 +165,8 @@ class AddGroupDialog extends Dialog {
             ConvertFile convertFile = new ConvertFile(context);
 
             //프로필 사진 없으면 기본 이미지 띄움
-            if(personList.get(i).getProfile_picture() != null){
-                Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(i).getProfile_picture());
+            if(personList.get(i).getThumbnail() != null){
+                Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(i).getThumbnail());
                 profile.setImageBitmap(bitmap);
             }
             else
@@ -186,7 +181,7 @@ class AddGroupDialog extends Dialog {
 
     class RightAdapter extends RecyclerView.Adapter<RightAdapter.RVHolder>{
 
-        ArrayList<Person> checkedList;
+        ArrayList<PersonData> checkedList;
 
         public class RVHolder extends RecyclerView.ViewHolder {
                 View view;
@@ -196,7 +191,7 @@ class AddGroupDialog extends Dialog {
                 }
         }
         //어뎁터 생성자
-        RightAdapter(ArrayList<Person> checkedList) {
+        RightAdapter(ArrayList<PersonData> checkedList) {
             this.checkedList=checkedList;
         }
         @NonNull
@@ -218,8 +213,8 @@ class AddGroupDialog extends Dialog {
             ConvertFile convertFile = new ConvertFile(context);
 
             //프로필 사진 없으면 기본 이미지 띄움
-            if(checkedList.get(position).getProfile_picture() != null){
-                Bitmap bitmap = convertFile.byteArrayToBitmap(checkedList.get(position).getProfile_picture());
+            if(checkedList.get(position).getThumbnail() != null){
+                Bitmap bitmap = convertFile.byteArrayToBitmap(checkedList.get(position).getThumbnail());
                 iv_profile.setImageBitmap(bitmap);
             }
             else

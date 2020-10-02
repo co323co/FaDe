@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,19 +22,12 @@ import com.bumptech.glide.Glide;
 import com.esafirm.imagepicker.model.Image;
 import com.example.fade.DB.DBThread;
 import com.example.fade.DB.entity.Person;
+import com.example.fade.Server.CommServer;
 import com.example.fade.Server.ConnService;
-import com.example.fade.Server.ReturnData;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -152,51 +144,25 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 //                    Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
 
                    //////////////////비트맵들을 이진파일들로 변환
+
                    ArrayList<byte[]> byteList=new ArrayList<byte[]>();
 
                    ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmaps,byteList);
                    t.start();
                    try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-                   //바이트사진들 -> base64String으로 인코딩
-                   //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
-                   JSONObject enPicureList = new JSONObject();
-                   for(int i=0; i< byteList.size();i++){ try { enPicureList.put("byte_"+i, Base64.encodeToString(byteList.get(i), Base64.NO_WRAP)); } catch (JSONException e) { e.printStackTrace();} }
-
-                   //////////////////
-                   //byte[]를 String으로 인코딩해서 보내고, 서버에서 디코딩해서 사용함
                    String profile_name = getIntent().getExtras().getString("profile_name");
                    byte[] profile_thumbnail = getIntent().getExtras().getByteArray("profile_thumbnail");
 
-                   HashMap<String, Object> input = new HashMap<>();
-                   input.put("userEmail", LoginActivity.UserEmail);
-                   input.put("pname", profile_name);
-                   input.put("pictureList", enPicureList);
                    if(profile_thumbnail==null) Log.d("RegiPersonActivity2", "profile_thumbnail is null, 프로필 선택 안함");
-                   if(profile_thumbnail!=null){
-                       String enThumbnail = Base64.encodeToString(profile_thumbnail, Base64.NO_WRAP);
-                       input.put("thumbnail", enThumbnail);
-                   }
-                   ConnService.postRegisterPerson(input).enqueue(new Callback<ReturnData>() {
-                       @Override
-                       public void onResponse(Call<ReturnData> call, Response<ReturnData> response) {
-                           if (response.isSuccessful()) {
-                               ReturnData body = response.body();
-                               if (body != null) { Log.d("server", "사진 던져주기 성공 (postRegisterPerson)"); } }
-                       }
-                       @Override
-                       public void onFailure(Call<ReturnData> call, Throwable t) {
-                           Log.e("server", "통신 실패 : postRegisterPerson : " + t.getMessage()); }
-                   });
-                   Log.d("server", "서버전송 완료");
+
+                   new CommServer(getApplicationContext()).postRegisterPerson(LoginActivity.UserEmail, profile_name, profile_thumbnail, byteList);
                    Intent intent = new Intent(getApplicationContext(),MainActivity.class);
                    startActivity(intent);
                    finish();
                }
            };
             t.start();
-//            try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-
         });
 
 

@@ -24,6 +24,7 @@ class Group(Base):
     favorites = Column(Integer, nullable=False)
 
     uid = Column(Integer, ForeignKey('User.id',ondelete='CASCADE'))
+
     def __init__(self, uid, name=None, favorites = 0):
         self.uid = uid
         self.name = name

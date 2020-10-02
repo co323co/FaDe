@@ -95,7 +95,10 @@ def getAllPersons(userEmail):
     rows = result.fetchall()
     dicList = []
     for v in rows:
-        dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : base64.b64encode(v[2])})
+        if v[2] is None:
+            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : v[2]})
+        else:    
+            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : base64.b64encode(v[2])})
     return json.dumps(dicList)
 
 @app.route('/db/GetPersonsByGid/<gid>')

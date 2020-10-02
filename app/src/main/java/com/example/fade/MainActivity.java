@@ -39,7 +39,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.fade.DB.entity.Group;
 import com.example.fade.Server.CommServer;
 import com.example.fade.Server.GroupData;
 import com.example.fade.Server.PersonData;
@@ -218,13 +217,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //그룹리스트 새로고침
 
         groupList.clear();
-        groupList.addAll(new CommServer(getApplicationContext()).getAllGroups());
-
-        //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
         rv.removeAllViewsInLayout();
-        groupAdapter = new GroupAdapter(groupList);
-        rv.setAdapter(groupAdapter);
 
+        Handler handler = new Handler();
+        new Thread(){
+            @Override
+            public void run() {
+                groupList.addAll(new CommServer(getApplicationContext()).getAllGroups());
+                handler.post(() -> {
+                    //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
+                    groupAdapter = new GroupAdapter(groupList);
+                    rv.setAdapter(groupAdapter);
+                });
+            }
+        }.start();
     }
 
     @Override
@@ -263,13 +269,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 Toast.makeText(getApplicationContext(),"그룹 등록 중입니다", Toast.LENGTH_SHORT).show();
 
-                Group group = new Group(result.name, result.personIDList);
-
                 CommServer commServer = new CommServer(getApplicationContext());
-                commServer.postRegisterGroup(LoginActivity.UserEmail, result.name, result.personIDList);
-                groupList= commServer.getAllGroups();
-                groupAdapter.notifyDataSetChanged();
-                rv.scrollToPosition(groupList.size()-1);
+                Handler handler = new Handler();
+                new Thread(){
+                    @Override
+                    public void run() {
+                        commServer.registerGroup(LoginActivity.UserEmail, result.name, result.personIDList);
+                        groupList.clear();
+                        groupList.addAll(commServer.getAllGroups());
+                        handler.post(() -> {
+                            groupAdapter.notifyDataSetChanged();
+                            rv.scrollToPosition(groupList.size()-1);
+                            Toast.makeText(getApplicationContext(),"그룹 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }.start();
+
             }
             @Override
             public void onNegativeClick() { }
@@ -354,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 }
 
-class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
+ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
     ArrayList<GroupData> groupList;
     ArrayList<GroupData> favorites=new ArrayList<>();
@@ -378,7 +393,7 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
 
     }
 
-    GroupAdapter(ArrayList<GroupData> groupList){
+     GroupAdapter(ArrayList<GroupData> groupList){
         this.groupList=groupList;
         //즐겨찾기 추가된 그룹들(favorites가 1이상)은 favorites 리스트에 담아서 관리함
         for(GroupData g : groupList) { if(g.getFavorites()>0) favorites.add(g); }
@@ -482,10 +497,18 @@ class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
             GroupData group = groupList.get(position);
             @Override
             public void onClick(View view) {
-                commServer.DeleteGroup(LoginActivity.UserEmail, group.getId());
-                Toast.makeText(holder.view.getContext(),"그룹 삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
-                groupList = commServer.getAllGroups();
-                notifyDataSetChanged();
+                Handler handler = new Handler();
+                new Thread(){
+                    @Override
+                    public void run() {
+                        commServer.deleteGroup(LoginActivity.UserEmail, group.getId());
+                        groupList = commServer.getAllGroups();
+                        handler.post(() -> {
+                            Toast.makeText(holder.view.getContext(),"그룹 삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
+                            notifyDataSetChanged();
+                        });
+                    }
+                }.start();
             }
         });
 

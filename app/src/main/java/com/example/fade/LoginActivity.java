@@ -24,7 +24,6 @@ import com.google.android.gms.tasks.Task;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -100,7 +99,13 @@ public class LoginActivity extends AppCompatActivity {
             //로그인시 서버에 User 등록함 (중복일경우 알아서 안들어감)
             ///////////////////////////////////////////////////////////
             UserEmail= userAccount.getEmail();
-            new CommServer(getApplicationContext()).putRegisterUser();
+
+            Thread t = new Thread(){
+                @Override
+                public void run() {
+                    new CommServer(getApplicationContext()).putRegisterUser();
+                }}; t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+
             profile();  //사용자 정보 토스트로 출력
             Intent intent=new Intent(getApplicationContext(),TutorialActivity.class);
             startActivity(intent);
@@ -110,8 +115,6 @@ public class LoginActivity extends AppCompatActivity {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
             Log.e(TAG,"signInResult:failed code=" + e.getStatusCode());
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
     @RequiresApi(api = Build.VERSION_CODES.N)

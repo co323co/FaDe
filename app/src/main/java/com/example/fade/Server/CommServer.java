@@ -51,9 +51,9 @@ public class CommServer {
         this.context = context; this.uriArrayList_ = uriArrayList;
     }
 
-
+    //스래드로 사용해주세요
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void putRegisterUser() throws IOException {
+    public void putRegisterUser() {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -85,22 +85,15 @@ public class CommServer {
 
         Call<List<GroupData>> call = connService.getAllGroups(LoginActivity.UserEmail);
 
-        Thread t = new Thread(){
-            @Override
-            public void run() {
-                try {
-                    List<GroupData> result = call.execute().body();
-                    groupList.addAll(new ArrayList<>(result));
-                    Log.e("server", "통신성공(getAllGroups) groupList size : " +  groupList.size());
+        try {
+            List<GroupData> result = call.execute().body();
+            groupList.addAll(new ArrayList<>(result));
+            Log.d("server", "통신성공(getAllGroups) groupList size : " +  groupList.size());
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e("server", "통신실패(getAllGroups) " +  e.getMessage());
-                }
-            }
-        };
-        t.start();
-        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패(getAllGroups) " +  e.getMessage());
+        }
 
         return groupList;
     }
@@ -123,7 +116,7 @@ public class CommServer {
                 try {
                     List<PersonData> result = call.execute().body();
                     personList.addAll(new ArrayList<>(result));
-                    Log.e("server", "통신성공(getAllPersons) personList size : " +  personList.size());
+                    Log.d("server", "통신성공(getAllPersons) personList size : " +  personList.size());
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -155,7 +148,7 @@ public class CommServer {
                 try {
                     List<Integer> result = call.execute().body();
                     pidList.addAll(new ArrayList<>(result));
-                    Log.e("server", "통신성공(getPidListByGid) pidList size : " +  pidList.size());
+                    Log.d("server", "통신성공(getPidListByGid) pidList size : " +  pidList.size());
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -187,7 +180,7 @@ public class CommServer {
                 try {
                     List<PersonData> result = call.execute().body();
                     personList.addAll(new ArrayList<>(result));
-                    Log.e("server", "통신성공(getPersonsByGid) personList size : " +  personList.size());
+                    Log.d("server", "통신성공(getPersonsByGid) personList size : " +  personList.size());
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -219,7 +212,7 @@ public class CommServer {
                 try {
                     List<GroupData> result = call.execute().body();
                     groupList.addAll(new ArrayList<>(result));
-                    Log.e("server", "통신성공(getGroupsByPid) personList size : " +  groupList.size());
+                    Log.d("server", "통신성공(getGroupsByPid) personList size : " +  groupList.size());
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -233,7 +226,8 @@ public class CommServer {
         return groupList;
     }
 
-    public void postRegisterPerson(String userEmail ,String pname, byte[] thumbnail, ArrayList<byte[]> pictureList){
+    //스래드로 사용해주삼
+    public void registerPerson(String userEmail ,String pname, byte[] thumbnail, ArrayList<byte[]> pictureList){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -249,6 +243,7 @@ public class CommServer {
             input.put("thumbnail", enThumbnail);
         }
         if(pictureList!=null){
+            Log.d("server", "pictureList is not null : " + pictureList.size());
             //바이트사진들 -> base64String으로 인코딩
             //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
             JSONObject enPicureList = new JSONObject();
@@ -274,7 +269,7 @@ public class CommServer {
         });
     }
 
-    public void postRegisterGroup(String userEmail ,String gname, ArrayList<Integer> pidList){
+    public void registerGroup(String userEmail ,String gname, ArrayList<Integer> pidList){
 //        <<그룹등록>>
 //        서버에 uid, gid, (그룹의)pidList 던져주는 함수
 //         (서버 : pid폴더들에서 사진 찾아내서 그룹단위 모델을 학습함 -> uid/group_model 폴더에 모델 저장
@@ -289,23 +284,14 @@ public class CommServer {
         input.put("gname", gname);
         input.put("pidList", pidList);
 
-        Log.d("pidList", pidList.toString());
-        connService.postRegisterGroup(input).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", "그룹 등록하기 성공 (postRegisterGroup)"); }
-                    Toast.makeText(context,"그룹 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (postRegisterGroup)"+t.getMessage());
-                Toast.makeText(context,"통신실패", Toast.LENGTH_SHORT).show();
-            }
-
-        });
+        Call<ResponseBody> call = connService.postRegisterGroup(input);
+        try {
+            call.execute().body();
+            Log.d("server", "그룹 등록하기 성공 (postRegisterGroup)");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패(postRegisterGroup) " +  e.getMessage());
+        }
     }
 
     //(수정할 그룹의 gid는 넣어줘야함) 수정할 값만 넣어주고, 유지할 값들은 인자로 null을 넣으면 됨
@@ -339,7 +325,7 @@ public class CommServer {
 
     }
 
-    public void DeleteGroup(String uid ,int gid){
+    public void deleteGroup(String uid ,int gid){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)
@@ -351,18 +337,8 @@ public class CommServer {
         input.put("userEmail", uid);
         input.put("gid", gid);
 
-        connService.DeleteGroup(input).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    ResponseBody body = response.body();
-                    if (body != null) { Log.d("server", "그룹 삭제 성공 (DeleteGroup)"); } }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) { Log.e(t.toString(), "통신실패 (DeleteGroup)"+t.getMessage()); }
-        });
-
+        Call<ResponseBody> call = connService.postDeleteGroup(input);
+        try { call.execute(); } catch (IOException e) { e.printStackTrace(); }
     }
 
     public void DeletePerson(String userEmail , int pid){

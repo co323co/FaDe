@@ -66,7 +66,7 @@ public interface ConnService {
 
     @FormUrlEncoded
     @POST("/delete/group")
-    Call<ResponseBody> DeleteGroup(@FieldMap HashMap<String, Object> param);
+    Call<ResponseBody> postDeleteGroup(@FieldMap HashMap<String, Object> param);
 
     @FormUrlEncoded
     @POST("/delete/person")

@@ -6,10 +6,10 @@ public class PersonData {
 
     private int id;
     private String name;
-    private byte[] thumbnail;
+    private String thumbnail;
 
     //JSON key 문자열이랑 변수명랑 이름이 같아야함
-    public PersonData(int id, String name, byte[] thumbnail) {
+    public PersonData(int id, String name, String thumbnail) {
         this.id=id;
         this.name=name;
         this.thumbnail=thumbnail;
@@ -25,5 +25,5 @@ public class PersonData {
 
     public void setId(int id) {this.id=id;}
     public void setName(String name) {this.name=name;}
-    public void setThumbnail(byte[] thumbnail) {this.thumbnail=thumbnail;}
+    public void setThumbnail(byte[] thumbnail) { this.thumbnail = Base64.encodeToString(thumbnail, Base64.NO_WRAP); }
 }

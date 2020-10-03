@@ -268,7 +268,7 @@ public class CommServer {
     }
 
     //(수정할 그룹의 gid는 넣어줘야함) 수정할 값만 넣어주고, 유지할 값들은 인자로 null을 넣으면 됨
-    public void postEditGroup(int gid, String gname, ArrayList<Integer> pidList, Integer favorites){
+    public void editGroup(int gid, String gname, ArrayList<Integer> pidList, Integer favorites){
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ConnService.URL)

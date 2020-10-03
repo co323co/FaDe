@@ -529,12 +529,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 for(int i=0; i<favorites.size(); i++) { favorites.get(i).setFavorites(i+1);}
 
                 Thread t = new Thread(){
-                    @Override public void run() { for(GroupData g : favorites){ commServer.postEditGroup(g.getId(), null, null, g.getFavorites()); } }
+                    @Override public void run() { for(GroupData g : favorites){ commServer.editGroup(g.getId(), null, null, g.getFavorites()); } }
                 };t.start(); //try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
             }
             Handler handler = new Handler();
             Thread t = new Thread(){ @Override public void run() {
-                commServer.postEditGroup(group.getId(), null,null,group.getFavorites());
+                commServer.editGroup(group.getId(), null,null,group.getFavorites());
                 groupList.clear();
                 groupList.addAll(commServer.getAllGroups());
                 handler.post(() -> { notifyDataSetChanged(); });
@@ -580,7 +580,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             new Thread(){
                 @Override
                 public void run() {
-                    commServer.postEditGroup(group.getId(), et_name.getText().toString(), null, null);
+                    commServer.editGroup(group.getId(), et_name.getText().toString(), null, null);
                 }
             }.start();
             et_name.setEnabled(false);
@@ -636,7 +636,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new Thread(){
                         @Override
                         public void run() {
-                            commServer.postEditGroup(group.getId(), null, result, null);
+                            commServer.editGroup(group.getId(), null, result, null);
                             groupList = commServer.getAllGroups();
                             handler.post(() -> notifyDataSetChanged());
                             Handler mHandler = new Handler(Looper.getMainLooper());

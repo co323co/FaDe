@@ -402,6 +402,7 @@ public class CommServer {
                     Toast.makeText(context,"이미지 분류 실패", Toast.LENGTH_SHORT ).show();
                     ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
                     e.printStackTrace();
+                    Log.e("updateGalleryImage", "이미지 분류 실패" + e.toString());
                 }
             });
 

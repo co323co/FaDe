@@ -23,8 +23,6 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.fade.DB.DBThread;
-import com.example.fade.DB.entity.Person;
 import com.example.fade.Server.CommServer;
 import com.example.fade.Server.PersonData;
 

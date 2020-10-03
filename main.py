@@ -352,9 +352,9 @@ class DetectionPicture(Resource):
             print("-------------------------------------------------------")
 
         try:
-            shutil.rmtree(main_folder+'uid_'+ uid+'/tmp', ignore_errors=True)  #폴더 삭제
-        except:
-            print('Error : Removing tmp directory')    
+            shutil.rmtree(main_folder+'uid_'+ str(uid)+'/tmp', ignore_errors=True)  #폴더 삭제
+        except Exception as e:
+            print('Error : Removing tmp directory : ', e)
 
         print("================================")
         elapsed = time.time()-ts_total

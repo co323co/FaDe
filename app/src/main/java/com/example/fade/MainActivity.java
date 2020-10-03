@@ -352,42 +352,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
 
-
                 CommServer commServer = new CommServer(getApplicationContext());
-                Handler handler = new Handler();
+                Handler mHandler = new Handler(Looper.getMainLooper());
                 new Thread(){
                     @Override
                     public void run() {
-                        Handler mHandler = new Handler(Looper.getMainLooper());
-                        mHandler.postAtFrontOfQueue(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-                                LayoutInflater inflater = (LayoutInflater)view.getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-                                View view1 = inflater.inflate(R.layout.progress_alert_layout, null);
-
-                                builder.setView(view1)
-                                        .setCancelable(false);
-                                TextView text = (TextView)view1.findViewById(R.id.alert_text);
-                                text.setText("그룹을 등록 중 입니다\n\n잠시만 기다려주세요...");
-                                alertDialog = builder.create();
-                                alertDialog.show();
-                            }
+                        mHandler.postAtFrontOfQueue((Runnable) () -> {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                            LayoutInflater inflater = (LayoutInflater)view.getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                            View view1 = inflater.inflate(R.layout.progress_alert_layout, null);
+                            builder.setView(view1)
+                                    .setCancelable(false);
+                            TextView text = (TextView)view1.findViewById(R.id.alert_text);
+                            text.setText("그룹을 등록 중 입니다\n\n잠시만 기다려주세요...");
+                            alertDialog = builder.create();
+                            alertDialog.show();
                         });
                         commServer.registerGroup(LoginActivity.UserEmail, result.name, result.personIDList);
                         groupList.clear();
                         groupList.addAll(commServer.getAllGroups());
-                        handler.post(() -> {
-                            mHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    alertDialog.dismiss();
-                                }
-                            });
+                        mHandler.post(() -> {
                             groupAdapter.notifyDataSetChanged();
                             rv.scrollToPosition(groupList.size()-1);
                             Toast.makeText(getApplicationContext(),"그룹 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
+                            alertDialog.dismiss();
                         });
                     }
                 }.start();

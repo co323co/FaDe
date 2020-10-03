@@ -31,7 +31,7 @@ public class GalleryUpdate {
         groupUriList = new ArrayList<>();
         String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/10/00";
+        last_update = "2020/10/02";
 
         ConvertFile convertFile  = new ConvertFile(context);
 

@@ -68,19 +68,19 @@ public class RegiPersonActivity2 extends AppCompatActivity {
             //서버 코드
             //////////////////////////////////////////////
             new Thread() {
-               @Override
-               public void run() {
+                @Override
+                public void run() {
 
-                   Log.d("testtest", "실행시작");
-                   //이미지들 비트맵으로 변환
-                   for (Image image : images) {
+                    Log.d("testtest", "실행시작");
+                    //이미지들 비트맵으로 변환
+                    for (Image image : images) {
 
-                       Uri uri = image.getUri();
-                       String rotation = convertFile.getRotationOfAllImage(uri);
+                        Uri uri = image.getUri();
+                        String rotation = convertFile.getRotationOfAllImage(uri);
 //                    Log.d("testtest", "get로테완료");
 
 //                       Bitmap bm = null;
-                    Bitmap bm  = convertFile.resize(uri, 200);
+                        Bitmap bm  = convertFile.resize(uri, 200);
 //                       Bitmap bm = null;
 //                       try {
 //                           bm = new Resizer(getApplicationContext())
@@ -95,18 +95,18 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 //                       } catch (IOException e) {
 //                           e.printStackTrace();
 //                       }
-                       Log.d("testtest", "resize 완료");
+                        Log.d("testtest", "resize 완료");
 //                    Log.d("testtest", "uri to bm 완료");
 
-                       Bitmap bmRotated=null;
-                       try{
-                           bmRotated = convertFile.rotateBitmap2(bm, rotation); //bitmap 사진 파일(bitmap형태의)i
-                       }
-                       catch (Exception e) {Log.e("testtest", "rotateBitmap2 에러 :: " + e.toString());}
-                       bitmaps.add(bmRotated);
-                   }
-                   Log.d("testtest", "실행완료");
-                   /////////////API 낮은버전 (혹시모르니 지우지말자)
+                        Bitmap bmRotated=null;
+                        try{
+                            bmRotated = convertFile.rotateBitmap2(bm, rotation); //bitmap 사진 파일(bitmap형태의)i
+                        }
+                        catch (Exception e) {Log.e("testtest", "rotateBitmap2 에러 :: " + e.toString());}
+                        bitmaps.add(bmRotated);
+                    }
+                    Log.d("testtest", "실행완료");
+                    /////////////API 낮은버전 (혹시모르니 지우지말자)
 //                    ExifInterface exif = null; // 회전값
 //                    try {
 //                        exif = new ExifInterface(filePath);
@@ -116,19 +116,19 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 //                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
 //                    Bitmap bmRotated = rotateBitmap(bm, orientation); //bitmap 사진 파일(bitmap형태의)i
 
-                   //////////////////비트맵들을 이진파일들로 변환
+                    //////////////////비트맵들을 이진파일들로 변환
 
-                   ArrayList<byte[]> byteList= new ArrayList<>();
-                   ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmaps,byteList);
-                   t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+                    ArrayList<byte[]> byteList= new ArrayList<>();
+                    ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmaps,byteList);
+                    t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
 
-                   new CommServer(getApplicationContext()).registerPerson(LoginActivity.UserEmail, profile_name, profile_thumbnail, byteList);
+                    new CommServer(getApplicationContext()).registerPerson(LoginActivity.UserEmail, profile_name, profile_thumbnail, byteList);
 
-                   Intent intent = new Intent(getApplicationContext(),MainActivity.class);
-                   startActivity(intent);
-                   finish();
-               }
-           }.start();
+                    Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+            }.start();
         });
 
 

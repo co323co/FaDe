@@ -85,4 +85,7 @@ dependencies {
 
     implementation 'me.relex:circleindicator:2.1.4'
 
+    def work_version = "2.4.0"
+    implementation "androidx.work:work-runtime:$work_version"
+
 }

@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fade.DB.DBThread;
 import com.example.fade.DB.entity.Person;
 import com.example.fade.Server.CommServer;
+import com.example.fade.Server.PersonData;
 
 import java.util.ArrayList;
 
@@ -33,7 +34,7 @@ public class MainDrawerFragment extends Fragment {
 
     final int CODE_REGI_PERSON = 0;
     PersonAdapter personAdapter;
-    ArrayList<Person> personList=new ArrayList<Person>();
+    ArrayList<PersonData> personList=new ArrayList<PersonData>();
     RecyclerView rv;
     int n=0;
     @Nullable
@@ -49,10 +50,26 @@ public class MainDrawerFragment extends Fragment {
         rv.addItemDecoration(new DividerItemDecoration(view.getContext(),1));
 
         //personList에 DB불러오기
-        new DBThread.SelectPersonThraed(personList).start();
+        //new DBThread.SelectPersonThraed(personList).start();
         //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
-        personAdapter = new PersonAdapter(personList);
-        rv.setAdapter(personAdapter);
+
+        Handler handler = new Handler();
+
+        new Thread(){
+            @Override
+            public void run() {
+                //personList.addAll(new CommServer(view.getContext()).getAllPersons());
+                personList = new CommServer(view.getContext()).getAllPersons();
+
+                handler.post(() -> {
+                    //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
+                    personAdapter = new PersonAdapter(personList, MainDrawerFragment.this);
+                    rv.setAdapter(personAdapter);
+                });
+            }
+        }.start();
+
+
 
         Button addButton = view.findViewById(R.id.btn_addPerson);
         addButton.setOnClickListener(new View.OnClickListener() {
@@ -63,6 +80,27 @@ public class MainDrawerFragment extends Fragment {
             }
         });
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        personList.clear();
+        rv.removeAllViewsInLayout();
+
+        Handler handler = new Handler();
+        new Thread(){
+            @Override
+            public void run() {
+                personList.addAll(new CommServer(getView().getContext()).getAllPersons());
+                handler.post(() -> {
+                    //어댑터 생성 후 리싸이클러뷰 어뎁터랑 연결
+                    personAdapter = new PersonAdapter(personList, MainDrawerFragment.this);
+                    rv.setAdapter(personAdapter);
+                });
+            }
+        }.start();
     }
 
     @Override
@@ -89,9 +127,9 @@ public class MainDrawerFragment extends Fragment {
 //PersonRecyclerViewAdapter
 class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
 
-    ArrayList<Person> personList;
+    ArrayList<PersonData> personList;
     Context context;
-
+    MainDrawerFragment mainDrawerFragment;
     public PersonAdapter(Context context){
         this.context = context;
     }
@@ -107,8 +145,9 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
         }
     }
 
-    PersonAdapter(ArrayList<Person> personList){
+    PersonAdapter(ArrayList<PersonData> personList, MainDrawerFragment mainDrawerFragment){
         this.personList=personList;
+        this.mainDrawerFragment=mainDrawerFragment;
     }
 
 
@@ -134,8 +173,8 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
         ConvertFile convertFile = new ConvertFile(context);
 
         //프로필 사진 없으면 기본 이미지 띄움
-        if(personList.get(position).getProfile_picture() != null){
-            Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(position).getProfile_picture());
+        if(personList.get(position).getThumbnail() != null){
+            Bitmap bitmap = convertFile.byteArrayToBitmap(personList.get(position).getThumbnail());
             iv_profile.setImageBitmap(bitmap);
         }
         else
@@ -152,10 +191,13 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                     @Override
                     public void run() {
                         //서버에서 person 지워줌
-                        new CommServer(holder.view.getContext()).deletePerson(LoginActivity.UserEmail, personList.get(position).getPid());
+                        new CommServer(holder.view.getContext()).deletePerson(LoginActivity.UserEmail, personList.get(position).getId());
+                        //TODO: 인물이 삭제되면 연관된 그룹 모델 재학습하고 GROUP_INFO(CSV파일 대신하는 테이블)수정해야함!!
+
                         handler.post(() -> {
                             //인물리스트가 바뀌었으니  그룹리스트뷰도 새로고침 해준다.
                             ((MainActivity)MainActivity.CONTEXT).onResume();
+                            mainDrawerFragment.onResume();
                             Toast.makeText(holder.view.getContext(),"사람삭제를 성공했습니다!", Toast.LENGTH_SHORT).show();
                         });
                     }

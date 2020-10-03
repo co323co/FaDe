@@ -35,6 +35,10 @@
         <activity android:name=".RegiPersonActivity2"/>
         <activity android:name=".TutorialActivity"/>
         <activity android:name=".OptionActivity"/>
+
+        <service android:name=".Alarm.AlarmService"
+            android:stopWithTask="false" />
+        <receiver android:name=".Alarm.AlarmReceiver" />
     </application>
 
 </manifest>

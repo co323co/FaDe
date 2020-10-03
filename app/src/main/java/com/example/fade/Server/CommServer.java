@@ -190,6 +190,7 @@ public class CommServer {
                 try {
                     List<GroupData> result = call.execute().body();
                     groupList.addAll(new ArrayList<>(result));
+                    Log.e("그룹리스트 반환", groupList+"");
                     Log.d("server", "통신성공(getGroupsByPid) personList size : " +  groupList.size());
 
                 } catch (IOException e) {
@@ -377,7 +378,11 @@ public class CommServer {
             @Override
             public void onResponse(Call<List<String>> call, Response<List<String>> response) {
                 try {
+
+                    //List<String> result = call.execute().body();
+                    //gnameList.addAll(new ArrayList<>(result));
                     gnameList.addAll(new ArrayList<>(response.body()));
+                    Log.e("결과 반환", gnameList+"");
                     moveGalleryImage(gnameList, uriArrayList);
                     Toast.makeText(context,"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
                     if(MainActivity.CONTEXT!=null){
@@ -394,7 +399,7 @@ public class CommServer {
             public void onFailure(Call<List<String>> call, Throwable t) {
                 Log.i("server", "통신실패 (postDetectionPicture) : " + t.getMessage()+"" );
                 Toast.makeText(context,"통신실패", Toast.LENGTH_SHORT ).show();
-                ((MainActivity)(context)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
+                ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
             }
         });
     }

@@ -24,7 +24,7 @@ public class ConvertFile {
     }
 
     //비트맵을 바이트로 바꿔주는  스래드
-    class bitmapsToByteArrayThread extends Thread
+    public class bitmapsToByteArrayThread extends Thread
     {
         ArrayList<Bitmap> bitmaps;
         ArrayList<byte[]> byteList;

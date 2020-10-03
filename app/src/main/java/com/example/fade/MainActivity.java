@@ -2,6 +2,7 @@ package com.example.fade;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -11,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,13 +34,19 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
+import com.example.fade.Alarm.AlarmService;
+import com.example.fade.Alarm.UploadWorker;
 import com.example.fade.Server.CommServer;
 import com.example.fade.Server.GroupData;
 import com.example.fade.Server.PersonData;
@@ -54,6 +62,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -112,7 +121,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mMenu = menu;
         MenuItem item = (MenuItem) menu.findItem(R.id.menu_alarm);
         sharedPrefs = getSharedPreferences("alarm_check", MODE_PRIVATE);
-        item.setChecked(sharedPrefs.getBoolean("check_switch", true));
+        item.setChecked(sharedPrefs.getBoolean("check_switch", false));
+        if(item.isChecked()){
+            startService(new Intent(this, AlarmService.class));
+            final PeriodicWorkRequest saveRequest =
+                    new PeriodicWorkRequest.Builder(UploadWorker.class, 15, TimeUnit.MINUTES)
+                            .build();
+
+            WorkManager
+                    .getInstance(this)
+                    //.enqueue(saveRequest);
+                    //.enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.KEEP,saveRequest);
+                    .enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.KEEP, saveRequest);
+
+        }
+
 
         return true;
     }
@@ -157,17 +180,70 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.menu_alarm:
 
                 if (item.isChecked()) {
-                    item.setChecked(false);
-                    Toast.makeText(getApplicationContext(),"갤러리 자동정리 비활성화",Toast.LENGTH_SHORT).show();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
+                    builder.setTitle("갤러리 자동정리 기능 설정").setMessage("갤러리 자동정리 기능을 비활성화 하시겠습니까?");
+                    builder.setPositiveButton("설정", new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            WorkManager.getInstance(getApplicationContext()).cancelUniqueWork("gallery_update");
+                            stopService(new Intent(getApplicationContext(), AlarmService.class));
+
+
+                            item.setChecked(false);
+                            Toast.makeText(getApplicationContext(),"갤러리 자동정리 비활성화",Toast.LENGTH_SHORT).show();
+                            SharedPreferences.Editor editor = getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
+                            editor.putBoolean("check_switch", item.isChecked());
+                            editor.commit();
+
+                        }
+                    });
+                    builder.setNegativeButton("취소", new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dialog, int id)
+                        { }
+                    });
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
                 }
                 else {
-                    item.setChecked(true);
-                    Toast.makeText(getApplicationContext(),"갤러리 자동정리 활성화",Toast.LENGTH_SHORT).show();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+                    builder.setTitle("갤러리 자동정리 기능 설정").setMessage("갤러리 자동정리 기능을 사용하기 위해서 설정\n->검색 -> 배터리 사용량 최적화 -> 최적화하지 않은 앱 -> 전체 -> FaDe 설정해제 해야합니다.\n\n 갤러리 자동정리 기능을 활성화 하시겠습니까?");
+
+                    builder.setPositiveButton("설정", new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            startService(new Intent(CONTEXT, AlarmService.class));
+                            final PeriodicWorkRequest saveRequest =
+                                    new PeriodicWorkRequest.Builder(UploadWorker.class, 15, TimeUnit.MINUTES)
+                                            .build();
+
+                            WorkManager
+                                    .getInstance(CONTEXT)
+                                    //.enqueue(saveRequest);
+                                    //.enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.KEEP,saveRequest);
+                                    .enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.REPLACE, saveRequest);
+
+                            item.setChecked(true);
+                            Toast.makeText(getApplicationContext(),"갤러리 자동정리 활성화",Toast.LENGTH_SHORT).show();
+                            SharedPreferences.Editor editor = getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
+                            editor.putBoolean("check_switch", item.isChecked());
+                            editor.commit();
+                        }
+                    });
+                    builder.setNegativeButton("취소", new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dialog, int id)
+                        { }
+                    });
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+
                 }
-                SharedPreferences.Editor editor = getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
-                editor.putBoolean("check_switch", item.isChecked());
-                editor.commit();
+
                 break;
             case R.id.menu_option:
                 Intent intent_option = new Intent(getApplicationContext(),OptionActivity.class);
@@ -180,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(getApplicationContext(),"이미지 분류 시작", Toast.LENGTH_SHORT ).show();
 
                 mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(false);
-
+                GalleryUpdate galleryUpdate = new GalleryUpdate(this, groupUriList);
                 Handler handler = new Handler();
                 //selectGalleryImage selectGalleryImage = new selectGalleryImage(getApplicationContext());
                 Thread t = new Thread(){
@@ -189,11 +265,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         super.run();
                         try {
                             //갤러리 이미지 가져오기
-                            ArrayList<byte[]> byteList = getByteArrayOfRecentlyImages();
+                            ArrayList<byte[]> byteList = galleryUpdate.getByteArrayOfRecentlyImages();
                             CommServer commServer = new CommServer(getApplicationContext());
                             Log.i("updateGalleryImg","실행 시작");
                             //서버에 보낸 후 값 받기
-                            commServer.updateGalleryImg(byteList, groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
+                            commServer.updateGalleryImg(byteList, galleryUpdate.groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
                             handler.post(() -> {
                                 mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
                                 mMenu.findItem(R.id.menu_galleryRefresh).setActionView(new ProgressBar(CONTEXT));
@@ -296,7 +372,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //레이아웃
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
-    }
+    }/*
     private ArrayList<byte[]> getByteArrayOfRecentlyImages()   //최근 갤러리 이미지 가져오기
     {
         Uri uri;
@@ -305,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         groupUriList = new ArrayList<>();
         String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/09/26/05:25";
+        last_update = "2020/10/03";
 
         ConvertFile convertFile  = new ConvertFile(getApplicationContext());
 
@@ -366,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //업데이트한 날짜로 마지막에 업데이트한 날짜 바꿔주기!ㄱ
         //last_update = dateFormat.format(new Date());
         return byteList;
-    }
+    }*/
 }
 
  class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
@@ -563,7 +639,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             commServer.postEditGroup(group.getId(), null, result, null);
                             groupList = commServer.getAllGroups();
                             handler.post(() -> notifyDataSetChanged());
-                            Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
+                            Handler mHandler = new Handler(Looper.getMainLooper());
+                            mHandler.postAtFrontOfQueue(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // 사용하고자 하는 코드
+                                    Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
+
+                                }
+                            });
                         }
                     }.start();
                 }

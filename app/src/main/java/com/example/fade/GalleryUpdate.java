@@ -2,6 +2,7 @@ package com.example.fade;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -12,16 +13,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public class GalleryUpdate {
     public ArrayList<Uri> groupUriList;
     public Context context;
+    String last_update;
     public GalleryUpdate(Context context){
         this.context = context;
     }
 
-    public GalleryUpdate(Context context, ArrayList<Uri> groupUriList){
+    public GalleryUpdate(Context context, ArrayList<Uri> groupUriList, String last_update){
         this.groupUriList = groupUriList;
         this.context = context;
+        this.last_update = last_update;
     }
     public ArrayList<byte[]> getByteArrayOfRecentlyImages()   //최근 갤러리 이미지 가져오기
     {
@@ -31,7 +36,6 @@ public class GalleryUpdate {
         groupUriList = new ArrayList<>();
         String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/10/02";
 
         ConvertFile convertFile  = new ConvertFile(context);
 
@@ -68,7 +72,7 @@ public class GalleryUpdate {
             String DateOfImage = dateFormat.format(new Date(cursor.getLong(columnDate) * 1000L));
             ContentResolver contentResolver = context.getContentResolver();
 
-            int compare_time_last = DateOfImage.compareTo(last_update);//사진이 생성된 날짜와 마지막 업뎃 날짜를 비교하여
+            int compare_time_last = DateOfImage.compareTo(this.last_update);//사진이 생성된 날짜와 마지막 업뎃 날짜를 비교하여
             if(compare_time_last>=0){
                 try{
                     bitmaps.add(convertFile.resize(uriimage, 200));
@@ -90,7 +94,10 @@ public class GalleryUpdate {
         Log.i("getByteArrayOfRecentlyImages", i+"개의 사진의 바이트가 담긴 리스트 리턴함");
 
 //업데이트한 날짜로 마지막에 업데이트한 날짜 바꿔주기!ㄱ
-        //last_update = dateFormat.format(new Date());
+        last_update = dateFormat.format(new Date());
+        SharedPreferences.Editor editor = context.getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
+        editor.putString("last_update", last_update);
+        editor.commit();
         return byteList;
     }
 

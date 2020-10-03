@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,9 +31,9 @@ import com.example.fade.Server.PersonData;
 import java.util.ArrayList;
 
 import static android.app.Activity.RESULT_OK;
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 public class MainDrawerFragment extends Fragment {
-
     final int CODE_REGI_PERSON = 0;
     PersonAdapter personAdapter;
     ArrayList<PersonData> personList=new ArrayList<PersonData>();
@@ -126,7 +128,7 @@ public class MainDrawerFragment extends Fragment {
 
 //PersonRecyclerViewAdapter
 class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
-
+    AlertDialog alertDialog;
     ArrayList<PersonData> personList;
     Context context;
     MainDrawerFragment mainDrawerFragment;
@@ -190,11 +192,30 @@ class  PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PVHolder>{
                 Thread t = new Thread(){
                     @Override
                     public void run() {
+                        Handler mHandler = new Handler(Looper.getMainLooper());
+                        mHandler.postAtFrontOfQueue(new Runnable() {
+                            @Override
+                            public void run() {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                                LayoutInflater inflater = (LayoutInflater)view.getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                                View view1 = inflater.inflate(R.layout.progress_alert_layout, null);
+                                builder.setView(view1)
+                                        .setCancelable(false);
+                                alertDialog = builder.create();
+                                alertDialog.show();
+                            }
+                        });
+//
                         //서버에서 person 지워줌
                         new CommServer(holder.view.getContext()).deletePerson(LoginActivity.UserEmail, personList.get(position).getId());
-                        //TODO: 인물이 삭제되면 연관된 그룹 모델 재학습하고 GROUP_INFO(CSV파일 대신하는 테이블)수정해야함!!
 
                         handler.post(() -> {
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    alertDialog.dismiss();
+                                }
+                            });
                             //인물리스트가 바뀌었으니  그룹리스트뷰도 새로고침 해준다.
                             ((MainActivity)MainActivity.CONTEXT).onResume();
                             mainDrawerFragment.onResume();

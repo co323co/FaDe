@@ -64,16 +64,19 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     //AppDB를 static으로 생성할 때도 쓰임
     //다른 Actrivity or Fragment에서 메인의 그룹리싸이클러뷰를 새로고침 하기 위함
     public  static Context CONTEXT;
-
+    AlertDialog alertDialog;
+    SimpleDateFormat dateFormat;
     DrawerLayout drawerLayout;
 
     public Menu mMenu;
-
+    String last_update;
     RecyclerView rv;
     GroupAdapter groupAdapter;
     ArrayList<GroupData> groupList=new ArrayList<>();
@@ -120,7 +123,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getMenuInflater().inflate(R.menu.menu, menu);
         mMenu = menu;
         MenuItem item = (MenuItem) menu.findItem(R.id.menu_alarm);
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm");
+
         sharedPrefs = getSharedPreferences("alarm_check", MODE_PRIVATE);
+        last_update = sharedPrefs.getString("last_update", dateFormat.format(new Date()));
+        Log.e("마지막 업뎃 날짜", last_update);
         item.setChecked(sharedPrefs.getBoolean("check_switch", false));
         if(item.isChecked()){
             startService(new Intent(this, AlarmService.class));
@@ -180,10 +187,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.menu_alarm:
 
                 if (item.isChecked()) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    AlertDialog.Builder builder_alarm = new AlertDialog.Builder(this);
 
-                    builder.setTitle("갤러리 자동정리 기능 설정").setMessage("갤러리 자동정리 기능을 비활성화 하시겠습니까?");
-                    builder.setPositiveButton("설정", new DialogInterface.OnClickListener(){
+                    builder_alarm.setTitle("갤러리 자동정리 기능 설정").setMessage("갤러리 자동정리 기능을 비활성화 하시겠습니까?");
+                    builder_alarm.setPositiveButton("설정", new DialogInterface.OnClickListener(){
                         @Override
                         public void onClick(DialogInterface dialog, int id)
                         {
@@ -199,20 +206,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         }
                     });
-                    builder.setNegativeButton("취소", new DialogInterface.OnClickListener(){
+                    builder_alarm.setNegativeButton("취소", new DialogInterface.OnClickListener(){
                         @Override
                         public void onClick(DialogInterface dialog, int id)
                         { }
                     });
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
+                    AlertDialog alertDialog_alarm = builder_alarm.create();
+                    alertDialog_alarm.show();
                 }
                 else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    AlertDialog.Builder builder_alarm = new AlertDialog.Builder(this);
 
-                    builder.setTitle("갤러리 자동정리 기능 설정").setMessage("갤러리 자동정리 기능을 사용하기 위해서 설정\n->검색 -> 배터리 사용량 최적화 -> 최적화하지 않은 앱 -> 전체 -> FaDe 설정해제 해야합니다.\n\n 갤러리 자동정리 기능을 활성화 하시겠습니까?");
+                    builder_alarm.setTitle("갤러리 자동정리 기능 설정").setMessage("갤러리 자동정리 기능을 사용하기 위해서 설정\n->검색 -> 배터리 사용량 최적화 -> 최적화하지 않은 앱 -> 전체 -> FaDe 설정해제 해야합니다.\n\n 갤러리 자동정리 기능을 활성화 하시겠습니까?");
 
-                    builder.setPositiveButton("설정", new DialogInterface.OnClickListener(){
+                    builder_alarm.setPositiveButton("설정", new DialogInterface.OnClickListener(){
                         @Override
                         public void onClick(DialogInterface dialog, int id)
                         {
@@ -234,13 +241,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             editor.commit();
                         }
                     });
-                    builder.setNegativeButton("취소", new DialogInterface.OnClickListener(){
+                    builder_alarm.setNegativeButton("취소", new DialogInterface.OnClickListener(){
                         @Override
                         public void onClick(DialogInterface dialog, int id)
                         { }
                     });
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
+                    AlertDialog alertDialog_alarm = builder_alarm.create();
+                    alertDialog_alarm.show();
 
                 }
 
@@ -256,7 +263,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(getApplicationContext(),"이미지 분류 시작", Toast.LENGTH_SHORT ).show();
 
                 mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(false);
-                GalleryUpdate galleryUpdate = new GalleryUpdate(this, groupUriList);
+
+                GalleryUpdate galleryUpdate = new GalleryUpdate(this, groupUriList, last_update);
                 Handler handler = new Handler();
                 //selectGalleryImage selectGalleryImage = new selectGalleryImage(getApplicationContext());
                 Thread t = new Thread(){
@@ -343,17 +351,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(getApplicationContext(), "1명 이상 선택해주세요",Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(getApplicationContext(),"그룹 등록 중입니다", Toast.LENGTH_SHORT).show();
+
 
                 CommServer commServer = new CommServer(getApplicationContext());
                 Handler handler = new Handler();
                 new Thread(){
                     @Override
                     public void run() {
+                        Handler mHandler = new Handler(Looper.getMainLooper());
+                        mHandler.postAtFrontOfQueue(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                                LayoutInflater inflater = (LayoutInflater)view.getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                                View view1 = inflater.inflate(R.layout.progress_alert_layout, null);
+
+                                builder.setView(view1)
+                                        .setCancelable(false);
+                                TextView text = (TextView)view1.findViewById(R.id.alert_text);
+                                text.setText("그룹을 등록 중 입니다\n\n잠시만 기다려주세요...");
+                                alertDialog = builder.create();
+                                alertDialog.show();
+                            }
+                        });
                         commServer.registerGroup(LoginActivity.UserEmail, result.name, result.personIDList);
                         groupList.clear();
                         groupList.addAll(commServer.getAllGroups());
                         handler.post(() -> {
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    alertDialog.dismiss();
+                                }
+                            });
                             groupAdapter.notifyDataSetChanged();
                             rv.scrollToPosition(groupList.size()-1);
                             Toast.makeText(getApplicationContext(),"그룹 등록을 성공했습니다!", Toast.LENGTH_SHORT).show();
@@ -372,81 +403,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //레이아웃
         addGroupDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         addGroupDialog.show();
-    }/*
-    private ArrayList<byte[]> getByteArrayOfRecentlyImages()   //최근 갤러리 이미지 가져오기
-    {
-        Uri uri;
-        SimpleDateFormat dateFormat;
-        ArrayList<byte[]> byteList = new ArrayList<byte[]>();
-        groupUriList = new ArrayList<>();
-        String last_update; //제일 마지막에 업뎃한 시간
-        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        last_update = "2020/10/03";
-
-        ConvertFile convertFile  = new ConvertFile(getApplicationContext());
-
-        String[] projection = {
-//                MediaStore.MediaColumns.DATA,
-                MediaStore.MediaColumns._ID,
-                MediaStore.MediaColumns.DISPLAY_NAME,
-                MediaStore.MediaColumns.DATE_ADDED,
-        };
-
-        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'";
-        Cursor cursor = getContentResolver().query(uri, projection, where, null, MediaStore.MediaColumns.DATE_ADDED + " DESC");
-
-
-//        int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA); //절대경로 메타데이터에서 가져오기
-        int columnDisplayname = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);//파일 이름 메타데이터에서 가져오기
-        int columnDate = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED); //생성된 날짜 메타데이터에서 가져오기
-        int columnId = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID); //생성된 날짜 메타데이터에서 가져오기
-
-        int lastIndex;
-
-        dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm");
-        int i = 0;
-
-        ArrayList<Bitmap>bitmaps = new ArrayList<Bitmap>();
-        while (cursor.moveToNext())
-        {
-
-            Long IdOfImage = cursor.getLong(columnId);
-            Uri  uriimage = Uri.withAppendedPath(uri,""+IdOfImage);
-
-
-            String nameOfFile = cursor.getString(columnDisplayname);
-            String DateOfImage = dateFormat.format(new Date(cursor.getLong(columnDate) * 1000L));
-            ContentResolver contentResolver = getContentResolver();
-
-            int compare_time_last = DateOfImage.compareTo(last_update);//사진이 생성된 날짜와 마지막 업뎃 날짜를 비교하여
-            if(compare_time_last>=0){
-                try{
-                    bitmaps.add(convertFile.resize(uriimage, 200));
-                    groupUriList.add(uriimage);
-                    i++;
-
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
-            }
-        }
-        cursor.close();
-
-        //리사이즈된 비트맵들을 바이트들로 바꿔줌
-        ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmaps,byteList);
-        t.start();
-        try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
-
-        Log.i("getByteArrayOfRecentlyImages", i+"개의 사진의 바이트가 담긴 리스트 리턴함");
-
-//업데이트한 날짜로 마지막에 업데이트한 날짜 바꿔주기!ㄱ
-        //last_update = dateFormat.format(new Date());
-        return byteList;
-    }*/
+    }
 }
 
  class  GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GVHolder>{
-
+    AlertDialog alertDialog;
     ArrayList<GroupData> groupList;
     ArrayList<GroupData> favorites=new ArrayList<>();
     CommServer commServer;
@@ -529,7 +490,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 for(int i=0; i<favorites.size(); i++) { favorites.get(i).setFavorites(i+1);}
 
                 Thread t = new Thread(){
-                    @Override public void run() { for(GroupData g : favorites){ commServer.editGroup(g.getId(), null, null, g.getFavorites()); } }
+                    @Override public void run() {
+                        for(GroupData g : favorites)
+                        { commServer.editGroup(g.getId(), null, null, g.getFavorites()); } }
                 };t.start(); //try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
             }
             Handler handler = new Handler();
@@ -636,18 +599,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new Thread(){
                         @Override
                         public void run() {
-                            commServer.editGroup(group.getId(), null, result, null);
-                            groupList = commServer.getAllGroups();
-                            handler.post(() -> notifyDataSetChanged());
                             Handler mHandler = new Handler(Looper.getMainLooper());
                             mHandler.postAtFrontOfQueue(new Runnable() {
                                 @Override
                                 public void run() {
-                                    // 사용하고자 하는 코드
-                                    Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
 
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                                    LayoutInflater inflater = (LayoutInflater)view.getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                                    View view1 = inflater.inflate(R.layout.progress_alert_layout, null);
+                                    builder.setView(view1)
+                                            .setCancelable(false);
+                                    TextView text = (TextView)view1.findViewById(R.id.alert_text);
+                                    text.setText("그룹을 편집 중 입니다\n\n잠시만 기다려주세요...");
+                                    alertDialog = builder.create();
+                                    alertDialog.show();
                                 }
                             });
+                            commServer.editGroup(group.getId(), null, result, null);
+                            groupList = commServer.getAllGroups();
+                            handler.post(() -> {
+                                mHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        alertDialog.dismiss();
+                                        Toast.makeText(holder.view.getContext(),"그룹 편집을 성공했습니다!", Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });
+                                notifyDataSetChanged();
+                            });
+
                         }
                     }.start();
                 }

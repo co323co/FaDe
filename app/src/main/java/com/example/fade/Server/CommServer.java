@@ -15,6 +15,7 @@ import androidx.annotation.RequiresApi;
 
 import com.example.fade.LoginActivity;
 import com.example.fade.MainActivity;
+import com.example.fade.MainDrawerFragment;
 import com.example.fade.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -333,6 +334,7 @@ public class CommServer {
         try {
             call.execute();
             Log.d("server", "사람 삭제 성공 (deletePerson)");
+
         } catch (IOException e) {
             e.printStackTrace();
             Log.e("server", "통신실패 (deletePerson)"+e.getMessage());

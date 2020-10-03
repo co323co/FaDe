@@ -126,8 +126,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
         sharedPrefs = getSharedPreferences("alarm_check", MODE_PRIVATE);
-//        last_update = sharedPrefs.getString("last_update", dateFormat.format(new Date()));
-        last_update = "2020/09/30";
+        last_update = sharedPrefs.getString("last_update", dateFormat.format(new Date()));
+//        last_update = "2020/09/30";
         Log.e("마지막 업뎃 날짜", last_update);
         item.setChecked(sharedPrefs.getBoolean("check_switch", false));
         if(item.isChecked()){

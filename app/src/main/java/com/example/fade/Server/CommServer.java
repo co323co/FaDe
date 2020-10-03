@@ -382,7 +382,7 @@ public class CommServer {
                     //List<String> result = call.execute().body();
                     //gnameList.addAll(new ArrayList<>(result));
                     gnameList.addAll(new ArrayList<>(response.body()));
-                    Log.e("결과 반환", gnameList+"");
+                    Log.d("postDetectionPicture (updateGalleryImg)", "결과 반환" + gnameList);
                     moveGalleryImage(gnameList, uriArrayList);
                     Toast.makeText(context,"이미지 분류 완료", Toast.LENGTH_SHORT ).show();
                     if(MainActivity.CONTEXT!=null){
@@ -436,15 +436,18 @@ public class CommServer {
         ContentValues contentValues = new ContentValues();
         for(int i = 0; i<uriArrayList.size();i++){
             if(gname.get(i)=="None"){
+                    Log.d("moveGalleryImage", gname.get(i) + "얜 안옮김");
                     continue;
             }
             else{
+                Log.d("moveGalleryImage", gname.get(i) + "옮김");
+
                 contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, relativeLocation+gname.get(i));
                 contentResolver.update(uriArrayList.get(i), contentValues,null,null);
             }
 
         }
-        Log.i(uriArrayList.size()+"개의 사진 업데이트 완료함", "므엥");
+        Log.i("moveGalleryImage", uriArrayList.size()+"개의 사진 업데이트 완료함");
 
         return true;
     }

@@ -57,7 +57,7 @@ public class GalleryUpdate {
 
         int lastIndex;
 
-        dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm");
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         int i = 0;
 
         ArrayList<Bitmap>bitmaps = new ArrayList<Bitmap>();
@@ -98,6 +98,7 @@ public class GalleryUpdate {
         SharedPreferences.Editor editor = context.getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
         editor.putString("last_update", last_update);
         editor.commit();
+        Log.e("마지막 업데이트 날짜 현재로 변경",last_update);
         return byteList;
     }
 

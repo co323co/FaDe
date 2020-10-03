@@ -6,6 +6,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -362,6 +364,7 @@ public class CommServer {
 
         ArrayList<byte[]> byteList = imgByteList;
         ArrayList<String> gnameList = new ArrayList<>();
+        Handler mHandler = new Handler(Looper.getMainLooper());
 
         //바이트사진들 -> base64String으로 인코딩
         //사진바이트리스트를 JSON으로 파이썬에 던져주기 위해서 base64로 인코딩해서 JOSNobject로 만들었음.
@@ -375,12 +378,43 @@ public class CommServer {
         input.put("GalleryFiles", enFiles);
         Log.i("updateGalleryImg ", "GalleryFiles 묶기 완료");
 
+        Call<List<String>> call = connService.postDetectionPicture(LoginActivity.UserEmail, input);
+        try {
+            List<String> result = call.execute().body();
+            gnameList.addAll(new ArrayList<>(result));
+            Log.d("postDetectionPicture (updateGalleryImg)", "결과 반환" + gnameList);
+            moveGalleryImage(gnameList, uriArrayList);
+            mHandler.post(new Runnable() {
+              @Override
+              public void run() {
+                  Toast.makeText(context, "이미지 분류 완료", Toast.LENGTH_SHORT).show();
+                  if(MainActivity.CONTEXT!=null){
+                      ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
+                  }
+              }
+            });
+
+
+        } catch (Exception e) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context,"이미지 분류 실패", Toast.LENGTH_SHORT ).show();
+                    ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
+                    e.printStackTrace();
+                }
+            });
+
+        }
+    }
+
+/*
         //selectGalleryImage selectGalleryImage = new selectGalleryImage(context);
         connService.postDetectionPicture(LoginActivity.UserEmail, input).enqueue(new Callback<List<String>>() {
             @Override
             public void onResponse(Call<List<String>> call, Response<List<String>> response) {
                 try {
-
+                    call.execute();
                     //List<String> result = call.execute().body();
                     //gnameList.addAll(new ArrayList<>(result));
                     gnameList.addAll(new ArrayList<>(response.body()));
@@ -404,7 +438,7 @@ public class CommServer {
                 ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
             }
         });
-    }
+    }*/
     //inputStram을 byte[]로 바꿔준다
     byte[] inputStreamToByteArray(InputStream is) {
 
@@ -437,13 +471,10 @@ public class CommServer {
         ContentResolver contentResolver = context.getContentResolver();
         ContentValues contentValues = new ContentValues();
         for(int i = 0; i<uriArrayList.size();i++){
-            if(gname.get(i)=="None"){
-                    Log.d("moveGalleryImage", gname.get(i) + "얜 안옮김");
+            if(gname.get(i).equals("None")){
                     continue;
             }
             else{
-                Log.d("moveGalleryImage", gname.get(i) + "옮김");
-
                 contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, relativeLocation+gname.get(i));
                 contentResolver.update(uriArrayList.get(i), contentValues,null,null);
             }

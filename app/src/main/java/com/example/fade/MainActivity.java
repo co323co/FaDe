@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getMenuInflater().inflate(R.menu.menu, menu);
         mMenu = menu;
         MenuItem item = (MenuItem) menu.findItem(R.id.menu_alarm);
-        dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm");
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
         sharedPrefs = getSharedPreferences("alarm_check", MODE_PRIVATE);
         last_update = sharedPrefs.getString("last_update", dateFormat.format(new Date()));
@@ -277,11 +277,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             CommServer commServer = new CommServer(getApplicationContext());
                             Log.i("updateGalleryImg","실행 시작");
                             //서버에 보낸 후 값 받기
-                            commServer.updateGalleryImg(byteList, galleryUpdate.groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
                             handler.post(() -> {
                                 mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
                                 mMenu.findItem(R.id.menu_galleryRefresh).setActionView(new ProgressBar(CONTEXT));
                             });
+                            commServer.updateGalleryImg(byteList, galleryUpdate.groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
+
 
                         }catch (IOException e){
                             Log.i("updateGalleryImg ", e.getMessage());
@@ -525,6 +526,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //연필버튼을 누르면 연필버튼을 없애고 체크버튼을 나타냄. 그리고 이름을 수정 가능하게 함
         ibtn_edit.setOnClickListener(view -> {
+            Toast.makeText(holder.view.getContext(),"수정할 그룹 이름을 입력해주세요", Toast.LENGTH_SHORT).show();
+
             et_name.setEnabled(true);
             //포커스 줌
             et_name.requestFocus();
@@ -546,6 +549,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     commServer.editGroup(group.getId(), et_name.getText().toString(), null, null);
                 }
             }.start();
+            Toast.makeText(holder.view.getContext(),"그룹 이름 변경 완료", Toast.LENGTH_SHORT).show();
             et_name.setEnabled(false);
             ibtn_check.setVisibility(View.GONE);
             ibtn_edit.setVisibility(View.VISIBLE);

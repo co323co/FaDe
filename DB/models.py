@@ -24,6 +24,7 @@ class Group(Base):
     favorites = Column(Integer, nullable=False)
 
     uid = Column(Integer, ForeignKey('User.id',ondelete='CASCADE'))
+    group_infos = relationship("Group_info")
 
     def __init__(self, uid, name=None, favorites = 0):
         self.uid = uid
@@ -49,3 +50,18 @@ group_person = Table('group_person', Base.metadata,
     Column('gid', Integer, ForeignKey('Group.id', ondelete='CASCADE')),
     Column('pid', Integer, ForeignKey('Person.id',ondelete='CASCADE'))
 )
+
+
+#csv파일 대신하는 테이블
+class Group_info(Base):
+    __tablename__ = 'Group_info'
+
+    mname = Column(Text)
+    fnum = Column(Integer)
+    gid = Column(Integer, ForeignKey('Group.id',ondelete='CASCADE'),primary_key = True)
+
+#mname 모델파일 이름, fnum 모델에 학습된 얼굴 개수
+    def __init__(self, mname, fnum, gid):
+        self.mname = mname
+        self.fnum = fnum
+        self.gid = gid

@@ -11,7 +11,6 @@ import shutil
 import json
 import base64
 import time
-import csv
 from DB.database import db_session, engine, init_db, clear_db, db
 from DB.models import User, Group, Person, group_person
 from knn_modules import FaceDetect, FaceTrain
@@ -35,11 +34,22 @@ def index():
 #서버 초기화 (DB, 테이블 새로만들기, DATA폴더 삭제하기)
 @app.route('/initServer')
 def initServer():
+    #result = [v[0] for v in (engine.execute("SHOW DATABASES;").fetchall())]
+    #print(result)
+    #None인 경우 DB가 존재하지 않는단 의미
+
+    #if(db['database'] not in result): #DB가 없으면 만들어 준다
+    #        engine.execute("create database %s;"%db['database'])
+    #else: #있는 경우 테이블 싹 지워줌
     clear_db()
+
     init_db() #테이블 다시 새로만듦
+
     #서버에 DATA 디렉토리 삭제
     if os.path.exists(main_folder):
                 shutil.rmtree(main_folder, ignore_errors=True) 
+
+
     return "서버를 초기화했습니다"
 
 @app.route('/Login/<userEmail>', methods=['PUT', 'GET'])
@@ -76,7 +86,7 @@ def getGroup_Person(gid):
     result = engine.execute('Select pid From %s.group_person WHERE gid = %d;'%(db['database'],int(gid)))
     pidList = [v[0] for v in result.fetchall()]
     print(pidList)
-    return json.dumps(pidList)
+    return pidList
 
 #Get All Persons
 @app.route('/db/GetAllPersons/<userEmail>')
@@ -87,11 +97,13 @@ def getAllPersons(userEmail):
     rows = result.fetchall()
     dicList = []
     for v in rows:
-        if v[2] is None:
+        dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : None})
+        """if v[2] is None:
             dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : v[2]})
         else:    
-            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : base64.b64encode(v[2])})
-    return json.dumps(dicList)
+            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : base64.b64encode(v[2])})"""
+    print(dicList)
+    return json.dumps(dicList, ensure_ascii=False)
 
 @app.route('/db/GetPersonsByGid/<gid>')
 def getPersonsByGid(gid):
@@ -121,7 +133,7 @@ def getGroupsByPid(pid):
     dicList = []
     for v in rows:
         dicList.append({'id' : v[0], 'name' : v[1], 'favorites' : v[2]})
-    return json.dumps(dicList)
+    return json.dumps(dicList, ensure_ascii=False)
 
 @app.route('/gallery/upload/<uid>',methods = ['POST'])
 def postPIC(uid):
@@ -207,7 +219,7 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
 class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름, 넣을 pid들(리스트로), uid
     def post(self):
         ts = time.time()
-
+        print("여기까지 ok2")
         parser = reqparse.RequestParser()
         parser.add_argument('userEmail', type=str)
         parser.add_argument('gname', type=str) #그룹이름 
@@ -243,23 +255,16 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
         except:
             print('Error : Creating directory')
             
-        model_face_num = []
         print("Training KNN classifier...")
         classifier = FaceTrain.train(pidList, path, model_save_path=model_path+str(uid)+'_' + str(gid) +'_'+'model.clf', n_neighbors=2)
-        model_face_num.append(str(uid)+'_'+ str(gid)+'_'+'model.clf')
-        model_face_num.append(classifier)
-        model_face_num.append(gname)
+        
+        #group_info에 모델명, 모델에 학습시킨 얼굴 개수, gid 삽입
+        engine.execute('Insert into %s.group_info values("%s",%d,%d);'%(db['database'],str(uid)+'_' + str(gid) +'_'+'model.clf', classifier,int(gid)))
+        
+        
         print("================================")
 
         print(str(classifier)+" faces training complete! (pid_list : "+str(pidList)+")")
-        
-        #학습모델의 학습된 얼굴 개수 csv파일로 저장 (리스트로 받아오기 가능)
-        csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'a',encoding='utf-8-sig', newline='')
-        wr = csv.writer(csvfile)
-        wr.writerow(model_face_num)
-        csvfile.close()
-        
-
         elapsed = time.time()-ts
         print("서버 반환 걸린 시간: " +str(elapsed)) 
         print("================================\n")
@@ -288,12 +293,17 @@ class DetectionPicture(Resource):
         GalleryFiles=[]
         x = json.loads(GalleryFiles_en)
 
+
+    
         path = main_folder+ 'uid_'+str(uid)+'/'
 
         #path = './DATA/uid_'+uid+'/tmp/'
 
+        if not os.path.exists(path+"tmp"):
+            os.makedirs(path+"tmp")
+
         for k, v in x.items():
-            f=open(path+"/tmp/"+k,"wb")
+            f=open(path+"tmp/"+k,"wb")
             f.write(base64.b64decode(v))
             f.close()
 
@@ -308,11 +318,12 @@ class DetectionPicture(Resource):
         reg_group = []
         gnameList = []
     #==========사진 받아온 후 ====================
-        f = open(path+'model_face_num.csv', 'r', encoding='utf-8-sig')
-        rdr = csv.reader(f)
-        for line in rdr:
-            reg_group.append(line)
-        f.close()
+
+        #group_info에 있는 데이터 리스트로 가져옴
+        result = engine.execute('Select * From %s.group_info;'%(db['database']))
+        reg_group = [list(v) for v in result.fetchall()]    
+
+        print(reg_group)
 
         for image_file in os.listdir(path+'tmp') :
             full_img_path = os.path.join(path+'tmp', image_file)
@@ -329,17 +340,21 @@ class DetectionPicture(Resource):
                         i.append(predictions)
             print(reg_group)
             check_group = {}
+            #사진에서 인식된 얼굴의 수 리스트에 추가
+
             for i in reg_group:
                 check_group[i[2]] = [i[1], i[3]]
                 del i[3]
             print(check_group)
+            #학습시킨 얼굴의 개수와, 인식된 얼굴의 수를 비교하여 해당 사진이 어떤 그룹에 속하는지 반환
             group = FaceDetect.findBestFitModel(check_group)
+            print(group)
             if group == -1:
                 gnameList.append("None")
                 print(image_file+"은 적합한 그룹이 없습니다!!")
             else:
-                gnameList.append((engine.execute('Select name From %s.group WHERE gid = "%d";'%(db['database'], int(group)))).first()[0])
-                print(image_file+"은 "+group+"그룹에 적합한 사진입니다!")
+                gnameList.append((engine.execute('Select name From %s.group WHERE id = "%d";'%(db['database'], int(group)))).first()[0])
+                print(image_file+"은 "+str(group)+"그룹에 적합한 사진입니다!")
             elapsed = time.time()-ts
             print("얼굴 판별에 걸린 시간: " +str(elapsed))
             print("-------------------------------------------------------")
@@ -354,8 +369,9 @@ class DetectionPicture(Resource):
         print("서버 반환 시간: " +str(elapsed))
         print("================================\n")
 
-        print(gid_list)
-        return {"gnameList" : gnameList}
+        print(gnameList)
+        #return {"gnameList" : gnameList}
+        return gnameList
     
 class EditGroup(Resource):   
     def post(self):
@@ -401,29 +417,14 @@ class EditGroup(Resource):
             model_path = main_folder+'uid_'+str(uid)+group_folder
             path = main_folder+'uid_'+str(uid)+face_folder
     
-            #비어져있는 pidlist를 받으면 해당 그룹 모델파일을 없애버림
+            #비어져있는 pidlist를 받으면 해당 그룹 모델파일을 없애버림 --> 얼굴 삭제 했을 때 그룹에 사람이 없는경우
             if len(pidList) == 0: 
                 rStr+="pidList가 비어있어 모델 파일을 삭제함"
                 os.remove(model_path+str(uid)+'_'+str(gid)+'_'+'model.clf')
+                engine.execute('Delete From %s.group_info Where gid = %d;'%(db['database'],int(gid)))
 
-                csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'r',encoding='utf-8-sig', newline='')
-                rd = csv.reader(csvfile)
-                lines = []
-                for line in rd:
-                    if line[2] == str(gid):
-                        continue
-                    lines.append(line)
-                
-                print(str(lines)+"삭제 후 csv 파일 정보")
-
-                csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'w+',encoding='utf-8-sig', newline='')
-
-                wr = csv.writer(csvfile)
             
-                for line in lines:
-                    wr.writerow(line)
-                csvfile.close()
-                print("csv 파일 수정 완료")
+
 
             else:
                 #모델 디렉토리가 없으면 새로 생성
@@ -436,32 +437,14 @@ class EditGroup(Resource):
                 model_face_num = []
                 print("Training KNN classifier...")
                 classifier = FaceTrain.train(pidList, path, model_save_path=model_path+str(uid)+'_'+str(gid)+'_'+'model.clf', n_neighbors=2)
-                model_face_num.append(str(uid)+'_'+str(gid)+'_'+'model.clf')
-                model_face_num.append(classifier)
-                model_face_num.append(gid)
+                #group_info 새로 학습된 정보로 업데이트
+                engine.execute('update %s.group_info set fnum = %d where gid = %d;'%(db['database'],classifier,int(gid)))
+
                 print("================================")
 
                 print(str(classifier)+" faces training complete! (pidList : "+str(pidList)+")")
             
-                #학습모델의 학습된 얼굴 개수 csv파일로 저장 (리스트로 받아오기 가능)
-                csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'r',encoding='utf-8-sig', newline='')
-                rd = csv.reader(csvfile)
-                lines = []
-                for line in rd:
-                    if line[0] == model_face_num[0]:
-                        line[1] = model_face_num[1]
-                    lines.append(line)
-                
-                print(str(lines)+"수정할 그룹 정보")
-
-                csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'w+',encoding='utf-8-sig', newline='')
-
-                wr = csv.writer(csvfile)
-            
-                for line in lines:
-                    wr.writerow(line)
-                csvfile.close()
-                print("csv 파일 수정 완료")       
+ 
         elapsed = time.time()-ts
 
         print("서버 반환 걸린 시간: " +str(elapsed)) 
@@ -489,26 +472,7 @@ class DeleteGroup(Resource):    #json으로 전송해야할 것 : uid, gid
 
         model_path = main_folder+'uid_'+str(uid) + group_folder
 
-        os.remove(model_path+str(uid)+'_'+str(gid)+'_'+'model.clf')
-
-        csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'r',encoding='utf-8-sig', newline='')
-        rd = csv.reader(csvfile)
-        lines = []
-        for line in rd:
-            if line[1] == str(gid):
-                continue
-            lines.append(line)
-            
-        print(str(lines)+"삭제 후 csv 파일 정보")
-
-        csvfile= open(main_folder+'uid_'+str(uid)+'/model_face_num.csv', 'w+',encoding='utf-8-sig', newline='')
-
-        wr = csv.writer(csvfile)
-        
-        for line in lines:
-            wr.writerow(line)
-        csvfile.close()
-        print("csv 파일 수정 완료")
+        os.remove(model_path+str(uid)+'_' + str(gid) +'_'+'model.clf')  
 
         elapsed = time.time() - ts
         print("uid :" + str(uid) +" , gid : "+str(gid))
@@ -537,6 +501,7 @@ class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
         gidList = str(tuple([v[0] for v in result])).replace(",)",")") #튜플은 원소가 1개인경우 (1,) 이런식으로 표현됨. 그래서 replace 한 것임
         if gidList != '()': #비어있는 그룹이 하나이상 존재한다면 delete한다
             engine.execute('Delete From %s.group Where id in %s;'%(db['database'], gidList))
+        
 
         #폴더 삭제
         shutil.rmtree(main_folder+'uid_'+ str(uid) +face_folder+'/'+str(pid), ignore_errors=True)  

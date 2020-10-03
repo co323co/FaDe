@@ -16,8 +16,11 @@ BASIC_URL = f"mysql+mysqlconnector://{db['user']}:{db['password']}@{db['host']}:
 #데이터베이스 엔진(데이터베이스에 접속할 엔진)
 #만약 db가 없다면 db를 만들어준다.
 engine = create_engine(BASIC_URL,echo=True, convert_unicode=True)
+print("셀렉트문 전")
 result = engine.execute("SELECT 1 FROM Information_schema.SCHEMATA WHERE SCHEMA_NAME = '%s'"%db['database']).first()
+print("셀렉트문 후")
 if not result:
+    print("리절트 존재", result[0])
     engine.execute("CREATE DATABASE Fade")
 
 #엔진을 프로젝트의 db로 다시 연결해 준다.

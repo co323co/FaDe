@@ -135,8 +135,8 @@ def postPIC(uid):
         if not os.path.exists(main_folder+'uid_'+ uid+'/tmp') :
             os.makedirs(main_folder+'uid_'+ uid+'/tmp')
 
-    except:
-        print('Error : Creating directory')
+    except Exception as e:
+        print('Error : Creating directory', e)
         
     try:
         parser = reqparse.RequestParser()
@@ -194,8 +194,8 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
         try:
             if not os.path.exists(path):
                 os.makedirs(path)
-        except:
-            print('Error : Creating directory')
+        except Exception as e:
+            print('Error : Creating directory', e)
         
         for i in range(len(pictureList)):
             f=open(path +'/'+ str(uid) + "_" + str(pid) + "_" + str(i) +".jpeg","wb")
@@ -245,8 +245,8 @@ class RegistGroup(Resource):    #json으로 전송해야할 것 : 폴더 이름,
         try:
             if not os.path.exists(model_path):
                 os.makedirs(model_path)
-        except:
-            print('Error : Creating directory')
+        except Exception as e:
+            print('Error : Creating directory', e)
             
         print("Training KNN classifier...")
         classifier = FaceTrain.train(pidList, path, model_save_path=model_path+str(uid)+'_' + str(gid) +'_'+'model.clf', n_neighbors=2)
@@ -276,8 +276,8 @@ class DetectionPicture(Resource):
                 os.makedirs('./DATA/uid_'+ uid)
             if not os.path.exists('./DATA/uid_'+ uid+'/tmp') :
                 os.makedirs('./DATA/uid_'+ uid+'/tmp')
-        except:
-            print('Error : Creating directory')
+        except Exception as e:
+            print('Error : Creating directory', e)
 
         parser = reqparse.RequestParser()
         parser.add_argument('GalleryFiles', type=str)
@@ -424,8 +424,8 @@ class EditGroup(Resource):
                 try:
                     if not os.path.exists(model_path):
                         os.makedirs(model_path)
-                except:
-                    print('Error : Creating directory')
+                except Exception as e:
+                    print('Error : Creating directory', e)
                 
                 model_face_num = []
                 print("Training KNN classifier...")

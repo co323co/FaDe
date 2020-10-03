@@ -34,13 +34,6 @@ def index():
 #서버 초기화 (DB, 테이블 새로만들기, DATA폴더 삭제하기)
 @app.route('/initServer')
 def initServer():
-    #result = [v[0] for v in (engine.execute("SHOW DATABASES;").fetchall())]
-    #print(result)
-    #None인 경우 DB가 존재하지 않는단 의미
-
-    #if(db['database'] not in result): #DB가 없으면 만들어 준다
-    #        engine.execute("create database %s;"%db['database'])
-    #else: #있는 경우 테이블 싹 지워줌
     clear_db()
 
     init_db() #테이블 다시 새로만듦
@@ -97,12 +90,11 @@ def getAllPersons(userEmail):
     rows = result.fetchall()
     dicList = []
     for v in rows:
-        dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : None})
-        """if v[2] is None:
+        if v[2] is None:
             dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : v[2]})
         else:    
-            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : base64.b64encode(v[2])})"""
-    print(dicList)
+            tostring = base64.encodebytes(v[2]).decode() #base64 bytes로 인코딩해준 후 문자열로 다시 디코딩해줌
+            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : tostring})
     return json.dumps(dicList, ensure_ascii=False)
 
 @app.route('/db/GetPersonsByGid/<gid>')
@@ -115,7 +107,8 @@ def getPersonsByGid(gid):
         if v[2] is None:
             dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : v[2]})
         else:    
-            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : base64.b64encode(v[2])})
+            tostring = base64.encodebytes(v[2]).decode() #base64 bytes로 인코딩해준 후 문자열로 다시 디코딩해줌
+            dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : tostring})
     return json.dumps(dicList)
 
 @app.route('/db/GetPidListByGid/<gid>')
@@ -176,7 +169,7 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
  
         pname = args['pname']
         if(args['thumbnail']):
-            thumbnail = base64.b64decode(args['thumbnail'])
+            thumbnail = base64.b64decode(args['thumbnail']) #byte형태로 db에 저장
         else:
             thumbnail = None
 
@@ -207,6 +200,7 @@ class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없�
         for i in range(len(pictureList)):
             f=open(path +'/'+ str(uid) + "_" + str(pid) + "_" + str(i) +".jpeg","wb")
             f.write(pictureList[i])
+            dcF = pictureList[0]
             f.close()
 
         elapsed = time.time()-ts
@@ -293,8 +287,6 @@ class DetectionPicture(Resource):
         GalleryFiles=[]
         x = json.loads(GalleryFiles_en)
 
-
-    
         path = main_folder+ 'uid_'+str(uid)+'/'
 
         #path = './DATA/uid_'+uid+'/tmp/'
@@ -423,9 +415,6 @@ class EditGroup(Resource):
                 os.remove(model_path+str(uid)+'_'+str(gid)+'_'+'model.clf')
                 engine.execute('Delete From %s.group_info Where gid = %d;'%(db['database'],int(gid)))
 
-            
-
-
             else:
                 #모델 디렉토리가 없으면 새로 생성
                 try:
@@ -444,7 +433,6 @@ class EditGroup(Resource):
 
                 print(str(classifier)+" faces training complete! (pidList : "+str(pidList)+")")
             
- 
         elapsed = time.time()-ts
 
         print("서버 반환 걸린 시간: " +str(elapsed)) 
@@ -501,7 +489,6 @@ class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
         gidList = str(tuple([v[0] for v in result])).replace(",)",")") #튜플은 원소가 1개인경우 (1,) 이런식으로 표현됨. 그래서 replace 한 것임
         if gidList != '()': #비어있는 그룹이 하나이상 존재한다면 delete한다
             engine.execute('Delete From %s.group Where id in %s;'%(db['database'], gidList))
-        
 
         #폴더 삭제
         shutil.rmtree(main_folder+'uid_'+ str(uid) +face_folder+'/'+str(pid), ignore_errors=True)  

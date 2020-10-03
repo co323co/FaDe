@@ -126,7 +126,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
         sharedPrefs = getSharedPreferences("alarm_check", MODE_PRIVATE);
-        last_update = sharedPrefs.getString("last_update", dateFormat.format(new Date()));
+//        last_update = sharedPrefs.getString("last_update", dateFormat.format(new Date()));
+        last_update = "2020/09/30";
         Log.e("마지막 업뎃 날짜", last_update);
         item.setChecked(sharedPrefs.getBoolean("check_switch", false));
         if(item.isChecked()){
@@ -272,18 +273,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void run() {
                         super.run();
                         try {
+                            handler.post(() -> {
+                                mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
+                                mMenu.findItem(R.id.menu_galleryRefresh).setActionView(new ProgressBar(CONTEXT));
+                            });
                             //갤러리 이미지 가져오기
                             ArrayList<byte[]> byteList = galleryUpdate.getByteArrayOfRecentlyImages();
                             CommServer commServer = new CommServer(getApplicationContext());
                             Log.i("updateGalleryImg","실행 시작");
                             //서버에 보낸 후 값 받기
-                            handler.post(() -> {
-                                mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);
-                                mMenu.findItem(R.id.menu_galleryRefresh).setActionView(new ProgressBar(CONTEXT));
-                            });
                             commServer.updateGalleryImg(byteList, galleryUpdate.groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
-
-
                         }catch (IOException e){
                             Log.i("updateGalleryImg ", e.getMessage());
                             mMenu.findItem(R.id.menu_galleryRefresh).setEnabled(true);

@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,6 +20,7 @@ public class GalleryUpdate {
     public ArrayList<Uri> groupUriList;
     public Context context;
     String last_update;
+    long last_update_Timestamp;
     public GalleryUpdate(Context context){
         this.context = context;
     }
@@ -27,14 +29,15 @@ public class GalleryUpdate {
         this.groupUriList = groupUriList;
         this.context = context;
         this.last_update = last_update;
+
     }
     public ArrayList<byte[]> getByteArrayOfRecentlyImages()   //최근 갤러리 이미지 가져오기
     {
         Uri uri;
-        SimpleDateFormat dateFormat;
-        ArrayList<byte[]> byteList = new ArrayList<byte[]>();
+        SimpleDateFormat dateFormat  = new SimpleDateFormat("yyyy/MM/dd");
+        try { last_update_Timestamp = (dateFormat.parse(last_update)).getTime()/1000; } catch (ParseException e) { e.printStackTrace(); }
+        ArrayList<byte[]> byteList = new ArrayList<>();
         groupUriList = new ArrayList<>();
-        String last_update; //제일 마지막에 업뎃한 시간
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
         ConvertFile convertFile  = new ConvertFile(context);
@@ -46,7 +49,8 @@ public class GalleryUpdate {
                 MediaStore.MediaColumns.DATE_ADDED,
         };
 
-        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'";
+        //last_update 이후의 사진만 가져옴
+        String where = MediaStore.Images.Media.MIME_TYPE + "='image/jpeg'" + " and " + MediaStore.MediaColumns.DATE_ADDED  + ">" + "'" + last_update_Timestamp  +"'";
         Cursor cursor = context.getContentResolver().query(uri, projection, where, null, MediaStore.MediaColumns.DATE_ADDED + " DESC");
 
 
@@ -57,7 +61,6 @@ public class GalleryUpdate {
 
         int lastIndex;
 
-        dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         int i = 0;
 
         ArrayList<Bitmap>bitmaps = new ArrayList<Bitmap>();
@@ -72,18 +75,16 @@ public class GalleryUpdate {
             String DateOfImage = dateFormat.format(new Date(cursor.getLong(columnDate) * 1000L));
             ContentResolver contentResolver = context.getContentResolver();
 
-            int compare_time_last = DateOfImage.compareTo(this.last_update);//사진이 생성된 날짜와 마지막 업뎃 날짜를 비교하여
-            if(compare_time_last>=0){
-                try{
-                    bitmaps.add(convertFile.resize(uriimage, 200));
-                    groupUriList.add(uriimage);
-                    i++;
+            try{
+                bitmaps.add(convertFile.resize(uriimage, 200));
+                groupUriList.add(uriimage);
+                i++;
 
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
+            }catch(Exception e){
+                e.printStackTrace();
             }
         }
+
         cursor.close();
 
         //리사이즈된 비트맵들을 바이트들로 바꿔줌

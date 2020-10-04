@@ -388,7 +388,7 @@ class EditGroup(Resource):
         #####db###########
         ##################
         # not 은 리스트 안에 값이 있는지 없는지를 확인 ex) p=[]일 경우 not p임. 즉 not으로 비교하면 없는 걸로 침
-        # None 은 해당 값 자체가 존재하는지를 혹인 ex) p=[]일 경우 p is not None임. 즉 None으로 비교하면 있는 걸로 침
+        # None 은 해당 값 자체가 존재하는지를 확인 ex) p=[]일 경우 p is not None임. 즉 None으로 비교하면 있는 걸로 침
         
         #빈 리스트를 준게 아니라 아예 값을 주지 않았을 때를 방지하기 위한 체크임
         if gname is not None :

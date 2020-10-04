@@ -21,7 +21,7 @@ result = engine.execute("SELECT 1 FROM Information_schema.SCHEMATA WHERE SCHEMA_
 print("셀렉트문 후")
 if result is not None: #윈도우에선 not으로 했지만 리눅스에선 is not None으로 해야 함
     print("리절트 존재", result[0])
-    engine.execute("CREATE DATABASE Fade")
+    engine.execute("CREATE DATABASE fade")
 
 #엔진을 프로젝트의 db로 다시 연결해 준다.
 engine = create_engine(DB_URL,echo=True, convert_unicode=True)

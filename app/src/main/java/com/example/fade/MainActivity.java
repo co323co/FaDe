@@ -160,6 +160,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.menu_logout:
                 Toast.makeText(getApplicationContext(),"로그아웃",Toast.LENGTH_SHORT).show();
+
+                sharedPrefs = getSharedPreferences("alarm_check", MODE_PRIVATE);
+                if(sharedPrefs.getBoolean("check_switch", false)){
+                    WorkManager.getInstance(getApplicationContext()).cancelUniqueWork("gallery_update");
+                    stopService(new Intent(getApplicationContext(), AlarmService.class));
+                    Toast.makeText(getApplicationContext(),"갤러리 자동 분류 기능 비활성화",Toast.LENGTH_SHORT).show();
+
+                }
+                SharedPreferences.Editor editor = getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
+                editor.putBoolean("check_switch", false);
+                editor.commit();
+
+
+
 //                Intent intent = new Intent(getApplicationContext(), LogoutActivity.class);
 //                intent.putExtra("setting_name","로그아웃");
 //                startActivity(intent);

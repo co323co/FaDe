@@ -6,7 +6,7 @@ from DB.database import Base
 
 
 class User(Base):
-    __tablename__ = 'User'
+    __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     googleEmail = Column(String(100), unique=True)
 
@@ -17,7 +17,7 @@ class User(Base):
         self.googleEmail = googleEmail
 
 class Group(Base):
-    __tablename__ = 'Group'
+    __tablename__ = 'group'
 
     id = Column(Integer, primary_key=True)
     name = Column(Text)
@@ -32,7 +32,7 @@ class Group(Base):
         self.favorites = favorites
 
 class Person(Base):
-    __tablename__ = 'Person'
+    __tablename__ = 'person'
 
     id = Column(Integer, primary_key=True)
     name = Column(Text)
@@ -54,7 +54,7 @@ group_person = Table('group_person', Base.metadata,
 
 #csv파일 대신하는 테이블
 class Group_info(Base):
-    __tablename__ = 'Group_info'
+    __tablename__ = 'group_info'
 
     mname = Column(Text)
     fnum = Column(Integer)

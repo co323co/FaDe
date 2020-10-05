@@ -10,8 +10,8 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     googleEmail = Column(String(100), unique=True)
 
-    groups = relationship("Group")
-    persons = relationship("Person")
+    groups = relationship("group")
+    persons = relationship("person")
 
     def __init__(self, googleEmail):
         self.googleEmail = googleEmail
@@ -23,8 +23,8 @@ class Group(Base):
     name = Column(Text)
     favorites = Column(Integer, nullable=False)
 
-    uid = Column(Integer, ForeignKey('User.id',ondelete='CASCADE'))
-    group_infos = relationship("Group_info")
+    uid = Column(Integer, ForeignKey('user.id',ondelete='CASCADE'))
+    group_infos = relationship("group_info")
 
     def __init__(self, uid, name=None, favorites = 0):
         self.uid = uid
@@ -38,7 +38,7 @@ class Person(Base):
     name = Column(Text)
     thumbnail = Column(LONGBLOB)
     
-    uid = Column(Integer, ForeignKey('User.id',ondelete='CASCADE'))
+    uid = Column(Integer, ForeignKey('user.id',ondelete='CASCADE'))
 
     def __init__(self, uid, name=None, thumbnail=None):
         self.uid = uid
@@ -47,8 +47,8 @@ class Person(Base):
 
 
 group_person = Table('group_person', Base.metadata,
-    Column('gid', Integer, ForeignKey('Group.id', ondelete='CASCADE')),
-    Column('pid', Integer, ForeignKey('Person.id',ondelete='CASCADE'))
+    Column('gid', Integer, ForeignKey('group.id', ondelete='CASCADE')),
+    Column('pid', Integer, ForeignKey('person.id',ondelete='CASCADE'))
 )
 
 
@@ -58,7 +58,7 @@ class Group_info(Base):
 
     mname = Column(Text)
     fnum = Column(Integer)
-    gid = Column(Integer, ForeignKey('Group.id',ondelete='CASCADE'),primary_key = True)
+    gid = Column(Integer, ForeignKey('group.id',ondelete='CASCADE'),primary_key = True)
 
 #mname 모델파일 이름, fnum 모델에 학습된 얼굴 개수
     def __init__(self, mname, fnum, gid):

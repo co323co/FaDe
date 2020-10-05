@@ -84,7 +84,7 @@ class Group_info(Base):
 
     groups = relationship("Group", foreign_keys=[gid])
 
-#mname 모델파일 이름, fnum 모델에 학습된 얼굴 개수
+#mname 모델 파일 이름, fnum 모델에 학습된 얼굴 개수
     def __init__(self, mname, fnum, gid):
         self.mname = mname
         self.fnum = fnum

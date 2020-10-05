@@ -132,8 +132,8 @@ def getGroupsByPid(pid):
 def postPIC(uid):
     
     try:
-        if not os.path.exists(main_folder+'uid_'+ uid+'/tmp') :
-            os.makedirs(main_folder+'uid_'+ uid+'/tmp')
+        if not os.path.exists(main_folder+'uid_'+ str(uid)+'/tmp') :
+            os.makedirs(main_folder+'uid_'+ str(uid)+'/tmp')
 
     except Exception as e:
         print('Error : Creating directory', e)
@@ -144,7 +144,7 @@ def postPIC(uid):
         args = parser.parse_args()
         Files_en=args['GalleryFiles']
         x = json.loads(Files_en)
-        path = main_folder+'uid_'+uid+'/tmp/'
+        path = main_folder+'uid_'+str(uid)+'/tmp/'
         for k, v in x.items():
             f=open(path+k,"wb")
             f.write(base64.b64decode(v))
@@ -272,10 +272,10 @@ class DetectionPicture(Resource):
         try:
             if not os.path.exists('./DATA'):
                 os.makedirs('./DATA')
-            if not os.path.exists('./DATA/uid_'+ uid) :
-                os.makedirs('./DATA/uid_'+ uid)
-            if not os.path.exists('./DATA/uid_'+ uid+'/tmp') :
-                os.makedirs('./DATA/uid_'+ uid+'/tmp')
+            if not os.path.exists('./DATA/uid_'+ str(uid)) :
+                os.makedirs('./DATA/uid_'+ str(uid))
+            if not os.path.exists('./DATA/uid_'+ str(uid)+'/tmp') :
+                os.makedirs('./DATA/uid_'+ str(uid)+'/tmp')
         except Exception as e:
             print('Error : Creating directory', e)
 
@@ -313,7 +313,8 @@ class DetectionPicture(Resource):
     #==========사진 받아온 후 ====================
 
         #group_info에 있는 데이터 리스트로 가져옴
-        result = engine.execute('Select * From %s.group_info;'%(db['database']))
+        
+        result = engine.execute('select * from %s.group_info where gid in (select id from %s.group where uid = %d);'%(db['database'],db['database'],int(uid)))
         reg_group = [list(v) for v in result.fetchall()]    
 
         print(reg_group)
@@ -508,8 +509,6 @@ class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
         model_path = main_folder+'uid_'+str(uid)+group_folder
         path = main_folder+'uid_'+str(uid)+face_folder
 
-        print(model_path)
-        print(path)
         
         for gid in dicList:
             result = engine.execute('Select p.* From %s.person as p, group_person as g_p WHERE p.id = g_p.pid and gid = %d;'%(db['database'],int(gid)))

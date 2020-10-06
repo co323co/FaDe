@@ -132,8 +132,8 @@ def getGroupsByPid(pid):
 def postPIC(uid):
     
     try:
-        if not os.path.exists(main_folder+'uid_'+ str(uid)+'/tmp') :
-            os.makedirs(main_folder+'uid_'+ str(uid)+'/tmp')
+        if not os.path.exists(main_folder+'uid_'+ str(uid)+"/tmp_"+str(uid)) :
+            os.makedirs(main_folder+'uid_'+ str(uid)+"/tmp_"+str(uid))
 
     except Exception as e:
         print('Error : Creating directory', e)
@@ -144,7 +144,7 @@ def postPIC(uid):
         args = parser.parse_args()
         Files_en=args['GalleryFiles']
         x = json.loads(Files_en)
-        path = main_folder+'uid_'+str(uid)+'/tmp/'
+        path = main_folder+'uid_'+str(uid)+"/tmp_"+str(uid)+'/'
         for k, v in x.items():
             f=open(path+k,"wb")
             f.write(base64.b64decode(v))
@@ -274,8 +274,8 @@ class DetectionPicture(Resource):
                 os.makedirs('./DATA')
             if not os.path.exists('./DATA/uid_'+ str(uid)) :
                 os.makedirs('./DATA/uid_'+ str(uid))
-            if not os.path.exists('./DATA/uid_'+ str(uid)+'/tmp') :
-                os.makedirs('./DATA/uid_'+ str(uid)+'/tmp')
+            if not os.path.exists('./DATA/uid_'+ str(uid)+'/tmp_'+str(uid)) :
+                os.makedirs('./DATA/uid_'+ str(uid)+'/tmp_'+str(uid))
         except Exception as e:
             print('Error : Creating directory', e)
 
@@ -292,11 +292,11 @@ class DetectionPicture(Resource):
 
         #path = './DATA/uid_'+uid+'/tmp/'
 
-        if not os.path.exists(path+"tmp"):
-            os.makedirs(path+"tmp")
+        if not os.path.exists(path+"tmp_"+str(uid)):
+            os.makedirs(path+"tmp_"+str(uid))
 
         for k, v in x.items():
-            f=open(path+"tmp/"+k,"wb")
+            f=open(path+"tmp_"+str(uid)+"/"+k,"wb")
             f.write(base64.b64decode(v))
             f.close()
 
@@ -319,8 +319,8 @@ class DetectionPicture(Resource):
 
         print(reg_group)
 
-        for image_file in os.listdir(path+'tmp') :
-            full_img_path = os.path.join(path+'tmp', image_file)
+        for image_file in os.listdir(path+"tmp_"+str(uid)) :
+            full_img_path = os.path.join(path+"tmp_"+str(uid), image_file)
             print("Looking for faces in {}".format(image_file))
             ts = time.time()
             # Find all people in the image using a trained classifier model
@@ -354,7 +354,7 @@ class DetectionPicture(Resource):
             print("-------------------------------------------------------")
 
         try:
-            shutil.rmtree(main_folder+'uid_'+ str(uid)+'/tmp', ignore_errors=True)  #폴더 삭제
+            shutil.rmtree(main_folder+'uid_'+ str(uid)+"/tmp_"+str(uid), ignore_errors=True)  #폴더 삭제
         except Exception as e:
             print('Error : Removing tmp directory : ', e)
 

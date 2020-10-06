@@ -129,7 +129,7 @@ public class LoginActivity extends AppCompatActivity {
         String familyname = userAccount.getFamilyName();
         String givenname = userAccount.getGivenName();
 
-        Toast.makeText(getApplicationContext(),"email : " + email + "\nid = " + id + "\nfamilyname = " + familyname + "\ngivenname = " + givenname, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(),"email : " + email, Toast.LENGTH_SHORT).show();
     }
     private void signOut(){
         mGoogleSignInClient.signOut().addOnCompleteListener(this, new OnCompleteListener<Void>() {

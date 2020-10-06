@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
+import com.example.fade.Alarm.AlarmReceiver;
 import com.example.fade.LoginActivity;
 import com.example.fade.MainActivity;
 import com.example.fade.MainDrawerFragment;
@@ -69,6 +70,7 @@ public class CommServer {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 Log.d("server", "통신성공 (putRegisterUser) ");
+
             }
 
             @Override
@@ -391,6 +393,17 @@ public class CommServer {
                   if(MainActivity.CONTEXT!=null){
                       ((MainActivity)(MainActivity.CONTEXT)).mMenu.findItem(R.id.menu_galleryRefresh).setActionView(null);
                   }
+                  mHandler.post(new Runnable() {
+                      @Override
+                      public void run() {
+
+                          AlarmReceiver alarmReceiver = new AlarmReceiver();
+
+                          alarmReceiver.createNotificationChannel(context);
+
+                      }
+                  });
+
               }
             });
 

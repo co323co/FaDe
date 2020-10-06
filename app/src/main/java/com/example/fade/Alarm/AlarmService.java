@@ -24,15 +24,15 @@ public class AlarmService extends Service {
 
 
         Toast.makeText(getApplicationContext(), "onTaskRemoved서비스로 들어옴", Toast.LENGTH_SHORT).show();
-        PeriodicWorkRequest saveRequest =
+        final PeriodicWorkRequest saveRequest =
                 new PeriodicWorkRequest.Builder(UploadWorker.class, 15, TimeUnit.MINUTES)
                         .build();
 
         WorkManager
                 .getInstance(this)
                 //.enqueue(saveRequest);
-                .enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.KEEP,saveRequest);
-                //.enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.REPLACE, saveRequest);
+                //.enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.KEEP,saveRequest);
+                .enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.KEEP, saveRequest);
 
         Toast.makeText(getApplicationContext(), "onTaskRemoved서비스에서 나감", Toast.LENGTH_SHORT).show();
 

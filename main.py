@@ -318,8 +318,8 @@ class DetectionPicture(Resource):
         reg_group = [list(v) for v in result.fetchall()]    
 
         print(reg_group)
-
-        for image_file in os.listdir(path+"tmp_"+str(uid)) :
+        os.listdir(path+"tmp_"+str(uid))
+        for image_file in os.listdir(path+"tmp_"+str(uid)).sort() :
             full_img_path = os.path.join(path+"tmp_"+str(uid), image_file)
             print("Looking for faces in {}".format(image_file))
             ts = time.time()

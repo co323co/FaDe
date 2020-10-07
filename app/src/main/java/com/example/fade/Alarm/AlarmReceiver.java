@@ -3,13 +3,16 @@ package com.example.fade.Alarm;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Button;
 
@@ -85,12 +88,22 @@ public class AlarmReceiver extends BroadcastReceiver {
         BitmapDrawable drawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.logo);
         Bitmap bitmap = drawable.getBitmap();
 
+
+
+        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri,"image/*");
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+
         NotificationCompat.Builder notifyBuilder = new NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setAutoCancel(true)
                 .setLargeIcon(bitmap)
                 .setSmallIcon(R.drawable.logo)
                 .setContentTitle("그룹 별 갤러리 자동정리가 완료되었습니다!")
+                .setContentIntent(pendingIntent)
                 .setContentText("갤러리로 들어가서 확인해보세요!");
 
         if (mNotificationManager != null) {

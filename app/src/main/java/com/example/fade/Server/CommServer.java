@@ -18,7 +18,6 @@ import androidx.annotation.RequiresApi;
 import com.example.fade.Alarm.AlarmReceiver;
 import com.example.fade.LoginActivity;
 import com.example.fade.MainActivity;
-import com.example.fade.MainDrawerFragment;
 import com.example.fade.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -195,7 +194,6 @@ public class CommServer {
                 try {
                     List<GroupData> result = call.execute().body();
                     groupList.addAll(new ArrayList<>(result));
-                    Log.e("그룹리스트 반환", groupList+"");
                     Log.d("server", "통신성공(getGroupsByPid) personList size : " +  groupList.size());
 
                 } catch (IOException e) {
@@ -498,4 +496,24 @@ public class CommServer {
 
         return true;
     }
+    public String getLastUpdate(String userEmail){
+        String date="";
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ConnService.URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        final ConnService connService = retrofit.create(ConnService.class);
+        Call<ResponseBody> call = connService.getLastUpdate(userEmail);
+        try {
+            date = call.execute().body().string();
+            Log.d("server", "통신성공(getLastUpdate) : " +  date);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("server", "통신실패(getLastUpdate) " +  e.getMessage());
+        }
+        return date;
+    }
+
 }

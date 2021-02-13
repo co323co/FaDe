@@ -126,8 +126,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
         sharedPrefs = getSharedPreferences("alarm_check", MODE_PRIVATE);
-        last_update = sharedPrefs.getString("last_update", dateFormat.format(new Date()));
-//        last_update = "2020/09/30";
+
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                CommServer commServer = new CommServer(getApplicationContext());
+                last_update = commServer.getLastUpdate(LoginActivity.UserEmail);
+            }
+        }; t.start(); try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
         Log.e("마지막 업뎃 날짜", last_update);
         item.setChecked(sharedPrefs.getBoolean("check_switch", false));
         if(item.isChecked()){
@@ -177,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                Intent intent = new Intent(getApplicationContext(), LogoutActivity.class);
 //                intent.putExtra("setting_name","로그아웃");
 //                startActivity(intent);
-                //로그아웃 액티비티  켜지고, 다시 로그인액티비티 켜니까 액티비티가 따당하고 켜져서 여기에 걍 코드올림
+                //로그아웃 액티비티  켜지고, 다시 로그인액티비티 켜면 액티비티가 켜짐
                 GoogleSignInClient mGoogleSignInClient;
                 GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
                 mGoogleSignInClient= GoogleSignIn.getClient(this,gso);
@@ -464,22 +470,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         ibtn_favorites.setOnClickListener(view -> {
-            Log.d("favorites test", group.getName());
             if(group.getFavorites()==0) {
-                Log.d("favorites test",  "if f==0 / size : " + favorites.size());
                 if(favorites.size()>=3){
                     Toast.makeText(view.getContext(), "즐겨찾기는 3개까지 가능합니다",Toast.LENGTH_SHORT).show();
                     return;
                 }
                 group.setFavorites(favorites.size()+1);
                 favorites.add(group);
-                Log.d("favorites test",  "size : " + favorites.size());
             }
             else {
-                Log.d("favorites test",  "size : " + favorites.size());
                 Boolean b = favorites.remove(group);
-                Log.d("favorites test",  "size : " + favorites.size());
-                Log.d("favorites test",  "isSucess : " + b.toString());
 
                 group.setFavorites(0);
                 Collections.sort(favorites, (g1, g2) -> {

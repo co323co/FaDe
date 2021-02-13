@@ -42,9 +42,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         createNotificationChannel(context);
 
         sendNotification(context);
-        //sendNotification(context);
 
-        Log.e("알람", "발생");
         //}
 
 
@@ -52,7 +50,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     //채널을 만드는 메소드
     public NotificationCompat.Builder createNotificationChannel(final Context context)
     {
-        Log.e("채널만들기 들어옴", "tq");
+
         mNotificationManager = (NotificationManager)
                 context.getSystemService(NOTIFICATION_SERVICE);
         // Builder 생성
@@ -78,7 +76,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             }
 
         }else notifyBuilder.setSmallIcon(R.mipmap.ic_launcher); // Oreo 이하에서 mipmap 사용하지 않으면 Couldn't create icon: StatusBarIcon 에러남
-        Log.e("채널만들기 성공", "tq");
+
         return notifyBuilder;
 
     }
@@ -111,7 +109,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             // 노티피케이션 동작시킴
             mNotificationManager.notify(1234, notifyBuilder.build());
         }
-        Log.e("notiy 생성 완료", "tq");
+
 
         return notifyBuilder;
     }

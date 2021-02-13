@@ -76,13 +76,12 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                     @Override
                     public void run() {
 
-                        Log.d("testtest", "실행시작");
                         //이미지들 비트맵으로 변환
                         for (Image image : images) {
 
                             Uri uri = image.getUri();
                             String rotation = convertFile.getRotationOfAllImage(uri);
-//                    Log.d("testtest", "get로테완료");
+                        //로테이션 완료
 
 //                       Bitmap bm = null;
                             Bitmap bm  = convertFile.resize(uri, 200);
@@ -100,8 +99,8 @@ public class RegiPersonActivity2 extends AppCompatActivity {
 //                       } catch (IOException e) {
 //                           e.printStackTrace();
 //                       }
-                            Log.d("testtest", "resize 완료");
-//                    Log.d("testtest", "uri to bm 완료");
+                         //resize 완료, URI to BM 완료
+
 
                             Bitmap bmRotated=null;
                             try{
@@ -111,7 +110,7 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                             bitmaps.add(bmRotated);
                         }
                         Log.d("testtest", "실행완료");
-                        /////////////API 낮은버전 (혹시모르니 지우지말자)
+                        /////////////API 낮은버전
 //                    ExifInterface exif = null; // 회전값
 //                    try {
 //                        exif = new ExifInterface(filePath);
@@ -172,7 +171,6 @@ public class RegiPersonActivity2 extends AppCompatActivity {
             if (convertView == null) {
                 ivUser = new ImageView(mcontext);
                 ivUser.setLayoutParams(new GridView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                //ivUser.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 ivUser.setPadding(3, 0, 3, 0);
             } else {
                 ivUser = (ImageView) convertView;
@@ -185,7 +183,6 @@ public class RegiPersonActivity2 extends AppCompatActivity {
                     .override(500)
                     .centerCrop()
                     .into(ivUser);
-//            Log.d(getRealPathFromURI(uri), "이미지 경로");
 
             return ivUser;
         }

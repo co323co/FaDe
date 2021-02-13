@@ -86,7 +86,6 @@ public class GalleryUpdate {
         }
 
         cursor.close();
-
         //리사이즈된 비트맵들을 바이트들로 바꿔줌
         ConvertFile.bitmapsToByteArrayThread t = convertFile.new bitmapsToByteArrayThread(bitmaps,byteList);
         t.start();
@@ -94,12 +93,12 @@ public class GalleryUpdate {
 
         Log.i("getByteArrayOfRecentlyImages", i+"개의 사진의 바이트가 담긴 리스트 리턴함");
 
-//업데이트한 날짜로 마지막에 업데이트한 날짜 바꿔주기!ㄱ
-        last_update = dateFormat.format(new Date());
-        SharedPreferences.Editor editor = context.getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
-        editor.putString("last_update", last_update);
-        editor.commit();
-        Log.e("마지막 업데이트 날짜 현재로 변경",last_update);
+////업데이트한 날짜로 마지막에 업데이트한 날짜 바꿔주기! -> 서버로 따로 빼냄
+//        last_update = dateFormat.format(new Date());
+//        SharedPreferences.Editor editor = context.getSharedPreferences("alarm_check", MODE_PRIVATE).edit();
+//        editor.putString("last_update", last_update);
+//        editor.commit();
+//        Log.e("마지막 업데이트 날짜 현재로 변경",last_update);
         return byteList;
     }
 

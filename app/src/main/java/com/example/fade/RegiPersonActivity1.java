@@ -87,7 +87,6 @@ public class RegiPersonActivity1 extends AppCompatActivity {
                 Image image = ImagePicker.getFirstImageOrNull(data);
                 EditText person_name = findViewById(R.id.et_profile_name_regiperson1);
                 Intent intent = new Intent(RegiPersonActivity1.this, RegiPersonActivity2.class);
-//                Log.d("filetest",images.size()+"");
                 intent.putParcelableArrayListExtra("images", (ArrayList<? extends Parcelable>) images);
                 intent.putExtra("profile_name", person_name.getText().toString());
 

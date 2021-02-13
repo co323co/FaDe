@@ -22,8 +22,6 @@ public class AlarmService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
 
-
-        Toast.makeText(getApplicationContext(), "onTaskRemoved서비스로 들어옴", Toast.LENGTH_SHORT).show();
         final PeriodicWorkRequest saveRequest =
                 new PeriodicWorkRequest.Builder(UploadWorker.class, 15, TimeUnit.MINUTES)
                         .build();
@@ -33,8 +31,6 @@ public class AlarmService extends Service {
                 //.enqueue(saveRequest);
                 //.enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.KEEP,saveRequest);
                 .enqueueUniquePeriodicWork("gallery_update", ExistingPeriodicWorkPolicy.KEEP, saveRequest);
-
-        Toast.makeText(getApplicationContext(), "onTaskRemoved서비스에서 나감", Toast.LENGTH_SHORT).show();
 
         super.onTaskRemoved(rootIntent);
 

@@ -33,7 +33,6 @@ public class UploadWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        Log.e("dowork으로 들어옴", "tq");
 
         Thread t = new Thread(){
             @Override
@@ -54,11 +53,9 @@ public class UploadWorker extends Worker {
 
                     ArrayList<byte[]> byteList = galleryUpdate.getByteArrayOfRecentlyImages();
                     CommServer commServer = new CommServer(getApplicationContext());
-                    Log.i("updateGalleryImg","실행 시작");
 
                     //서버에 보낸 후 값 받기
                     commServer.updateGalleryImg(byteList, galleryUpdate.groupUriList);//갤러리 경로변경할 이미지의 uri 리스트 따로 받아옴
-                    Log.e("dowork 완료", "tq");
                 }catch (IOException e){
                     Log.i("updateGalleryImg ", e.getMessage());
 

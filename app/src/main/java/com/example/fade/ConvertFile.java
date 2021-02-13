@@ -144,7 +144,7 @@ public class ConvertFile {
             Long id = cursor.getLong(columnID);
             Uri contentUri = Uri.withAppendedPath(uri, id.toString());
 
-            if (contentUri!=null) {//이미지 파일목록을 싹 돈다(언니 이쪽 부분만 바꾸면돼! 나만 쓰고 언니가 안쓰는 변수명은 지우고 행(날짜같은거))
+            if (contentUri!=null) {//이미지 파일목록을 싹 돈다
                 if(rotationOfImage==null) result = "0";
                 else {
                     result=rotationOfImage ;

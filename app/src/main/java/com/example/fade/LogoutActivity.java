@@ -27,15 +27,11 @@ public class LogoutActivity extends AppCompatActivity {
         mGoogleSignInClient=GoogleSignIn.getClient(this,gso);
 
 
-//        Toast.makeText(getApplicationContext(),getIntent().getExtras().getString("setting_name"), Toast.LENGTH_SHORT).show();
-
         if(getIntent().getExtras().getString("setting_name").equals("로그아웃")){
-//            Log.e("로그아웃으로 들어왔음", "");
 
             mGoogleSignInClient.signOut().addOnCompleteListener(this, new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
-//                    Toast.makeText(getApplicationContext(),"로그아웃 완료",Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                     startActivity(intent);
                 }

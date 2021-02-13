@@ -9,12 +9,13 @@ class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     googleEmail = Column(String(100), unique=True)
-
+    last_update = Column(String(10))
     groups = relationship("Group")
     persons = relationship("Person")
 
-    def __init__(self, googleEmail):
+    def __init__(self, googleEmail, last_update):
         self.googleEmail = googleEmail
+        self.last_update = last_update
 
 class Group(Base):
     __tablename__ = 'group'

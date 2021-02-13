@@ -14,6 +14,8 @@ import time
 from DB.database import db_session, engine, init_db, clear_db, db
 from DB.models import User, Group, Person, group_person
 from knn_modules import FaceDetect, FaceTrain
+import datetime
+
 app = Flask(__name__)
 api = Api(app)
 
@@ -32,7 +34,7 @@ def index():
     return "Flask 서버"
 
 #서버 초기화 (DB, 테이블 새로만들기, DATA폴더 삭제하기)
-@app.route('/initServer')
+@app.route('/init-server')
 def initServer():
     clear_db()
 
@@ -45,7 +47,7 @@ def initServer():
 
     return "서버를 초기화했습니다"
 
-@app.route('/Login/<userEmail>', methods=['PUT', 'GET'])
+@app.route('/users/<userEmail>/new', methods=['PUT', 'GET'])
 def loginUser(userEmail):
 
     #ignore을 쓰지 않고 굳이 번거롭게 select해서 if문으로 구분하는 이유
@@ -57,11 +59,18 @@ def loginUser(userEmail):
     if u:
         return "기존에 등록 된 유저입니다. ID : %s"%userEmail
     else:
-        engine.execute('Insert into user(googleEmail) values("%s");'%userEmail)
+        now = datetime.datetime.now()
+        nowDate = now.strftime('%Y/%m/%d')
+        engine.execute('Insert into user(googleEmail, last_update) values("%s", "%s");'%(userEmail, nowDate))
         return "새로운 User를 등록했습니다. ID : %s"%userEmail
 
+@app.route('/users/<userEmail>/last-update-date')
+def getLastUpdate(userEmail):
+    result = (engine.execute('Select last_update From %s.user WHERE googleEmail = "%s";'%(db['database'], userEmail))).first()[0]
+    return str(result)
+
 #Get All Groups by favorites
-@app.route('/db/GetAllGroups/<userEmail>')
+@app.route('/users/<userEmail>/all-groups')
 def getAllGroups(userEmail):
     uid = (engine.execute('Select id From %s.user WHERE googleEmail = "%s";'%(db['database'], userEmail))).first()[0]
     result = engine.execute('Select * From %s.group WHERE uid = %d order by favorites desc;'%(db['database'],uid))
@@ -74,7 +83,7 @@ def getAllGroups(userEmail):
     return json.dumps(dicList)
     
 
-@app.route('/db/GetGroup_Person/<gid>')
+@app.route('/users/<gid>/group-member')
 def getGroup_Person(gid):
     result = engine.execute('Select pid From %s.group_person WHERE gid = %d;'%(db['database'],int(gid)))
     pidList = [v[0] for v in result.fetchall()]
@@ -82,7 +91,7 @@ def getGroup_Person(gid):
     return pidList
 
 #Get All Persons
-@app.route('/db/GetAllPersons/<userEmail>')
+@app.route('/users/<userEmail>/all-people')
 def getAllPersons(userEmail):
     uid = (engine.execute('Select id From %s.user WHERE googleEmail = "%s";'%(db['database'], userEmail))).first()[0]
     result = engine.execute('Select * From %s.person WHERE uid = %d;'%(db['database'],uid))
@@ -97,7 +106,7 @@ def getAllPersons(userEmail):
             dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : tostring})
     return json.dumps(dicList, ensure_ascii=False)
 
-@app.route('/db/GetPersonsByGid/<gid>')
+@app.route('/groups/<gid>/all-people')
 def getPersonsByGid(gid):
     result = engine.execute('Select p.* From %s.person as p, group_person as g_p WHERE p.id = g_p.pid and gid = %d;'%(db['database'],int(gid)))
     #튜플들의 리스트로 결과 행들 받아옴
@@ -111,13 +120,13 @@ def getPersonsByGid(gid):
             dicList.append({'id' : v[0], 'name' : v[1], 'thumbnail' : tostring})
     return json.dumps(dicList)
 
-@app.route('/db/GetPidListByGid/<gid>')
+@app.route('/groups/<gid>/all-pids')
 def getPidListByGid(gid):
     result = engine.execute('Select pid From group_person WHERE gid = %d;'%int(gid))
     pidList = [v[0] for v in result.fetchall()]
     return json.dumps(pidList)
 
-@app.route('/db/GetGroupsByPid/<pid>')
+@app.route('/people/<pid>/all-groups')
 def getGroupsByPid(pid):
     
     result = engine.execute('Select g.* From %s.group as g, group_person as g_p WHERE g.id = g_p.gid and pid = %d;'%(db['database'],int(pid)))
@@ -128,7 +137,7 @@ def getGroupsByPid(pid):
         dicList.append({'id' : v[0], 'name' : v[1], 'favorites' : v[2]})
     return json.dumps(dicList, ensure_ascii=False)
 
-@app.route('/gallery/upload/<uid>',methods = ['POST'])
+@app.route('/gallery/<uid>',methods = ['POST'])
 def postPIC(uid):
     
     try:
@@ -156,6 +165,110 @@ def postPIC(uid):
         print(e)
         return {'result':False}
 
+  
+class DetectionPicture(Resource):
+    def post(self, userEmail):
+        ts_total = time.time()
+
+        uid = (engine.execute('Select id From %s.user WHERE googleEmail = "%s";'%(db['database'], userEmail))).first()[0]
+        
+        try:
+            if not os.path.exists('./DATA'):
+                os.makedirs('./DATA')
+            if not os.path.exists('./DATA/uid_'+ str(uid)) :
+                os.makedirs('./DATA/uid_'+ str(uid))
+            if not os.path.exists('./DATA/uid_'+ str(uid)+'/tmp_'+str(uid)) :
+                os.makedirs('./DATA/uid_'+ str(uid)+'/tmp_'+str(uid))
+        except Exception as e:
+            print('Error : Creating directory', e)
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('GalleryFiles', type=str)
+        args = parser.parse_args()
+        GalleryFiles_en=args['GalleryFiles']
+        GalleryFiles=[]
+        x = json.loads(GalleryFiles_en)
+
+
+    
+        path = main_folder+ 'uid_'+str(uid)+'/'
+
+        #path = './DATA/uid_'+uid+'/tmp/'
+
+        if not os.path.exists(path+"tmp_"+str(uid)):
+            os.makedirs(path+"tmp_"+str(uid))
+
+        for k, v in x.items():
+            f=open(path+"tmp_"+str(uid)+"/"+k,"wb")
+            f.write(base64.b64decode(v))
+            f.close()
+
+        print("postGalleryPic")
+
+
+        elapsed = time.time() - ts_total
+        print("사진 받아오는데 걸린 시간: " +str(elapsed))
+        print("-------------------------------------------------------")
+
+
+        reg_group = []
+        gnameList = []
+    #==========사진 받아온 후 ====================
+
+        #group_info에 있는 데이터 리스트로 가져옴
+        
+        result = engine.execute('select * from %s.group_info where gid in (select id from %s.group where uid = %d);'%(db['database'],db['database'],int(uid)))
+        reg_group = [list(v) for v in result.fetchall()]    
+
+        print(reg_group)
+        os.listdir(path+"tmp_"+str(uid))
+        for image_file in sorted(os.listdir(path+"tmp_"+str(uid))):
+            full_img_path = os.path.join(path+"tmp_"+str(uid), image_file)
+            print("Looking for faces in {}".format(image_file))
+            ts = time.time()
+            # Find all people in the image using a trained classifier model
+            # Note: You can pass in either a classifier file name or a classifier model instance
+
+            for model_file in os.listdir(path+'group_model'):
+                full_model_path = os.path.join(path+'group_model', model_file)
+                predictions = FaceDetect.predict(full_img_path, model_path=full_model_path)
+                for i in reg_group:
+                    if i[0] == str(model_file):
+                        i.append(predictions)
+            print(reg_group)
+            check_group = {}
+            #사진에서 인식된 얼굴의 수 리스트에 추가
+
+            for i in reg_group:
+                check_group[i[2]] = [i[1], i[3]]
+                del i[3]
+            print(check_group)
+            #학습시킨 얼굴의 개수와, 인식된 얼굴의 수를 비교하여 해당 사진이 어떤 그룹에 속하는지 반환
+            group = FaceDetect.findBestFitModel(check_group)
+            print(group)
+            if group == -1:
+                gnameList.append("None")
+                print(image_file+"은 적합한 그룹이 없습니다!!")
+            else:
+                gnameList.append((engine.execute('Select name From %s.group WHERE id = "%d";'%(db['database'], int(group)))).first()[0])
+                print(image_file+"은 "+str(group)+"그룹에 적합한 사진입니다!")
+            elapsed = time.time()-ts
+            print("얼굴 판별에 걸린 시간: " +str(elapsed))
+            print("-------------------------------------------------------")
+
+        try:
+            shutil.rmtree(main_folder+'uid_'+ str(uid)+"/tmp_"+str(uid), ignore_errors=True)  #폴더 삭제
+        except Exception as e:
+            print('Error : Removing tmp directory : ', e)
+
+        print("================================")
+        elapsed = time.time()-ts_total
+        print("서버 반환 시간: " +str(elapsed))
+        print("================================\n")
+
+        print(gnameList)
+        #return {"gnameList" : gnameList}
+        return gnameList
 class RegistPerson(Resource): #얼굴등록할 때 모델 만들 필요가 없으므로 detection으로 학습기능 빼냄(즉, 사진 폴더별로 저장만)
     def post(self):                        #json으로 전송해야할 것 : userEmail, pname, 인물썸네일, 사진 리스트
         ts = time.time()
@@ -358,6 +471,11 @@ class DetectionPicture(Resource):
         except Exception as e:
             print('Error : Removing tmp directory : ', e)
 
+        now = datetime.datetime.now()
+        nowDate = now.strftime('%Y/%m/%d')
+        result = (engine.execute('update %s.user set last_update = "%s" WHERE googleEmail = "%s";'%(db['database'], nowDate, userEmail)))
+
+        print("마지막 업데이트 날짜 변경 완료")
         print("================================")
         elapsed = time.time()-ts_total
         print("서버 반환 시간: " +str(elapsed))
@@ -543,12 +661,12 @@ class DeletePerson(Resource):    #json으로 전송해야할 것 : uid, gid
         
         return {'uid': uid , 'pid' : pid}
 
-api.add_resource(RegistPerson, '/reg/person')
-api.add_resource(RegistGroup, '/reg/group')
+api.add_resource(RegistPerson, '/people/new')
+api.add_resource(RegistGroup, '/groups/new')
 api.add_resource(DetectionPicture, '/det/<userEmail>')
-api.add_resource(EditGroup, '/edit/group')
-api.add_resource(DeleteGroup, '/delete/group')
-api.add_resource(DeletePerson, '/delete/person')
+api.add_resource(EditGroup, '/groups/edit')
+api.add_resource(DeleteGroup, '/groups/delete')
+api.add_resource(DeletePerson, '/people/delete')   
 
 
 if __name__ == '__main__':

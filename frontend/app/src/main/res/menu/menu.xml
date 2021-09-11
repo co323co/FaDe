@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/menu_galleryRefresh"
+        android:title="GalleryRefresh"
+        android:icon="@drawable/ic_galleryrefresh"
+        app:showAsAction="always"/>
+
+    <group
+        android:title="menu"
+        android:icon="@drawable/ic_menu"
+        app:showAsAction="always">
+
+        <item android:id="@+id/menu_logout"
+            android:title="로그아웃"/>
+        <item android:id="@+id/menu_tutorial"
+            android:title="튜토리얼"/>
+        <item android:id="@+id/menu_alarm"
+            android:title="갤러리 자동정리"
+            android:checkable="true" />
+        <item android:id="@+id/menu_option"
+            android:title="어플 정보" />
+
+    </group>
+
+</menu>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.fade">
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!--
+         https말고 http되게하는 이거    android:usesCleartextTraffic="true"
+         제바으아알 까먹지말자아!!!!!!!!!!!!!!!!!!!!!!!
+
+                 android:allowBackup="false"
+
+    !-->
+    <application
+        android:requestLegacyExternalStorage="true"
+        android:usesCleartextTraffic="true"
+        android:fullBackupContent="false"
+        android:icon="@drawable/logo"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_logo"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:targetApi="m">
+        <activity android:name=".LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".MainActivity"/>
+        <activity android:name=".LogoutActivity"/>
+        <activity android:name=".RegiPersonActivity1"/>
+        <activity android:name=".RegiPersonActivity2"/>
+        <activity android:name=".TutorialActivity"/>
+        <activity android:name=".OptionActivity"/>
+
+        <service android:name=".Alarm.AlarmService"
+            android:stopWithTask="false" />
+        <receiver android:name=".Alarm.AlarmReceiver" />
+    </application>
+
+</manifest>

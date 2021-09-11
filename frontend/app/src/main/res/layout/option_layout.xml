@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical">
+    <TextView
+        android:layout_margin="10dp"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FADE"
+        android:textSize="60dp"
+        android:textColor="#000000">
+    </TextView>
+
+    <TextView
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="인공지능을 이용한 갤러리 정리 어플"
+        android:layout_marginBottom="20dp">
+
+
+    </TextView>
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@drawable/logo">
+
+
+    </ImageView>
+
+    <TextView
+        android:layout_margin="50dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="이 앱에는 네이버에서 제공한 나눔펜글꼴이 적용되어 있습니다. "
+        android:textSize="20dp"
+        android:textColor="#000000">
+    </TextView>
+
+    <TextView
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="made by heryms, diligent_coco, ekqls78ekqls">
+
+
+    </TextView>
+
+</LinearLayout>

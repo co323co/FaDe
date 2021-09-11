@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 메인에서 메뉴버튼을 눌렀을 때 등장하게 할 DrawLayout 임. 서랍같은 느낌!-->
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:fitsSystemWindows="true"
+    android:id="@+id/drawerLayout_main"
+    tools:openDrawer="start">
+    <!-- fitsSystemWindows는 뷰 영역을 상태바 등 까지 확장시켜 줌 !-->
+
+    <!-- 배경? 백?은 메인액티비티xml로  !-->
+    <include
+        layout="@layout/activity_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <fragment
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        class="com.example.fade.MainDrawerFragment"/>
+
+</androidx.drawerlayout.widget.DrawerLayout>
